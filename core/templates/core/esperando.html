@@ -1,0 +1,29 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h2>Enviando recordatorio</h2>
+
+{% if cita %}
+  <p><strong>Paciente:</strong> {{ cita.paciente }}</p>
+  <p><strong>Hora:</strong> {{ cita.hora|time:"H:i" }}</p>
+{% endif %}
+
+<div style="margin: 15px 0;">
+  <a class="btn btn-success" href="{{ url_whatsapp }}" target="_blank">
+    1) Abrir WhatsApp Web
+  </a>
+</div>
+
+<div style="margin: 15px 0;">
+  <a class="btn btn-primary" href="{% url 'confirmar_envio' %}">
+    2) Ya lo envié → Siguiente
+  </a>
+</div>
+
+<div style="margin: 15px 0;">
+  <a class="btn btn-secondary" href="{% url 'whatsapp_reminders' %}">
+    Volver a lista
+  </a>
+</div>
+
+{% endblock %}

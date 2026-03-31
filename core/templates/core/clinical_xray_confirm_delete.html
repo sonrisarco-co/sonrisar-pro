@@ -1,0 +1,26 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<h3 class="text-danger">Eliminar placa de Rayos X</h3>
+<hr>
+
+<p>
+    ¿Confirmás eliminar esta placa de
+    <strong>{{ rx.paciente }}</strong>?
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <button type="submit" class="btn btn-danger">
+        🗑️ Sí, eliminar
+    </button>
+
+    <a href="{% url 'clinical_xray_detail' rx.id %}"
+       class="btn btn-secondary ms-2">
+        Cancelar
+    </a>
+</form>
+
+{% endblock %}

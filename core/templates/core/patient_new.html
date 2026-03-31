@@ -1,0 +1,98 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<style>
+    .sonrisar-card {
+        max-width: 700px;
+        margin: auto;
+        background: #fff;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+
+    .sonrisar-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #26ABA5;
+        margin-bottom: 20px;
+    }
+
+    .sonrisar-form label {
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .sonrisar-form input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    .sonrisar-actions {
+        margin-top: 25px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-sonrisar {
+        background-color: #26ABA5;
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-sonrisar:hover {
+        background-color: #219c96;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+</style>
+
+<div class="sonrisar-card">
+    <div class="sonrisar-title">➕ Nuevo Paciente</div>
+
+    <form method="post" class="sonrisar-form">
+        {% csrf_token %}
+
+        <!-- 🔹 Esto permite volver a la agenda después de guardar -->
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <label>Nombre</label>
+        <input type="text" name="nombre" required>
+
+        <label>Apellido</label>
+        <input type="text" name="apellido" required>
+
+        <label>C.I.</label>
+        <input type="text" name="ci" required>
+
+        <label>Fecha de nacimiento</label>
+        <input type="date" name="fecha_nacimiento">
+
+        <label>Teléfono</label>
+        <input type="text" name="telefono">
+
+        <label>Correo electrónico</label>
+        <input type="email" name="email">
+
+        <label>Dirección</label>
+        <input type="text" name="direccion">
+
+        <div class="sonrisar-actions">
+            <a href="{% url 'patient_list' %}" class="btn-secondary">← Volver</a>
+            <button type="submit" class="btn-sonrisar">💾 Guardar paciente</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

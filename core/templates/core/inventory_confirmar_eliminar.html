@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Eliminar producto{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+
+            <h4 class="mb-4 text-danger">
+                ⚠️ Confirmar eliminación
+            </h4>
+
+            <p class="mb-4">
+                ¿Estás seguro que deseas eliminar el producto:<br>
+                <strong>{{ producto.nombre }}</strong>?
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <button type="submit" class="btn btn-danger px-4">
+                    Sí, eliminar
+                </button>
+
+                <a href="{% url 'inventory_list' %}" class="btn btn-secondary px-4 ms-2">
+                    Cancelar
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

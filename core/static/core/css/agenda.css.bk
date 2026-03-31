@@ -1,0 +1,93 @@
+/* ===============================
+   AGENDA – SONRISAR
+   =============================== */
+
+.table th {
+    background-color: #2c7a7b;
+    color: white;
+}
+
+.estado-programada {
+    color: #2c7a7b;
+    font-weight: 600;
+}
+
+.estado-confirmada {
+    color: #2f855a;
+}
+
+.estado-cancelada {
+    color: #c53030;
+}
+
+
+/* =================================================
+   SONRISAR – FORZAR COLOR ÚNICO
+   ================================================= */
+
+/* BARRA INICIO */
+.navbar,
+.navbar-expand-lg,
+.sonrisar-navbar {
+    background-color: #2c9faf !important;
+}
+
+
+/* LINKS NAVBAR */
+.navbar .nav-link,
+.navbar .navbar-brand {
+    color: #ffffff !important;
+}
+
+/* BOTÓN AGENDA MENSUAL (CALENDARIO) */
+.dashboard a[href*="calendario"],
+.dashboard a[href*="agenda"] {
+    background-color: #2c9faf !important;
+    border-color: #2c9faf !important;
+}
+
+/* BOTONES INTERNOS */
+.btn,
+.btn-primary,
+button {
+    background-color: #2c9faf !important;
+    border-color: #2c9faf !important;
+}
+
+
+/* ===============================
+   SONRISAR - COLORES DEFINITIVOS
+   =============================== */
+
+/* Barra superior (Inicio, Agenda, etc) */
+nav.navbar,
+nav.navbar.sonrisar-navbar {
+    background-color: #26aba5 !important;
+}
+
+/* Texto de la barra */
+nav.navbar .nav-link,
+nav.navbar .navbar-brand {
+    color: #ffffff !important;
+}
+
+/* Hover navbar */
+nav.navbar .nav-link:hover {
+    color: #e6f5f4 !important;
+}
+
+/* Botón Agenda mensual (calendario) */
+a.btn,
+a.btn-primary,
+a.agenda-calendario,
+.btn-agenda-calendario {
+    background-color: #26aba5 !important;
+    border-color: #26aba5 !important;
+    color: #ffffff !important;
+}
+
+/* Hover botones */
+a.btn:hover,
+.btn:hover {
+    background-color: #256d6f !important;
+}

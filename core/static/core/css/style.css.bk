@@ -1,0 +1,191 @@
+/* ===============================
+   SONRISAR – ESTILO BASE
+   =============================== */
+
+body {
+    background-color: #f5f7f8;
+    font-family: "Segoe UI", sans-serif;
+    color: #004d4d;
+}
+
+/* NAVBAR SONRISAR */
+.sonrisar-navbar {
+    background-color: #1f6f73 !important;
+    padding: 6px 0;
+}
+
+.sonrisar-navbar .nav-link,
+.sonrisar-navbar .navbar-brand {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+.sonrisar-navbar .nav-link:hover {
+    text-decoration: underline;
+}
+
+/* LOGO */
+.sonrisar-logo {
+    height: 42px;
+}
+
+/* BOTONES SONRISAR */
+.btn,
+.btn-primary {
+    background-color: #2c7a7b !important;
+    border-color: #2c7a7b !important;
+    color: white !important;
+    border-radius: 20px;
+}
+
+.btn:hover {
+    background-color: #256d6d !important;
+}
+
+/* BOTÓN AGENDA MENSUAL (CALENDARIO) */
+.btn-calendario,
+.agenda-calendario {
+    background-color: #2c7a7b !important;
+    border-color: #2c7a7b !important;
+    color: white !important;
+}
+
+.btn-calendario:hover,
+.agenda-calendario:hover {
+    background-color: #256d6d !important;
+}
+
+/* ===============================
+   NAVBAR SONRISAR – DEFINITIVA
+   =============================== */
+
+nav.sonrisar-navbar {
+    background-color: #2c7a7b !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+nav.sonrisar-navbar .nav-link,
+nav.sonrisar-navbar .navbar-brand {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+nav.sonrisar-navbar .nav-link:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================
+   PALETA SONRISAR – VERDE OFICIAL
+   ===================================== */
+
+:root {
+    --sonrisar-verde: #2c7a7b;      /* VERDE DEL LOGO / BOTONES */
+    --sonrisar-verde-oscuro: #215e5f; /* reservado si se usa */
+}
+
+/* =====================================
+   NAVBAR (INICIO)
+   ===================================== */
+
+nav.sonrisar-navbar {
+    background-color: var(--sonrisar-verde) !important;
+}
+
+/* =====================================
+   BOTONES PRINCIPALES
+   ===================================== */
+
+.btn,
+.btn-primary {
+    background-color: var(--sonrisar-verde) !important;
+    border-color: var(--sonrisar-verde) !important;
+    color: #ffffff !important;
+}
+
+/* BOTÓN AGENDA MENSUAL (CALENDARIO) */
+.btn-calendar,
+.agenda-calendar-btn {
+    background-color: var(--sonrisar-verde) !important;
+    border-color: var(--sonrisar-verde) !important;
+    color: #ffffff !important;
+}
+
+
+/* =================================================
+   SONRISAR – COLOR ÚNICO GLOBAL
+   ================================================= */
+
+/* NAVBAR / INICIO */
+.sonrisar-navbar {
+    background-color: #2c9faf !important; /* verde claro Sonrisar */
+}
+
+.sonrisar-navbar .nav-link,
+.sonrisar-navbar .navbar-brand {
+    color: #ffffff !important;
+}
+
+/* TODOS LOS BOTONES */
+button,
+.btn,
+.btn-primary,
+.dashboard a,
+.dashboard button {
+    background-color: #2c9faf !important;
+    border-color: #2c9faf !important;
+    color: #ffffff !important;
+}
+
+/* BOTÓN AGENDA MENSUAL (CALENDARIO) */
+.dashboard a[href*="calendario"] {
+    background-color: #2c9faf !important;
+    border-color: #2c9faf !important;
+}
+
+/* HEADERS INTERNOS / TABLAS / SECCIONES */
+.table th,
+.page-header,
+.section-header,
+.internal-header {
+    background-color: #2c9faf !important;
+    color: #ffffff !important;
+}
+
+
+/* =========================
+   NAVBAR SONRISAR DEFINITIVA
+   ========================= */
+
+.sonrisar-navbar {
+    background-color: #2c9faf !important; /* VERDE CLARO SONRISAR */
+    padding: 8px 16px;
+}
+
+.sonrisar-brand {
+    color: white !important;
+    font-weight: 600;
+}
+
+.sonrisar-menu .nav-link {
+    color: white !important;
+    margin-left: 16px;
+    font-weight: 500;
+}
+
+.sonrisar-menu .nav-link:hover {
+    text-decoration: underline;
+}
+
+
+/* ================================
+   NAVBAR SONRISAR - COLOR OFICIAL
+   ================================ */
+
+nav.navbar.sonrisar-navbar {
+    --bs-navbar-bg: #2c9faf;            /* verde claro Sonrisar */
+    --bs-navbar-color: #ffffff;
+    --bs-navbar-hover-color: #ffffff;
+    --bs-navbar-active-color: #ffffff;
+}

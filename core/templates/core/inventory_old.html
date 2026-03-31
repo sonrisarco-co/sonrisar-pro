@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% block title %}Inventario - Sonrisar Pro{% endblock %}
+{% block content %}
+<h2>📦 Inventario</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">💾 Guardar producto</button>
+</form>
+
+<hr>
+
+<h3>Productos en Stock</h3>
+{% for i in productos %}
+  <p>{{ i.nombre }} — {{ i.cantidad }} unidades — ${{ i.precio_unitario }}</p>
+{% empty %}
+  <p>No hay productos en inventario.</p>
+{% endfor %}
+
+<a href="/" style="display:block;margin-top:20px;">← Volver al panel</a>
+{% endblock %}

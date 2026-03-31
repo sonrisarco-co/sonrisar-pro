@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<h2>Nueva Historia Clínica</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Paciente</label>
+    <select name="paciente" class="form-control" required>
+        <option value="">Seleccione un paciente…</option>
+        {% for p in pacientes %}
+        <option value="{{ p.id }}">{{ p.nombre }} {{ p.apellido }} — {{ p.ci }}</option>
+        {% endfor %}
+    </select>
+
+    <label class="mt-3">Motivo</label>
+    <input type="text" name="motivo" class="form-control" required>
+
+    <label class="mt-3">Diagnóstico</label>
+    <textarea name="diagnostico" class="form-control"></textarea>
+
+    <label class="mt-3">Tratamiento</label>
+    <textarea name="tratamiento" class="form-control"></textarea>
+
+    <label class="mt-3">Evolución</label>
+    <textarea name="observaciones" class="form-control"></textarea>
+
+    <button class="btn btn-success mt-3" type="submit">
+        Guardar
+    </button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Pacientes - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h2 class="titulo-seccion">Lista de Pacientes</h2>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            ⬅ Volver al inicio
+        </a>
+        <a href="{% url 'patient_new' %}" class="btn btn-secondary">
+            + Nuevo paciente
+        </a>
+    </div>
+
+    <table class="table table-hover table-sonrisar align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>CI</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Email</th>
+                <th style="width: 280px;">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in pacientes %}
+            <tr>
+                <td>{{ p.nombre }} {{ p.apellido }}</td>
+                <td>{{ p.ci }}</td>
+                <td>{{ p.telefono|default:"—" }}</td>
+                <td>{{ p.direccion|default:"—" }}</td>
+                <td>{{ p.email|default:"—" }}</td>
+
+                <td>
+                <div class="acciones-paciente">
+                    <a href="{% url 'patient_detail' p.id %}"
+                        class="btn btn-outline-primary btn-sm">
+                         Ver ficha
+                    </a>
+
+                    <a href="{% url 'clinical_records_list' %}?q={{ p.ci }}"
+                        class="btn btn-outline-info btn-sm">
+                         Historia clínica
+                    </a>
+
+                    <a href="{% url 'patient_edit' p.id %}"
+                        class="btn btn-outline-warning btn-sm">
+                         Editar
+                    </a>
+
+                    <a href="{% url 'patient_delete' p.id %}"
+                        class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('¿Eliminar este paciente?')">
+                         Borrar
+                    </a>
+                </div>
+                </td>
+
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    No hay pacientes registrados.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

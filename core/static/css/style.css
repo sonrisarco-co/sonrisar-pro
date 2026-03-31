@@ -1,0 +1,531 @@
+/* =====================
+   SONRISAR – ESTILO ORIGINAL
+   ===================== */
+
+/* NAVBAR */
+.navbar-sonrisar {
+    background-color: #26ABA5;
+}
+
+.navbar-sonrisar .nav-link {
+    color: white !important;
+    font-weight: 500;
+}
+
+.navbar-sonrisar .nav-link:hover {
+    text-decoration: underline;
+}
+
+/* TÍTULOS */
+.titulo-seccion {
+    color: #1f6f6b;
+    font-weight: bold;
+}
+
+/* =====================
+   BOTONES ORIGINALES
+   ===================== */
+.btn-sonrisar {
+    background-color: #26ABA5;
+    border: none;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+.btn-sonrisar:hover {
+    background-color: #1f918c;
+    color: #fff;
+}
+
+.btn-sonrisar-outline {
+    background: transparent;
+    color: #26ABA5;
+    border: 1px solid #26ABA5;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+.btn-sonrisar-outline:hover {
+    background-color: #26ABA5;
+    color: white;
+}
+
+/* TABLAS */
+.table thead {
+    background-color: #26ABA5;
+    color: white;
+}
+
+.table .btn {
+    padding: 4px 10px;
+    font-size: 13px;
+    border-radius: 5px;
+}
+
+/* BORRAR */
+.btn-danger {
+    background-color: #c0392b;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #a93226;
+}
+
+/* FORMULARIOS */
+.form-group label {
+    font-weight: 600;
+}
+
+input, textarea {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* =============================
+   MOTIVOS – BASE GENERAL
+   ============================= */
+
+.motivo-color {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff !important;
+    display: inline-block;
+}
+
+/* =============================
+   COLORES OFICIALES SONRISAR
+   ============================= */
+
+/* Consulta / diagnóstico – gris */
+.motivo-consulta-diagnostico {
+    background-color: #6E6E6E !important;
+}
+
+/* Limpieza – celeste */
+.motivo-limpieza {
+    background-color: #00AEEF !important;
+}
+
+/* Resina – amarillo */
+.motivo-resina {
+    background-color: #FFD500 !important;
+    color: #000 !important;
+}
+
+/* Ajuste (ortodoncia) – turquesa */
+.motivo-ajuste-ortodoncia {
+    background-color: #00B3A4 !important;
+}
+
+/* Segunda colocación + ajuste – verde fuerte */
+.motivo-segunda-colocacion-ajuste {
+    background-color: #1E6F39 !important;
+}
+
+/* Colocación nueva – azul */
+.motivo-colocacion-nueva {
+    background-color: #0047BB !important;
+}
+
+/* Endodoncia – lila */
+.motivo-endodoncia {
+    background-color: #7A1FA2 !important;
+}
+
+/* Extracción – rojo */
+.motivo-extraccion {
+    background-color: #D62828 !important;
+}
+
+/* Prótesis – rosado */
+.motivo-protesis {
+    background-color: #D81B60 !important;
+}
+
+/* Urgencia – naranja */
+.motivo-urgencia {
+    background-color: #FF7A00 !important;
+}
+
+/* =============================
+   FIX PARA SELECT (MOTIVO)
+   ============================= */
+
+select.form-select,
+select.form-select option {
+    color: #000 !important;
+    background-color: #ffffff !important;
+}
+
+
+/* ===== FIX PRESUPUESTOS — TITULOS BLANCOS ===== */
+.table thead th {
+    color: white !important;
+}
+
+
+/* ===== BOTONES UNIFICADOS SONRISAR ===== */
+
+/* EDITAR (celeste Sonrisar) */
+.btn-edit {
+    background-color: #26ABA5 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+}
+.btn-edit:hover {
+    background-color: #1d8c89 !important;
+}
+
+/* ELIMINAR */
+.btn-delete {
+    background-color: #c0392b !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+}
+.btn-delete:hover {
+    background-color: #a93226 !important;
+}
+
+/* PDF / IMPRIMIR */
+.btn-pdf {
+    background-color: #e8e8e8 !important;
+    border: 1px solid #ccc !important;
+    color: #333 !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+}
+.btn-pdf:hover {
+    background-color: #dcdcdc !important;
+}
+
+/* ===== PRESUPUESTOS: encabezado con texto blanco (fix bootstrap) ===== */
+table.table-presupuestos thead th,
+table.table-presupuestos thead td {
+    color: #fff !important;
+}
+
+/* ===== PRESUPUESTOS: botones outline como Prótesis ===== */
+.btn-outline-edit{
+    background: transparent !important;
+    border: 2px solid #26ABA5 !important;
+    color: #26ABA5 !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+}
+.btn-outline-edit:hover{
+    background: #26ABA5 !important;
+    color: #fff !important;
+}
+
+.btn-outline-delete{
+    background: transparent !important;
+    border: 2px solid #c0392b !important;
+    color: #c0392b !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+}
+.btn-outline-delete:hover{
+    background: #c0392b !important;
+    color: #fff !important;
+}
+
+.btn-outline-pdf{
+    background: transparent !important;
+    border: 2px solid #6c757d !important;
+    color: #6c757d !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+}
+.btn-outline-pdf:hover{
+    background: #6c757d !important;
+    color: #fff !important;
+}
+
+
+/* === FIJAR SIEMPRE EL ENCABEZADO DE TABLAS SONRISAR === */
+.table-sonrisar th {
+    background-color: #26ABA5 !important;
+    color: white !important;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px;
+}
+
+
+table.table.table-striped.table-hover thead tr th {
+    background-color: #26ABA5 !important;
+    color: #fff !important;
+}
+
+
+/* ============================
+   PAGINACIÓN – SONRISAR STYLE
+   ============================ */
+
+/* Botones normales */
+.pagination .page-link {
+    color: #333 !important;            /* Gris oscuro */
+    background-color: #f5f5f5 !important; /* Gris claro suave */
+    border: 1px solid #ccc !important;
+}
+
+/* Hover */
+.pagination .page-link:hover {
+    background-color: #e0e0e0 !important;
+    color: #000 !important;
+}
+
+/* Botón activo */
+.pagination .page-item.active .page-link {
+    background-color: #26ABA5 !important; /* Verde Sonrisar */
+    border-color: #26ABA5 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+/* Botón deshabilitado */
+.pagination .page-item.disabled .page-link {
+    background-color: #ddd !important;
+    color: #777 !important;
+}
+
+
+/* ============================================
+   FORMULARIOS – ESTILO SONRISAR PRO
+   ============================================ */
+
+/* Caja del formulario */
+.form-box {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 650px;
+    margin: auto;
+}
+
+/* Labels */
+.form-box label {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Inputs */
+.form-box input,
+.form-box select,
+.form-box textarea {
+    border: 1px solid #bcd4d3 !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
+    font-size: 15px;
+}
+
+/* Inputs focus */
+.form-box input:focus,
+.form-box select:focus,
+.form-box textarea:focus {
+    border-color: #26ABA5 !important;
+    box-shadow: 0 0 4px rgba(38,171,165,0.4) !important;
+}
+
+/* Botón guardar */
+.btn-guardar {
+    background-color: #26ABA5 !important;
+    color: white !important;
+    border-radius: 8px;
+    padding: 8px 20px;
+    border: none;
+    font-size: 15px;
+}
+
+.btn-guardar:hover {
+    background-color: #1d8f89 !important;
+}
+
+/* Botón cancelar */
+.btn-cancelar {
+    background: transparent;
+    color: #555 !important;
+    border: 1px solid #aaa;
+    padding: 8px 20px;
+    border-radius: 8px;
+}
+
+.btn-cancelar:hover {
+    background: #f2f2f2;
+}
+
+/* Separación entre campos */
+.form-group {
+    margin-bottom: 18px;
+}
+
+
+/* BOTÓN VERDE SONRISAR */
+.btn-sonrisar {
+    background-color: #26ABA5 !important;
+    color: #fff !important;
+    border: 1px solid #26ABA5 !important;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-sonrisar:hover {
+    background-color: #1f918c !important;
+    color: #fff !important;
+}
+
+/* BOTÓN SONRISAR CON CONTORNO */
+.btn-sonrisar-outline {
+    background-color: #ffffff !important;
+    color: #26ABA5 !important;
+    border: 1px solid #26ABA5 !important;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-sonrisar-outline:hover {
+    background-color: #26ABA5 !important;
+    color: #fff !important;
+}
+
+
+/* ============================================================
+   ESTILOS PROFESIONALES — HISTORIA CLÍNICA SONRISAR
+   ============================================================ */
+
+.hc-wrapper {
+    max-width: 900px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.hc-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f6f6b;
+    margin-bottom: 10px;
+}
+
+.hc-paciente {
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+.hc-form label {
+    font-weight: 600;
+    color: #1f6f6b;
+    margin-bottom: 6px;
+}
+
+.hc-field {
+    margin-bottom: 22px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Campo MOTIVO en línea */
+.hc-inline {
+    max-width: 300px;
+}
+
+/* Inputs generales */
+.hc-form input[type="text"],
+.hc-form textarea,
+.hc-form select {
+    border: 1px solid #cdd6d6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 15px;
+    background: #f9fafa;
+}
+
+/* Textareas compactos + autoajuste */
+.hc-form textarea {
+    min-height: 30px !important;     /* Altura inicial */
+    max-height: 300px;
+    overflow-y: hidden;              /* Quita scrollbar */
+    resize: none;                    /* Desactiva tirador */
+    padding: 8px 12px;
+    border-radius: 8px;
+    line-height: 1.4;
+    width: 100%;
+    transition: height 0.2s ease;
+}
+
+
+
+/* Acciones */
+.hc-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+
+.table-sonrisar th {
+    background-color: #26ABA5 !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+
+/* BOTÓN EDITAR */
+.btn-outline-edit {
+    border: 2px solid #26ABA5 !important;
+    color: #26ABA5 !important;
+    background-color: transparent !important;
+    font-weight: 600;
+}
+
+/* BOTÓN ELIMINAR */
+.btn-outline-delete {
+    border: 2px solid #B92A2A !important;
+    color: #B92A2A !important;
+    background-color: transparent !important;
+    font-weight: 600;
+}
+
+/* Botones tamaño pequeño */
+.btn-sm {
+    padding: 2px 10px !important;
+    font-size: 0.85rem !important;
+}
+
+
+/* Botones Sonrisar extra-compactos */
+.btn-sm {
+    padding: 1px 6px !important;
+    font-size: 0.78rem !important;
+    line-height: 1 !important;
+}
+
+

@@ -1,0 +1,926 @@
+{% extends "core/base.html" %}
+{% block title %}Calendario Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="agenda-pro-fullbleed">
+    <div class="agenda-pro-layout">
+
+        <aside class="agenda-pro-sidebar-col" id="agendaSidebarCol">
+            <div class="agenda-pro-sidebar-wrap" id="agendaSidebarWrap">
+                <div class="agenda-pro-sidebar-card">
+                    <div class="agenda-pro-sidebar-header agenda-pro-sidebar-header-flex">
+                        <span>Almanaque</span>
+
+                        <div class="agenda-pro-mini-nav">
+                            <a href="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_prev_date|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}" title="Mes anterior">◀</a>
+                            <a href="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_next_date|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}" title="Mes siguiente">▶</a>
+                        </div>
+                    </div>
+
+                    <div class="agenda-pro-mini-month">
+                        <h3 class="agenda-pro-mini-title">{{ mini_mes_actual.label }}</h3>
+                        <table class="agenda-pro-mini-table">
+                            <thead>
+                                <tr>
+                                    <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for semana in mini_mes_actual.weeks %}
+                                <tr>
+                                    {% for dia in semana %}
+                                    <td>
+                                        {% if dia %}
+                                            <a href="{% url 'agenda_pro' %}?fecha={{ dia.date|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}"
+                                               class="agenda-pro-mini-day{% if dia.is_today %} today{% endif %}{% if dia.is_selected %} selected{% endif %}{% if dia.has_appointments %} has-appointments{% endif %}">
+                                                {{ dia.day }}
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="agenda-pro-main">
+            <section class="agenda-pro-main-card">
+
+                <div class="agenda-pro-sticky-block" id="agendaProStickyBlock">
+                    <div class="agenda-pro-header">
+                        <div class="agenda-pro-title-wrap">
+                            <h2 class="agenda-pro-title">Calendario Sonrisar</h2>
+                            <p class="agenda-pro-subtitle">
+                                Semana del {{ inicio_semana|date:"d/m/Y" }} al {{ fin_semana|date:"d/m/Y" }}
+                            </p>
+                        </div>
+
+                        <div class="agenda-pro-tools">
+                            <form method="get" class="agenda-pro-search">
+                                <input type="hidden" name="fecha" value="{{ inicio_semana|date:'Y-m-d' }}">
+                                <input type="hidden" name="mini_fecha" value="{{ mini_fecha_base|date:'Y-m-d' }}">
+                                <input
+                                    type="text"
+                                    name="q"
+                                    value="{{ q }}"
+                                    placeholder="Buscar paciente..."
+                                >
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Buscar</button>
+                                {% if q %}
+                                    <a href="{% url 'agenda_pro' %}?fecha={{ inicio_semana|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+                                {% endif %}
+                            </form>
+
+                            <div class="agenda-pro-btns">
+                                <a href="{% url 'agenda_pro' %}" class="btn btn-outline-primary btn-sm">Hoy</a>
+                                <a href="{% url 'agenda_pro' %}?fecha={{ semana_anterior|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-outline-secondary btn-sm">◀</a>
+                                <a href="{% url 'agenda_pro' %}?fecha={{ semana_siguiente|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}" class="btn btn-outline-secondary btn-sm">▶</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if q %}
+                    <div class="agenda-pro-filter-note">
+                        Mostrando en la semana resultados para: <strong>{{ q }}</strong>
+                    </div>
+                    {% endif %}
+
+                    <div class="agenda-pro-days-row">
+                        <div class="agenda-pro-days-grid">
+                            <div class="agenda-pro-day-cell hora-head">Hora</div>
+                            {% for d in dias %}
+                                <div class="agenda-pro-day-cell">
+                                    <a href="{% url 'agenda_day' day=d.day month=d.month year=d.year %}" class="agenda-pro-day-link">
+                                        {{ d|date:"l d/m" }}
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agenda-pro-scroll-x">
+                    <div class="agenda-pro-table-wrap">
+                        <table class="table agenda-pro-table">
+                            <tbody>
+                                {% for fila in filas %}
+                                <tr>
+                                    <td class="hora-col">{{ fila.hora|time:"H:i" }}</td>
+
+                                    {% for celda in fila.celdas %}
+                                    <td class="slot-disponible"
+                                        data-fecha="{{ celda.fecha|date:'Y-m-d' }}"
+                                        data-hora="{{ celda.hora|time:'H:i' }}">
+
+                                        {% if celda.ocupado %}
+                                            <div class="cita-stack">
+                                                {% for cita in celda.citas %}
+                                                    <div class="cita-card-wrapper">
+                                                        <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}"
+                                                           class="cita-edit-btn"
+                                                           title="Editar cita">✏</a>
+
+                                                        <a href="{% url 'abrir_historia_desde_cita' cita.paciente.id %}?appointment_id={{ cita.id }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}"
+                                                            class="cita-card-link">
+                                                            <div class="cita-card"
+                                                                 draggable="true"
+                                                                 data-id="{{ cita.id }}"
+                                                                 style="background: {{ cita.color }};">
+                                                                <strong>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</strong>
+                                                                <small>{{ cita.motivo }}</small>
+
+                                                                {% if cita.procedimientos %}
+                                                                    <small>
+                                                                        {% for procedimiento in cita.procedimientos %}
+                                                                            {{ procedimiento }}{% if not forloop.last %}, {% endif %}
+                                                                        {% endfor %}
+                                                                    </small>
+                                                                {% endif %}
+
+                                                                <small>{{ cita.hora|time:"H:i" }}</small>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <a class="slot-plus"
+                                               href="{% url 'appointment_new' %}?hora={{ celda.hora|time:'H:i' }}&fecha={{ celda.fecha|date:'Y-m-d' }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}">
+                                               +
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="agenda-pro-note">
+                    Clic en la cita abre la historia clínica. El botón ✏ abre la edición de la cita. También puedes arrastrarla a otro día u horario.
+                </div>
+
+            </section>
+
+            {% if q %}
+            <section class="agenda-pro-results">
+                <div class="agenda-pro-results-header">
+                    Todas las citas de "{{ q }}"
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table agenda-pro-results-table">
+                        <thead>
+                            <tr>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Fecha</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Hora</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Paciente</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Motivo</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Estado</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cita in resultados_paciente %}
+                            <tr>
+                                <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ cita.hora|time:"H:i" }}</td>
+                                <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
+                                <td>
+                                    <div>{{ cita.motivo }}</div>
+                                    <small class="text-muted">
+                                        {% for procedimiento in cita.procedimientos.all %}
+                                            {{ procedimiento.nombre }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </small>
+                                </td>
+                                <td>{{ cita.get_estado_display }}</td>
+                                <td>
+                                    <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ cita.fecha|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary">Abrir</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6">No hay resultados</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+<style>
+:root{
+    --sonrisar: #26ABA5;
+    --sonrisar-dark: #1f8e8a;
+    --line: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --card-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    --agenda-top-offset: 58px;
+}
+
+.agenda-pro-fullbleed{
+    width: calc(100vw - 20px);
+    margin-left: calc(50% - 50vw + 10px);
+    margin-right: 10px;
+    padding: 14px 0 24px;
+    box-sizing: border-box;
+}
+
+.agenda-pro-layout{
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.agenda-pro-sidebar-col{
+    width: 250px;
+}
+
+.agenda-pro-sidebar-wrap{
+    width: 250px;
+}
+
+.agenda-pro-sidebar-card,
+.agenda-pro-results{
+    background: #fff;
+    border: 1px solid #dde6ee;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+
+.agenda-pro-main-card{
+    background: #fff;
+    border: 1px solid #dde6ee;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    overflow: visible;
+    position: relative;
+}
+
+.agenda-pro-main{
+    min-width: 0;
+    width: 100%;
+}
+
+.agenda-pro-sidebar-header,
+.agenda-pro-results-header{
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    background: #fbfdff;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.96rem;
+}
+
+.agenda-pro-sidebar-header-flex{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.agenda-pro-mini-nav{
+    display: flex;
+    gap: 6px;
+}
+
+.agenda-pro-mini-nav a{
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #374151;
+    background: #f3f4f6;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.agenda-pro-mini-nav a:hover{
+    background: #e7f8f7;
+    color: var(--sonrisar-dark);
+}
+
+.agenda-pro-mini-month{
+    padding: 12px;
+}
+
+.agenda-pro-mini-title{
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.agenda-pro-mini-table{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 3px;
+}
+
+.agenda-pro-mini-table th{
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 700;
+    padding-bottom: 4px;
+}
+
+.agenda-pro-mini-table td{
+    width: 14.28%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.agenda-pro-mini-day{
+    width: 29px;
+    height: 29px;
+    margin: 0 auto;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.82rem;
+    position: relative;
+}
+
+.agenda-pro-mini-day:hover{
+    background: #eef9f8;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.agenda-pro-mini-day.today{
+    border: 2px solid var(--sonrisar);
+    font-weight: 700;
+}
+
+.agenda-pro-mini-day.selected{
+    background: var(--sonrisar);
+    color: #fff !important;
+    font-weight: 700;
+}
+
+.agenda-pro-mini-day.has-appointments::after{
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--sonrisar);
+}
+
+.agenda-pro-mini-day.selected.has-appointments::after{
+    background: #fff;
+}
+
+.agenda-pro-sticky-block{
+    position: sticky;
+    top: var(--agenda-top-offset);
+    z-index: 40;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+}
+
+.agenda-pro-header{
+    padding: 14px 18px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: #fff;
+}
+
+.agenda-pro-title-wrap{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.agenda-pro-title{
+    margin: 0;
+    font-size: 1.7rem;
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+}
+
+.agenda-pro-subtitle{
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.agenda-pro-tools{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.agenda-pro-search{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.agenda-pro-search input{
+    width: 210px;
+    max-width: 100%;
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 0 12px;
+    font-size: 0.92rem;
+    outline: none;
+    background: #fff;
+}
+
+.agenda-pro-search input:focus{
+    border-color: var(--sonrisar);
+    box-shadow: 0 0 0 3px rgba(38,171,165,0.12);
+}
+
+.agenda-pro-btns{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.agenda-pro-btns .btn{
+    border-radius: 10px;
+}
+
+.agenda-pro-filter-note{
+    padding: 8px 16px;
+    border-top: 1px solid var(--line);
+    background: #f8fffe;
+    color: #1f2937;
+    font-size: 0.88rem;
+}
+
+.agenda-pro-days-row{
+    background: #f6f9fc;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.agenda-pro-days-grid{
+    display: grid;
+    grid-template-columns: 84px repeat(6, minmax(139px, 1fr));
+    min-width: 920px;
+    background: #f6f9fc;
+}
+
+.agenda-pro-day-cell{
+    padding: 10px 10px;
+    font-weight: 700;
+    font-size: 0.96rem;
+    color: #111827;
+    border-right: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.agenda-pro-day-cell:last-child{
+    border-right: none;
+}
+
+.agenda-pro-day-link{
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: #111827;
+    text-decoration: none;
+}
+
+.agenda-pro-day-link:hover{
+    color: var(--sonrisar-dark);
+    text-decoration: none;
+}
+
+.hora-head{
+    background: #f6f9fc;
+}
+
+.agenda-pro-scroll-x{
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.agenda-pro-table-wrap{
+    width: 100%;
+    overflow: visible;
+    background: #fff;
+}
+
+.agenda-pro-table{
+    width: 100%;
+    min-width: 920px;
+    margin-bottom: 0;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.agenda-pro-table th,
+.agenda-pro-table td{
+    border-color: var(--line);
+}
+
+.hora-col{
+    width: 84px;
+    min-width: 84px;
+    background: #fafafa;
+    color: #374151;
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.slot-disponible{
+    min-height: 96px;
+    height: auto;
+    padding: 7px;
+    vertical-align: top;
+    position: relative;
+    background: #fff;
+    transition: background 0.15s ease;
+}
+
+.slot-disponible:hover{
+    background: #f8fffe;
+}
+
+.slot-disponible.drag-over{
+    background: #e7f8f7;
+    outline: 2px dashed var(--sonrisar);
+    outline-offset: -3px;
+}
+
+.slot-plus{
+    display: inline-block;
+    text-decoration: none;
+    color: var(--sonrisar);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.slot-plus:hover{
+    background: #e7f8f7;
+    color: var(--sonrisar-dark);
+    text-decoration: none;
+}
+
+.cita-stack{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cita-card-wrapper{
+    position: relative;
+}
+
+.cita-card-link{
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.cita-card{
+    color: #fff;
+    border-radius: 12px;
+    padding: 9px 30px 9px 9px;
+    line-height: 1.15;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    cursor: grab;
+    user-select: none;
+    min-height: 62px;
+}
+
+.cita-card:active{
+    cursor: grabbing;
+}
+
+.cita-card strong{
+    display: block;
+    font-size: 0.84rem;
+    margin-bottom: 2px;
+}
+
+.cita-card small{
+    display: block;
+    color: rgba(255,255,255,0.96);
+    font-size: 0.70rem;
+}
+
+.cita-edit-btn{
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    z-index: 3;
+}
+
+.cita-edit-btn:hover{
+    background: rgba(255,255,255,0.35);
+    color: #fff;
+    text-decoration: none;
+}
+
+.agenda-pro-note{
+    padding: 11px 16px;
+    border-top: 1px solid var(--line);
+    background: #fbfdff;
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+.agenda-pro-results{
+    margin-top: 18px;
+    background: #fff;
+    border: 1px solid #dde6ee;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+
+.agenda-pro-results-header{
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    background: #fbfdff;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.96rem;
+}
+
+.agenda-pro-results-table{
+    margin-bottom: 0;
+}
+
+.agenda-pro-results-table th{
+    background: #f9fafb;
+    color: #111827;
+    font-weight: 700;
+}
+
+.agenda-pro-results-table td,
+.agenda-pro-results-table th{
+    vertical-align: middle;
+}
+
+.agenda-pro-results-table td,
+.agenda-pro-results-table th {
+    color: #111827 !important;
+}
+
+.agenda-pro-results-table .text-muted {
+    color: #111827 !important;
+}
+
+.agenda-pro-results-table td * {
+    color: #111827 !important;
+    opacity: 1 !important;
+}
+
+.agenda-pro-results-table thead th {
+    color: #111827 !important;
+    background: #f3f4f6 !important;
+    font-weight: 700;
+}
+
+.agenda-pro-results-table,
+.agenda-pro-results-table td,
+.agenda-pro-results-table th {
+    color: #111827 !important;
+}
+
+.agenda-pro-results-table * {
+    color: #111827 !important;
+    opacity: 1 !important;
+}
+
+table.agenda-pro-results-table th,
+table.agenda-pro-results-table td {
+    color: #111827 !important;
+}
+
+table.agenda-pro-results-table thead th {
+    color: #111827 !important;
+    background-color: #f3f4f6 !important;
+    font-weight: 700 !important;
+}
+
+thead th {
+    color: #111827 !important;
+}
+
+@media (max-width: 1200px){
+    .agenda-pro-fullbleed{
+        width: calc(100vw - 16px);
+        margin-left: calc(50% - 50vw + 8px);
+        margin-right: 8px;
+    }
+
+    .agenda-pro-layout{
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-pro-sidebar-col,
+    .agenda-pro-sidebar-wrap{
+        width: 100%;
+    }
+
+    .agenda-pro-sidebar-wrap{
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+    }
+
+    .agenda-pro-sidebar-col{
+        height: auto !important;
+    }
+}
+
+@media (max-width: 991px){
+    .agenda-pro-title{
+        font-size: 1.45rem;
+    }
+
+    .agenda-pro-search input{
+        width: 165px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let citaId = null;
+
+    document.querySelectorAll(".cita-card").forEach(card => {
+        card.addEventListener("dragstart", function() {
+            citaId = this.dataset.id;
+            this.style.opacity = "0.6";
+        });
+
+        card.addEventListener("dragend", function() {
+            this.style.opacity = "1";
+            document.querySelectorAll(".slot-disponible").forEach(slot => {
+                slot.classList.remove("drag-over");
+            });
+        });
+    });
+
+    document.querySelectorAll(".slot-disponible").forEach(slot => {
+        slot.addEventListener("dragover", e => {
+            e.preventDefault();
+            slot.classList.add("drag-over");
+        });
+
+        slot.addEventListener("dragleave", function() {
+            this.classList.remove("drag-over");
+        });
+
+        slot.addEventListener("drop", function(e) {
+            e.preventDefault();
+            this.classList.remove("drag-over");
+
+            if (!citaId) return;
+
+            fetch(`/agenda/mover/${citaId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: new URLSearchParams({
+                    fecha: this.dataset.fecha,
+                    hora: this.dataset.hora
+                })
+            }).then(() => location.reload());
+        });
+    });
+
+    const sidebarCol = document.getElementById("agendaSidebarCol");
+    const sidebarWrap = document.getElementById("agendaSidebarWrap");
+    const stickyBlock = document.getElementById("agendaProStickyBlock");
+    const root = document.documentElement;
+
+    function getTopOffset() {
+        let nav = null;
+        const navs = Array.from(document.querySelectorAll("nav, .navbar"));
+        nav = navs.find(el => el.offsetHeight > 30) || null;
+
+        let topOffset = 58;
+        if (nav) {
+            const rect = nav.getBoundingClientRect();
+            topOffset = rect.bottom + 2;
+        }
+        return topOffset;
+    }
+
+    function updateSidebarFixed() {
+        if (!sidebarCol || !sidebarWrap) return;
+
+        if (window.innerWidth <= 1200) {
+            sidebarWrap.style.position = "static";
+            sidebarWrap.style.top = "";
+            sidebarWrap.style.left = "";
+            sidebarWrap.style.width = "";
+            sidebarCol.style.height = "";
+            return;
+        }
+
+        const topOffset = getTopOffset();
+        const sidebarExtraTop = 80;
+        const colRect = sidebarCol.getBoundingClientRect();
+
+        sidebarCol.style.height = sidebarWrap.offsetHeight + "px";
+        sidebarWrap.style.position = "fixed";
+        sidebarWrap.style.top = (topOffset + sidebarExtraTop) + "px";
+        sidebarWrap.style.left = colRect.left + "px";
+        sidebarWrap.style.width = sidebarCol.offsetWidth + "px";
+    }
+
+    function updateStickyMetrics() {
+        if (!stickyBlock) return;
+        const topOffset = getTopOffset();
+        root.style.setProperty("--agenda-top-offset", topOffset + "px");
+    }
+
+    function syncHorizontalScroll() {
+        const daysRow = document.querySelector(".agenda-pro-days-row");
+        const tableScroll = document.querySelector(".agenda-pro-scroll-x");
+        if (!daysRow || !tableScroll) return;
+
+        let syncing = false;
+
+        daysRow.addEventListener("scroll", function () {
+            if (syncing) return;
+            syncing = true;
+            tableScroll.scrollLeft = daysRow.scrollLeft;
+            syncing = false;
+        });
+
+        tableScroll.addEventListener("scroll", function () {
+            if (syncing) return;
+            syncing = true;
+            daysRow.scrollLeft = tableScroll.scrollLeft;
+            syncing = false;
+        });
+    }
+
+    updateStickyMetrics();
+    updateSidebarFixed();
+    syncHorizontalScroll();
+
+    window.addEventListener("resize", function () {
+        updateStickyMetrics();
+        updateSidebarFixed();
+    });
+
+    window.addEventListener("scroll", function () {
+        updateStickyMetrics();
+        updateSidebarFixed();
+    }, { passive: true });
+});
+</script>
+{% endblock %}

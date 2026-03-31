@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Enviando recordatorios...</title>
+
+    <script>
+        // Abrir WhatsApp Web automáticamente
+        window.onload = function () {
+            window.open("{{ url_whatsapp }}", "_blank");
+
+            // Si hay más pacientes → seguir automáticamente
+            {% if hay_mas %}
+                setTimeout(function() {
+                    window.location.href = "{% url 'siguiente_recordatorio' %}";
+                }, 4000);  // 4 segundos entre pacientes
+            {% endif %}
+        };
+    </script>
+</head>
+
+<body style="font-family: Arial; text-align:center; padding-top:40px;">
+    <h2>Enviando recordatorios...</h2>
+
+    {% if hay_mas %}
+        <p>Abriendo el siguiente paciente automáticamente...</p>
+    {% else %}
+        <p>¡Último mensaje enviado! Podés cerrar esta ventana.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% block title %}Presupuestos - Sonrisar Pro{% endblock %}
+{% block content %}
+<h2>💰 Presupuestos</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">💾 Guardar presupuesto</button>
+</form>
+
+<hr>
+
+<h3>Listado de Presupuestos</h3>
+{% for b in presupuestos %}
+  <p><strong>{{ b.paciente }}</strong> — {{ b.fecha }} — Total: ${{ b.total }}</p>
+{% empty %}
+  <p>No hay presupuestos registrados.</p>
+{% endfor %}
+
+<a href="/" style="display:block;margin-top:20px;">← Volver al panel</a>
+{% endblock %}

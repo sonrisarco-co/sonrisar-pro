@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Presupuesto - Sonrisar Pro</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+
+        /* ====== HEADER ====== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #26ABA5;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-info {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .titulo-doc {
+            font-size: 22px;
+            font-weight: 700;
+            color: #26ABA5;
+            margin-bottom: 6px;
+        }
+
+        .logo {
+            max-height: 160px;
+        }
+
+        /* ====== DATOS ====== */
+        .datos p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        .datos strong {
+            color: #26ABA5;
+            width: 140px;
+            display: inline-block;
+        }
+
+        /* ====== TABLA ====== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        thead th {
+            background-color: #26ABA5;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* ====== TOTAL ====== */
+        .total {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            color: #26ABA5;
+        }
+
+        /* ====== ACCIONES ====== */
+        .acciones {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn-print {
+            background-color: #26ABA5;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ====== FOOTER ====== */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+
+        @media print {
+            .acciones { display: none; }
+            body { margin: 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ENCABEZADO -->
+<div class="header">
+    <div class="header-info">
+        <div class="titulo-doc">Presupuesto</div>
+        <div>Román Guerra 752</div>
+        <div>WhatsApp 092 706 293</div>
+        <div>sonrisarco@gmail.com</div>
+    </div>
+
+    <img src="{% static 'img/logo.png' %}" class="logo" alt="Sonrisar">
+</div>
+
+<!-- DATOS -->
+<div class="datos">
+    <p><strong>Paciente:</strong> {{ presupuesto.paciente.nombre }} {{ presupuesto.paciente.apellido }}</p>
+    <p><strong>Fecha:</strong> {{ presupuesto.fecha|date:"d/m/Y" }}</p>
+
+    {% if presupuesto.diagnostico %}
+        <p><strong>Diagnóstico:</strong> {{ presupuesto.diagnostico }}</p>
+    {% endif %}
+</div>
+
+<!-- TABLA -->
+<table>
+    <thead>
+        <tr>
+            <th>Concepto</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Valor</th>
+            <th class="text-right">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.concepto }}</td>
+            <td class="text-right">{{ item.cantidad }}</td>
+            <td class="text-right">$ {{ item.valor|floatformat:2 }}</td>
+            <td class="text-right">$ {{ item.total_item|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- TOTAL -->
+<div class="total">
+    Total presupuesto: $ {{ presupuesto.total|floatformat:2 }}
+</div>
+
+<!-- BOTÓN IMPRIMIR -->
+<div class="acciones">
+    <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    © Sonrisar Pro – Dr. Rodrigo Suma · Todos los derechos reservados
+</div>
+
+</body>
+</html>

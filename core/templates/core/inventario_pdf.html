@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Inventario Sonrisar</title>
+    <style>
+        body { font-family: Arial; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #999; padding: 6px; text-align: left; }
+        th { background: #26aba5; color: white; }
+    </style>
+</head>
+<body>
+
+<h2>Inventario - Sonrisar Centro Odontológico</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Cant.</th>
+            <th>Precio</th>
+            <th>Total</th>
+            <th>Proveedor</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for p in productos %}
+        <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.categoria|default:"—" }}</td>
+            <td>{{ p.cantidad }}</td>
+            <td>$ {{ p.precio|floatformat:2 }}</td>
+            <td>$ {{ p.cantidad|multiplicar:p.precio|floatformat:2 }}</td>
+            <td>{{ p.proveedor|default:"—" }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

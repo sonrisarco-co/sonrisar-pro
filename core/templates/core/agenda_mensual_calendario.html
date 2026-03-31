@@ -1,0 +1,412 @@
+{% extends "core/base.html" %}
+{% load get_item %}
+
+{% block title %}Agenda mensual | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<h3 class="mb-3 text-center d-flex justify-content-between align-items-center">
+
+    <a href="?month={{ prev_month }}&year={{ prev_year }}"
+       class="btn btn-outline-secondary btn-sm">
+        ◀
+    </a>
+
+    <span>{{ nombre_mes|capfirst }} {{ year }}</span>
+
+    <a href="?month={{ next_month }}&year={{ next_year }}"
+       class="btn btn-outline-secondary btn-sm">
+        ▶
+    </a>
+
+</h3>
+
+<form method="get" class="input-group mb-4">
+    <input type="hidden" name="month" value="{{ month }}">
+    <input type="hidden" name="year" value="{{ year }}">
+
+    <input type="text" name="q" class="form-control"
+           placeholder="Buscar por paciente, CI o motivo"
+           value="{{ q }}">
+    <button class="btn btn-sonrisar" type="submit">Buscar</button>
+</form>
+
+{% if q %}
+    <h5 class="mb-3">Resultados para: <strong>{{ q }}</strong></h5>
+
+    {% if resultados %}
+        <table class="table table-hover">
+            <thead class="table-sonrisar">
+                <tr>
+                    <th>Paciente</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Motivo</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for cita in resultados %}
+                <tr>
+                    <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
+                    <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ cita.hora|time:"H:i" }}</td>
+                    <td>{{ cita.motivo }}</td>
+                    <td>
+                        <a href="{% url 'agenda_day' cita.fecha.day cita.fecha.month cita.fecha.year %}?next={{ request.get_full_path|urlencode }}%23dia-{{ cita.fecha.day }}"
+                           class="btn btn-sm btn-sonrisar-outline">
+                           Ver día
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted">No se encontraron citas.</p>
+    {% endif %}
+{% endif %}
+
+<table class="table table-bordered text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Lunes</th>
+            <th>Martes</th>
+            <th>Miércoles</th>
+            <th>Jueves</th>
+            <th>Viernes</th>
+            <th>Sábado</th>
+            <th>Domingo</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for semana in semanas %}
+        <tr>
+        {% for dia in semana %}
+
+            {% if dia == 0 %}
+                <td class="bg-light"></td>
+            {% else %}
+                <td class="calendar-cell {% if dia == hoy.day and month == hoy.month and year == hoy.year %}dia-actual semana-actual-target{% endif %}" id="dia-{{ dia }}">
+                    <div class="cell-wrapper d-flex flex-column">
+
+                        <div class="calendar-day-number mb-1">
+                            {{ dia }}
+                        </div>
+
+                        <a href="{% url 'agenda_day' dia month year %}?next={{ request.get_full_path|urlencode }}%23dia-{{ dia }}"
+                           class="btn btn-sm btn-sonrisar w-100 mb-2">
+                            Ver día
+                        </a>
+
+                        <div class="citas-lista">
+                            {% with key=dia|stringformat:"s" %}
+                                {% with slots=slots_por_dia_str|get_item:key %}
+                                    {% for s in slots %}
+
+                                        {% if s.bloqueado %}
+                                            <div class="calendar-slot bloqueado">
+                                                <small class="text-muted">{{ s.hora|time:"H:i" }}</small><br>
+                                                <strong>{{ s.motivo|default:"Bloqueado" }}</strong>
+                                            </div>
+
+                                        {% elif s.ocupado %}
+                                            <div class="calendar-slot ocupado">
+                                                <small class="text-muted d-block mb-1">{{ s.hora|time:"H:i" }}</small>
+
+                                                {% for cita in s.citas %}
+                                                    <div class="subcita cita-click subcita-{{ cita.estado|lower|slugify }}"
+                                                        data-id="{{ cita.id }}"
+                                                        style="cursor:pointer;">
+                                                        <div class="subcita-hora">{{ cita.hora_real|time:"H:i" }}</div>
+                                                        <div class="subcita-paciente">{{ cita.paciente }}</div>
+
+                                                        {% if cita.motivo %}
+                                                            <div class="subcita-motivo">{{ cita.motivo }}</div>
+                                                        {% endif %}
+
+                                                        <div class="subcita-acciones mt-1">
+                                                            <a href="{% url 'clinical_records_list' cita.patient_id %}"
+                                                            class="btn btn-xs btn-outline-success"
+                                                            onclick="event.stopPropagation();">
+                                                                Historia
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+
+                                        {% else %}
+                                            <div class="calendar-slot libre">
+                                                <small class="text-muted">{{ s.hora|time:"H:i" }}</small><br>
+                                                <span class="libre-txt">Libre</span>
+
+                                                <a href="{% url 'appointment_new' %}?fecha={{ year }}-{{ month|stringformat:'02d' }}-{{ dia|stringformat:'02d' }}&hora={{ s.hora|time:'H:i' }}&next={{ request.get_full_path|urlencode }}"
+                                                   class="btn btn-xs btn-outline-success w-100 mt-1">
+                                                   Agendar
+                                                </a>
+                                            </div>
+                                        {% endif %}
+
+                                    {% empty %}
+                                        <div class="text-muted small">Sin horarios</div>
+                                    {% endfor %}
+                                {% endwith %}
+                            {% endwith %}
+                        </div>
+
+                    </div>
+                </td>
+            {% endif %}
+
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- MODAL EDICIÓN RÁPIDA -->
+<div class="modal fade" id="quickEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Editar cita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body" id="quickEditBody">
+                Cargando...
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.table-light th {
+    color: #fffefe !important;
+    background-color: #26ABA5 !important;
+    font-weight: 700 !important;
+    font-size: 16px;
+    position: sticky;
+    top: 195px;
+    z-index: 1100;
+}
+
+.calendar-cell {
+    vertical-align: top;
+    padding: 6px;
+}
+
+.calendar-day-number {
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 18px;
+}
+
+.cell-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.citas-lista {
+    flex-grow: 1;
+    padding-right: 2px;
+}
+
+.calendar-slot {
+    padding: 4px 6px;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.calendar-slot.ocupado {
+    background: #e6f6f5;
+    border-left: 4px solid #26ABA5;
+}
+
+.calendar-slot.libre {
+    background: #f5f6f7;
+    border-left: 4px solid #d0d0d0;
+    color: #666;
+}
+
+.calendar-slot.bloqueado {
+    background: #fff3cd;
+    border-left: 4px solid #f0ad4e;
+    color: #7a5b00;
+}
+
+.libre-txt {
+    font-weight: 700;
+}
+
+.btn-xs {
+    font-size: 12px;
+    padding: 2px 6px;
+}
+
+.subcita {
+    background: rgba(255,255,255,0.75);
+    border-radius: 6px;
+    padding: 5px 6px;
+    margin-top: 6px;
+    transition: 0.15s ease-in-out;
+}
+
+.subcita:hover {
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.subcita-pendiente {
+    border-left: 5px solid #ffc107;
+}
+
+.subcita-confirmado {
+    border-left: 5px solid #0d6efd;
+}
+
+.subcita-asistio {
+    border-left: 5px solid #198754;
+}
+
+.subcita-no-asistio {
+    border-left: 5px solid #dc3545;
+}
+
+.subcita-cancelado {
+    border-left: 5px solid #6c757d;
+}
+
+.subcita-acciones {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.subcita-hora {
+    font-size: 12px;
+    font-weight: 700;
+    color: #146B6C;
+    line-height: 1.1;
+}
+
+.subcita-paciente {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+}
+
+.subcita-motivo {
+    font-size: 11px;
+    color: #555;
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+.semana-actual-target {
+    scroll-margin-top: 230px;
+}
+</style>
+
+<script>
+function posicionarSemanaActual() {
+    if (window.location.hash) return;
+
+    const target = document.querySelector(".semana-actual-target");
+    if (target) {
+        target.scrollIntoView({
+            behavior: "auto",
+            block: "start"
+        });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", posicionarSemanaActual);
+window.addEventListener("pageshow", posicionarSemanaActual);
+</script>
+
+<script>
+document.addEventListener("click", async function(e) {
+    const cita = e.target.closest(".cita-click");
+    if (!cita) return;
+
+    const id = cita.dataset.id;
+    const editUrl = `/agenda/editar/${id}/`;
+
+    const modalEl = document.getElementById("quickEditModal");
+    const body = document.getElementById("quickEditBody");
+    const modal = new bootstrap.Modal(modalEl);
+
+    body.innerHTML = "Cargando...";
+    body.dataset.submitUrl = editUrl;
+    modal.show();
+
+    try {
+        const res = await fetch(editUrl, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const html = await res.text();
+        body.innerHTML = html;
+        body.dataset.submitUrl = editUrl;
+
+    } catch (error) {
+        body.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar la edición rápida.</div>';
+    }
+});
+</script>
+
+<script>
+document.addEventListener("submit", async function(e) {
+    const form = e.target;
+
+    if (!form.closest("#quickEditBody")) return;
+
+    e.preventDefault();
+
+    const body = document.getElementById("quickEditBody");
+    const formData = new FormData(form);
+    const submitUrl = body.dataset.submitUrl;
+
+    try {
+        const res = await fetch(submitUrl, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+            const data = await res.json();
+
+            if (data.success) {
+                window.location.reload();
+                return;
+            }
+        }
+
+        const html = await res.text();
+        body.innerHTML = html;
+        body.dataset.submitUrl = submitUrl;
+
+    } catch (error) {
+        body.innerHTML = '<div class="alert alert-danger mb-0">No se pudo guardar la cita.</div>';
+    }
+});
+</script>
+
+{% endblock %}

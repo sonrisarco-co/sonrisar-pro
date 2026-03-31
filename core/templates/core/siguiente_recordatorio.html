@@ -1,0 +1,53 @@
+{% extends "core/base.html" %}
+
+{% block title %}Enviar recordatorio - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Enviar recordatorio</h2>
+
+    <div class="card p-3 shadow-sm">
+
+        <p><strong>Paciente:</strong> {{ cita.paciente.nombre }}</p>
+        <p><strong>Fecha:</strong> {{ cita.fecha }}</p>
+        <p><strong>Hora:</strong> {{ cita.hora }}</p>
+
+        <!-- Botón para abrir WhatsApp -->
+        <button onclick="abrirWhatsapp('{{ url_whatsapp }}')" class="btn btn-success mb-3">
+            📱 Abrir WhatsApp
+        </button>
+
+        <script>
+        function abrirWhatsapp(url) {
+            // Abrir o reutilizar SIEMPRE la misma pestaña llamada "sonrisar_whatsapp"
+            let win = window.open("", "sonrisar_whatsapp");
+
+            // Si la pestaña está vacía, es la primera vez
+            if (win.location.href === "about:blank") {
+                win.location.href = url;
+            } else {
+                // Ya existe → cambiar solo la URL
+                win.location.href = url;
+            }
+
+            win.focus();
+        }
+        </script>
+
+        <hr>
+
+        <!-- Botón siguiente paciente -->
+        <form action="{% url 'confirmar_envio' %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-primary">👉 Siguiente paciente</button>
+        </form>
+
+        <!-- Botón volver al inicio -->
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">
+            ⬅ Volver al inicio
+        </a>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,417 @@
+{% extends "core/base.html" %}
+
+{% block title %}Agenda del día | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    {% if request.GET.next %}
+        <a href="{{ request.GET.next }}" class="btn btn-light mb-3">
+            ← Volver al calendario
+        </a>
+    {% else %}
+        <a href="{% url 'agenda_pro' %}" class="btn btn-light mb-3">
+            ← Volver al calendario
+        </a>
+    {% endif %}
+
+    <h3 class="mb-3">
+        Agenda del {{ fecha|date:"d/m/Y" }}
+    </h3>
+
+    <div class="list-group">
+
+        {% for h in horarios %}
+            <div class="list-group-item d-flex align-items-start {% if not h.bloqueado %}drop-slot{% endif %}"
+                 {% if not h.bloqueado %}data-hora="{{ h.hora|time:'H:i' }}"{% endif %}>
+
+                <div class="me-3" style="width:70px; font-weight:bold;">
+                    {{ h.hora|time:"H:i" }}
+                </div>
+
+                <div class="flex-grow-1">
+
+                    {% if h.bloqueado %}
+                        <span class="badge" style="background:#fff3cd; color:#7a5b00; border:1px solid #f0ad4e;">
+                            {{ h.motivo|default:"Descanso" }}
+                        </span>
+
+                    {% else %}
+
+                        {% for cita in h.citas_exactas %}
+                            <div class="draggable-cita {% if not forloop.last or h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}"
+                                 draggable="true"
+                                 data-id="{{ cita.id }}">
+
+                                <div style="font-size: 13px; color:#146B6C; font-weight:700;">
+                                    {{ cita.hora_real|time:"H:i" }}
+                                </div>
+
+                                <div style="font-weight:600;">
+                                    {{ cita.paciente }}
+                                </div>
+
+                                <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+
+                                    {% with motivo=cita.motivo|lower|slugify %}
+
+                                        {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+                                            <span class="badge" style="background:#198754;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
+                                            <span class="badge" style="background:#26ABA5;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "limpieza" in motivo %}
+                                            <span class="badge" style="background:#0dcaf0;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "resina" in motivo %}
+                                            <span class="badge" style="background:#ffc107; color:#000;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "nueva" in motivo %}
+                                            <span class="badge" style="background:#0d6efd;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "endo" in motivo %}
+                                            <span class="badge" style="background:#6f42c1;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "extra" in motivo %}
+                                            <span class="badge" style="background:#dc3545;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "protes" in motivo %}
+                                            <span class="badge" style="background:#f11985;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "urg" in motivo %}
+                                            <span class="badge" style="background:#fd7e14;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ cita.motivo }}</span>
+                                        {% endif %}
+
+                                    {% endwith %}
+
+                                    {% if cita.estado_slug == "pendiente" %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% elif cita.estado_slug == "confirmado" %}
+                                        <span class="badge bg-primary">Confirmado</span>
+                                    {% elif cita.estado_slug == "asistio" %}
+                                        <span class="badge bg-success">Asistió</span>
+                                    {% elif cita.estado_slug == "no_asistio" %}
+                                        <span class="badge bg-danger">No asistió</span>
+                                    {% elif cita.estado_slug == "cancelado" %}
+                                        <span class="badge bg-secondary">Cancelado</span>
+                                    {% endif %}
+
+                                    {% if cita.pagado %}
+                                        <span class="badge badge-pagado">Pagado</span>
+                                    {% else %}
+                                        <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
+                                    {% endif %}
+
+                                    <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-outline-success">
+                                        Historia clínica
+                                    </a>
+
+                                    <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        Cobrar
+                                    </a>
+
+                                    <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-primary ms-2">
+                                        Editar
+                                    </a>
+
+                                    <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
+                                        Eliminar
+                                    </a>
+
+                                    {% if cita.procedimientos %}
+                                        <div class="mt-2 w-100">
+                                            <small style="color:#495057; font-weight:600;">Procedimientos:</small>
+                                            <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
+                                                {% for procedimiento in cita.procedimientos %}
+                                                    <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        {% endfor %}
+
+                        {% if not h.ocupado_exacto %}
+                            <div class="{% if h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}">
+                                <a href="{% url 'appointment_new' %}?fecha={{ fecha|date:'Y-m-d' }}&hora={{ h.hora|time:'H:i' }}&next={{ request.get_full_path|urlencode }}"
+                                   class="text-success"
+                                   style="font-weight:600; text-decoration:none;">
+                                    Disponible
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        {% for cita in h.citas_extra %}
+                            <div class="draggable-cita {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}"
+                                 draggable="true"
+                                 data-id="{{ cita.id }}">
+
+                                <div style="font-size: 13px; color:#146B6C; font-weight:700;">
+                                    {{ cita.hora_real|time:"H:i" }}
+                                </div>
+
+                                <div style="font-weight:600;">
+                                    {{ cita.paciente }}
+                                </div>
+
+                                <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+
+                                    {% with motivo=cita.motivo|lower|slugify %}
+
+                                        {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+                                            <span class="badge" style="background:#198754;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
+                                            <span class="badge" style="background:#26ABA5;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "limpieza" in motivo %}
+                                            <span class="badge" style="background:#0dcaf0;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "resina" in motivo %}
+                                            <span class="badge" style="background:#ffc107; color:#000;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "nueva" in motivo %}
+                                            <span class="badge" style="background:#0d6efd;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "endo" in motivo %}
+                                            <span class="badge" style="background:#6f42c1;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "extra" in motivo %}
+                                            <span class="badge" style="background:#dc3545;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "protes" in motivo %}
+                                            <span class="badge" style="background:#f11985;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% elif "urg" in motivo %}
+                                            <span class="badge" style="background:#fd7e14;">
+                                                {{ cita.motivo }}
+                                            </span>
+
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ cita.motivo }}</span>
+                                        {% endif %}
+
+                                    {% endwith %}
+
+                                    {% if cita.estado_slug == "pendiente" %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% elif cita.estado_slug == "confirmado" %}
+                                        <span class="badge bg-primary">Confirmado</span>
+                                    {% elif cita.estado_slug == "asistio" %}
+                                        <span class="badge bg-success">Asistió</span>
+                                    {% elif cita.estado_slug == "no_asistio" %}
+                                        <span class="badge bg-danger">No asistió</span>
+                                    {% elif cita.estado_slug == "cancelado" %}
+                                        <span class="badge bg-secondary">Cancelado</span>
+                                    {% endif %}
+
+                                    {% if cita.pagado %}
+                                        <span class="badge badge-pagado">Pagado</span>
+                                    {% else %}
+                                        <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
+                                    {% endif %}
+
+                                    <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-outline-success">
+                                        Historia clínica
+                                    </a>
+
+                                    <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        Cobrar
+                                    </a>
+
+                                    <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-primary ms-2">
+                                        Editar
+                                    </a>
+
+                                    <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
+                                        Eliminar
+                                    </a>
+
+                                    {% if cita.procedimientos %}
+                                        <div class="mt-2 w-100">
+                                            <small style="color:#495057; font-weight:600;">Procedimientos:</small>
+                                            <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
+                                                {% for procedimiento in cita.procedimientos %}
+                                                    <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        {% endfor %}
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<style>
+.draggable-cita {
+    cursor: grab;
+    border-radius: 8px;
+    transition: background 0.15s ease-in-out;
+}
+
+.draggable-cita:active {
+    cursor: grabbing;
+}
+
+.draggable-cita.dragging {
+    opacity: 0.5;
+    background: #eef8f7;
+}
+
+.drop-slot.drag-over {
+    background: #e8f7f5;
+    outline: 2px dashed #26ABA5;
+}
+
+.badge-pagado {
+    background: #198754 !important;
+    color: #fff !important;
+}
+
+.badge-pendiente-cobro {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    border: 1px solid #ced4da;
+}
+</style>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    let draggedId = null;
+
+    document.querySelectorAll(".draggable-cita").forEach(el => {
+        el.addEventListener("dragstart", function () {
+            draggedId = this.dataset.id;
+            this.classList.add("dragging");
+        });
+
+        el.addEventListener("dragend", function () {
+            this.classList.remove("dragging");
+        });
+    });
+
+    document.querySelectorAll(".drop-slot").forEach(slot => {
+        slot.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            this.classList.add("drag-over");
+        });
+
+        slot.addEventListener("dragleave", function () {
+            this.classList.remove("drag-over");
+        });
+
+        slot.addEventListener("drop", async function (e) {
+            e.preventDefault();
+            this.classList.remove("drag-over");
+
+            if (!draggedId) return;
+
+            const hora = this.dataset.hora;
+            if (!hora) return;
+
+            try {
+                const res = await fetch(`/agenda/mover/${draggedId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        hora: hora
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || "No se pudo mover la cita.");
+                }
+            } catch (error) {
+                alert("No se pudo mover la cita.");
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "core/base.html" %}
+
+{% block title %}Pacientes - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Lista de Pacientes</h2>
+
+    <div class="mb-3 text-end">
+        <a href="{% url 'patient_new' %}" class="btn btn-secondary btn-sonrisar-sm">
+            + Nuevo paciente
+        </a>
+    </div>
+
+    <table class="table table-hover table-sonrisar align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>CI</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Email</th>
+                <th style="width: 260px;">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in pacientes %}
+            <tr>
+                <td>{{ p.nombre }} {{ p.apellido }}</td>
+                <td>{{ p.ci }}</td>
+                <td>{{ p.telefono|default:"—" }}</td>
+                <td>{{ p.direccion|default:"—" }}</td>
+                <td>{{ p.email|default:"—" }}</td>
+
+                <td>
+
+                    <!-- Ver ficha -->
+                    <a href="{% url 'patient_detail' p.id %}"
+                       class="btn btn-outline-primary btn-sm btn-sonrisar-sm">
+                       Ver ficha
+                    </a>
+
+                    <!-- Historia clínica -->
+                    <a href="{% url 'clinical_records_list' %}?q={{ p.ci }}"
+                       class="btn btn-outline-info btn-sm btn-sonrisar-sm">
+                       Historia clínica
+                    </a>
+
+                    <!-- Editar -->
+                    <a href="{% url 'patient_edit' p.id %}"
+                       class="btn btn-outline-warning btn-sm btn-sonrisar-sm">
+                       Editar
+                    </a>
+
+                    <!-- Borrar -->
+                    <a href="{% url 'patient_delete' p.id %}"
+                       onclick="return confirm('¿Eliminar este paciente?')"
+                       class="btn btn-outline-danger btn-sm btn-sonrisar-sm">
+                       Borrar
+                    </a>
+
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    No hay pacientes registrados.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

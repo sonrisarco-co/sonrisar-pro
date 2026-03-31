@@ -1,0 +1,20 @@
+{% extends "core/base.html" %}
+{% block title %}Nueva cita - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="mb-3">
+        <a href="{{ next|default:'/' }}" class="btn btn-outline-secondary">
+            ⬅ Volver a la agenda
+        </a>
+    </div>
+
+    {% include "core/appointment_form_partial.html" %}
+
+    <div class="mt-3">
+        <a href="{{ next|default:'/' }}" class="btn btn-secondary px-4">Cancelar</a>
+    </div>
+
+</div>
+{% endblock %}

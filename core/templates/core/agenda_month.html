@@ -1,0 +1,79 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Agenda mensual{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <h2 class="text-center mb-4">Agenda mensual</h2>
+
+  {% if citas %}
+  <table class="table table-hover table-sonrisar align-middle">
+      <thead>
+          <tr>
+              <th>Día</th>
+              <th>Paciente</th>
+              <th>Hora</th>
+              <th>Estado</th>
+              <th>Motivo</th>
+              <th style="text-align:center;">Acciones</th>
+          </tr>
+      </thead>
+
+      <tbody>
+          {% for cita in citas %}
+          <tr>
+              <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+
+              <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
+
+              <td>{{ cita.hora|time:"H:i" }}</td>
+
+              <!-- ESTADO -->
+            <td>
+                {% if cita.estado == "pendiente" %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+
+                {% elif cita.estado == "confirmado" %}
+                    <span class="badge bg-primary">Confirmado</span>
+
+                {% elif cita.estado == "asistio" %}
+                    <span class="badge bg-success">Asistió</span>
+
+                {% elif cita.estado == "no_asistio" %}
+                    <span class="badge bg-danger">No asistió</span>
+
+                {% elif cita.estado == "cancelado" %}
+                    <span class="badge bg-secondary">Cancelado</span>
+                {% endif %}
+            </td>
+
+
+              <!-- MOTIVO A COLOR (FUNCIONANDO) -->
+              <td>
+                <span class="badge motivo-color motivo-{{ cita.motivo|lower|slugify }}">
+                    {{ cita.motivo }}
+                </span>
+
+              </td>
+
+              <td>
+                  <div class="agenda-actions">
+                      <a href="{% url 'appointment_edit' cita.id %}" class="btn btn-sm btn-info">Editar</a>
+                      <a href="{% url 'appointment_delete' cita.id %}" class="btn btn-sm btn-danger"
+                         onclick="return confirm('¿Eliminar esta cita?');">
+                         Eliminar
+                      </a>
+                  </div>
+              </td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+  {% else %}
+      <p>No hay citas para este mes.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

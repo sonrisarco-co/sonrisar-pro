@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<div class="xray-fullscreen">
+
+    <h2 class="text-center mb-3">Placa de Rayos X</h2>
+    <hr>
+
+    <p class="text-center">
+        <strong>Paciente:</strong> {{ rx.paciente }} |
+        <strong>Fecha:</strong> {{ rx.fecha }}
+    </p>
+
+    <div class="text-center">
+        <img src="{{ rx.imagen.url }}"
+             class="xray-image"
+             alt="Placa Rayos X">
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'clinical_record_detail' historia.id %}"
+           class="btn btn-secondary">
+            ⬅ Volver
+        </a>
+
+        <a href="{% url 'clinical_xray_delete' rx.id %}"
+           class="btn btn-danger ms-2">
+            🗑️ Eliminar placa
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

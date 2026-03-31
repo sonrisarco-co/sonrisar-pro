@@ -1,0 +1,237 @@
+{% extends "core/base.html" %}
+
+{% block title %}Inicio - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<style>
+    .panel-sonrisar {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 5px;
+    }
+
+    .titulo-columna {
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 12px;
+        color: #146B6C;
+    }
+
+    .btn-sonrisar {
+        display: block;
+        width: 100%;
+        background-color: #26ABA5;
+        color: white;
+        text-decoration: none;
+        padding: 5px 0;
+        margin-bottom: 10px;
+        border-radius: 18px;
+        font-size: 16px;
+        text-align: center;
+        transition: 0.2s;
+    }
+
+    .btn-sonrisar:hover {
+        background-color: #1f8f8a;
+        color: white;
+    }
+
+    .columna {
+        padding: 10px 20px;
+    }
+
+    .dashboard-card {
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        background: white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .dashboard-num {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+</style>
+
+<div class="panel-sonrisar">
+
+    <h2 class="text-center mb-4">Panel principal del sistema odontológico</h2>
+    <p class="text-center mb-5">
+        Acceso rápido a Agenda, Pacientes, Historia clínica, Presupuestos, Pagos, Inventario y Prótesis.
+    </p>
+
+    <div class="row">
+
+        <!-- AGENDA -->
+        <div class="col-md-4 columna">
+            <div class="titulo-columna">Agenda</div>
+
+            <a href="{% url 'agenda' %}" class="btn-sonrisar">🗓️ Agenda del día</a>
+            <a href="{% url 'agenda_week' %}" class="btn-sonrisar">📅 Agenda semanal</a>
+            <a href="{% url 'agenda_month' %}" class="btn-sonrisar">📆 Agenda mensual</a>
+            <a href="{% url 'agenda_pro' %}" class="btn-sonrisar">📅 Calendario</a>
+        </div>
+
+        <!-- PACIENTES -->
+        <div class="col-md-4 columna">
+            <div class="titulo-columna">Pacientes</div>
+
+            <a href="{% url 'patient_list' %}" class="btn-sonrisar">👤 Pacientes</a>
+            <a href="{% url 'clinical_record_search' %}" class="btn-sonrisar">📋 Historia clínica</a>
+            <a href="{% url 'budgets_list' %}" class="btn-sonrisar">🧾 Presupuestos</a>
+        </div>
+
+        <!-- ADMINISTRACIÓN -->
+        <div class="col-md-4 columna">
+            <div class="titulo-columna">Administración</div>
+
+            <a href="{% url 'payments_list' %}" class="btn-sonrisar">💰 Pagos / Caja</a>
+            <a href="{% url 'whatsapp_reminders' %}" class="btn-sonrisar">💬 WhatsApp</a>
+            <a href="{% url 'inventory_list' %}" class="btn-sonrisar">📦 Inventario</a>
+            <a href="{% url 'protesis_list' %}" class="btn-sonrisar">🦷 Prótesis</a>
+        </div>
+
+    </div>
+
+    <!-- =============================== -->
+    <!-- DASHBOARD ASISTENCIA -->
+    <!-- =============================== -->
+
+    <hr class="mt-5 mb-4">
+
+    <h4 class="text-center mb-4">
+        📊 Resumen
+
+        <a href="?month={{ prev_month }}&year={{ prev_year }}" 
+        class="btn btn-sm btn-light ms-3">◀</a>
+
+        {{ month }}/{{ year }}
+
+        <a href="?month={{ next_month }}&year={{ next_year }}" 
+        class="btn btn-sm btn-light ms-3">▶</a>
+    </h4>
+
+
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                Total turnos
+                <div class="dashboard-num">{{ total }}</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                Asistieron
+                <div class="dashboard-num text-success">{{ asistieron }}</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                No asistieron
+                <div class="dashboard-num text-danger">{{ no_asistieron }}</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                % Asistencia
+                <div class="dashboard-num">{{ porcentaje }}%</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-6 offset-md-3">
+            <canvas id="asistenciaChart"></canvas>
+        </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- RANKING INASISTENCIAS -->
+    <!-- =============================== -->
+
+    <hr class="mt-5 mb-4">
+
+    <h5 class="text-center mb-3">🚨 Pacientes con más inasistencias</h5>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Faltas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in ranking %}
+                        <tr>
+                            <td>{{ p.paciente__apellido }}, {{ p.paciente__nombre }}</td>
+                            <td class="text-danger fw-bold">{{ p.faltas }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center">
+                                No hay inasistencias registradas este mes.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('asistenciaChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            'Asistió',
+            'No asistió',
+            'Confirmado',
+            'Cancelado',
+            'Pendiente'
+        ],
+        datasets: [{
+            data: [
+                {{ asistieron|default:0 }},
+                {{ no_asistieron|default:0 }},
+                {{ confirmados|default:0 }},
+                {{ cancelados|default:0 }},
+                {{ pendientes|default:0 }}
+            ],
+            backgroundColor: [
+                '#198754',
+                '#dc3545',
+                '#0d6efd',
+                '#6c757d',
+                '#ffc107'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}

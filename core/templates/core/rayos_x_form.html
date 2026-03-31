@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h1>Nuevo Rayos X</h1>
+<h3>{{ paciente.nombre }} {{ paciente.apellido }}</h3>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div>
+        <label>Imagen</label><br>
+        {{ form.imagen }}
+    </div>
+
+    <div>
+        <label>Descripción</label><br>
+        {{ form.descripcion }}
+    </div>
+
+    <br>
+
+    <button type="submit" class="btn-sonrisar btn-primario">
+        💾 Guardar
+    </button>
+
+    <a href="{% url 'rayos_x_list' paciente.id %}"
+       class="btn-sonrisar btn-volver">
+       ⬅ Volver
+    </a>
+</form>
+
+{% endblock %}

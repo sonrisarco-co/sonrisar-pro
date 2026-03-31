@@ -1,0 +1,34 @@
+/* Estados */
+.estado-confirmado {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.estado-pendiente {
+    color: #c96a00;
+    font-weight: 600;
+}
+
+.estado-cancelado {
+    color: #c62828;
+    font-weight: 600;
+}
+
+/* Botones de acción */
+.btn-accion {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    border-radius: 14px;
+    text-decoration: none;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.btn-accion.editar {
+    background-color: #4fa3a5;
+}
+
+.btn-accion.eliminar {
+    background-color: #c96a6a;
+}

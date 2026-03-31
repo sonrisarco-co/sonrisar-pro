@@ -1,0 +1,21 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h2>Subir Rayos X – {{ paciente.nombre }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input type="file" name="imagen" required>
+    <br><br>
+
+    <input type="text" name="descripcion"
+           placeholder="Descripción (opcional)">
+
+    <br><br>
+    <button class="btn btn-success">Guardar</button>
+</form>
+
+<a href="{% url 'rayos_x_list' paciente.id %}">Cancelar</a>
+
+{% endblock %}

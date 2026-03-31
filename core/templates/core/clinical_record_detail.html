@@ -1,0 +1,235 @@
+{% extends "core/base.html" %}
+{% block title %}Historia Clínica{% endblock %}
+
+{% block content %}
+
+<style>
+    .hc-box {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .hc-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1f6f6b;
+        margin-bottom: 10px;
+    }
+
+    .hc-section-title {
+        font-size: 20px;
+        color: #1f6f6b;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-bottom: 12px;
+    }
+
+    .hc-item-label {
+        font-weight: 600;
+        color: #333;
+        margin-top: 15px;
+    }
+
+    .evolucion-card {
+        background: #eafaf9;
+        border-left: 5px solid #26ABA5;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        white-space: pre-wrap;
+    }
+
+    .evolucion-fecha {
+        font-weight: bold;
+        color: #1f6f6b;
+        margin-bottom: 5px;
+        font-size: 15px;
+    }
+
+    .hc-text-block {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        white-space: pre-wrap;
+        margin-bottom: 12px;
+    }
+
+    .hc-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+
+    .btn-sonrisar {
+        background-color: #26ABA5 !important;
+        color: #fff !important;
+        border: 1px solid #26ABA5 !important;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 600;
+    }
+
+    .btn-sonrisar-outline {
+        background-color: transparent !important;
+        color: #26ABA5 !important;
+        border: 2px solid #26ABA5 !important;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 600;
+    }
+
+    .pagos-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .pagos-table th,
+    .pagos-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e9ecef;
+        text-align: left;
+    }
+
+    .pagos-table th {
+        background: #f6fbfb;
+        color: #1f6f6b;
+        font-weight: 700;
+    }
+
+    .pago-empty,
+    .pago-error {
+        padding: 12px 14px;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
+
+    .pago-empty {
+        background: #f8f9fa;
+        color: #666;
+    }
+
+    .pago-error {
+        background: #fff3cd;
+        color: #7a5b00;
+        border: 1px solid #f0ad4e;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <div class="hc-box">
+        <h2 class="hc-title">Historia Clínica – {{ paciente.apellido }} {{ paciente.nombre }}</h2>
+        <p style="color:#555;">Registro del día {{ registro.fecha|date:"d/m/Y" }}</p>
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">Datos del paciente</h3>
+
+        <p><span class="hc-item-label">Nombre:</span> {{ paciente.apellido }}, {{ paciente.nombre }}</p>
+        <p><span class="hc-item-label">CI:</span> {{ paciente.ci }}</p>
+        <p><span class="hc-item-label">Teléfono:</span> {{ paciente.telefono }}</p>
+        <p><span class="hc-item-label">Email:</span> {{ paciente.email }}</p>
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">Registro clínico</h3>
+
+        <p class="hc-item-label">Motivo:</p>
+        <div class="hc-text-block">{{ registro.motivo }}</div>
+
+        <p class="hc-item-label">Diagnóstico:</p>
+        <div class="hc-text-block">{{ registro.diagnostico|default:"—"|linebreaks }}</div>
+
+        <p class="hc-item-label">Evolución:</p>
+
+        {% if registro.tratamiento %}
+            {% for linea in registro.tratamiento.splitlines %}
+                {% if linea|length > 5 and linea|slice:":2" in "0123456789" %}
+                    <div class="evolucion-card">
+                        <div class="evolucion-fecha">{{ linea }}</div>
+                    </div>
+                {% else %}
+                    <div style="margin-left:10px; margin-bottom:8px;">
+                        {{ linea }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="hc-text-block">—</div>
+        {% endif %}
+
+        <div class="hc-actions">
+            <a href="{% url 'clinical_record_edit' registro.id %}" class="btn-sonrisar">Editar</a>
+
+            <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="btn-sonrisar-outline">
+                Cobrar
+            </a>
+
+            <a href="{% url 'clinical_records_list' paciente.id %}" class="btn-sonrisar-outline">Volver</a>
+        </div>
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">Pagos registrados</h3>
+
+        {% if pagos_error %}
+            <div class="pago-error">
+                {{ pagos_error }}
+            </div>
+        {% elif pagos_cobros %}
+            <table class="pagos-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                        <th>Concepto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos_cobros %}
+                        <tr>
+                            <td>{{ pago.fecha }}</td>
+                            <td>$ {{ pago.monto }}</td>
+                            <td>{{ pago.metodo }}</td>
+                            <td>{{ pago.concepto|default:"—" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="pago-empty">
+                No hay pagos registrados para este paciente en Sonrisar Cobros.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">Rayos X</h3>
+
+        {% if rayos %}
+            <div class="rayos-grid">
+                {% for rx in rayos %}
+                    <div class="rayos-card">
+                        <a href="{% url 'rayos_x_detail' rx.id %}">
+                            <img src="{{ rx.imagen.url }}" alt="Rayos X" class="rayos-thumb">
+                        </a>
+                        <small>{{ rx.fecha|date:"d/m/Y" }}</small>
+                        <p style="margin-top:5px;">{{ rx.descripcion|default:"Sin descripción" }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color:#888;">No hay placas de Rayos X cargadas.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "core/base.html" %}
+
+{% block title %}Eliminar cita | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm p-4 text-center">
+
+        <h4 class="mb-3">Eliminar cita</h4>
+
+        <p class="mb-4">
+            ¿Seguro que deseas eliminar la cita de<br>
+            <strong>
+                {{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}
+            </strong><br>
+            el día <strong>{{ cita.fecha|date:"d/m/Y" }}</strong>
+            a las <strong>{{ cita.hora|time:"H:i" }}</strong>?
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- 🔁 para volver al lugar correcto -->
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <button type="submit" class="btn btn-danger px-4">
+                Sí, eliminar
+            </button>
+
+            <a href="{{ next|default:request.META.HTTP_REFERER|default:'/' }}"
+               class="btn btn-secondary px-4 ms-2">
+               Cancelar
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

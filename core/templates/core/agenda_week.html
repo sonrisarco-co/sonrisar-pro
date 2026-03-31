@@ -1,0 +1,162 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Agenda semanal{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="text-center mb-4">
+        Agenda semanal<br>
+        <small class="text-muted">{{ inicio|date:"d/m" }} — {{ fin|date:"d/m" }}</small>
+    </h2>
+
+    <!-- BOTONERA DE DÍAS -->
+    <div class="btn-group w-100 mb-4" role="group">
+        <a href="?day=1" class="btn btn-sonrisar {% if selected_day == '1' %}active{% endif %}">Lunes</a>
+        <a href="?day=2" class="btn btn-sonrisar {% if selected_day == '2' %}active{% endif %}">Martes</a>
+        <a href="?day=3" class="btn btn-sonrisar {% if selected_day == '3' %}active{% endif %}">Miércoles</a>
+        <a href="?day=4" class="btn btn-sonrisar {% if selected_day == '4' %}active{% endif %}">Jueves</a>
+        <a href="?day=5" class="btn btn-sonrisar {% if selected_day == '5' %}active{% endif %}">Viernes</a>
+        <a href="?day=6" class="btn btn-sonrisar {% if selected_day == '6' %}active{% endif %}">Sábado</a>
+        <a href="?day=7" class="btn btn-sonrisar {% if selected_day == '7' %}active{% endif %}">Domingo</a>
+
+        <a href="?" class="btn btn-outline-secondary">Toda la semana</a>
+    </div>
+
+    <!-- GRILLA DE HORARIOS (ocupados + libres) -->
+    <div class="row g-3">
+
+        {% for d in week_grid %}
+        <div class="{% if selected_day %}col-12{% else %}col-md-4 col-lg-3{% endif %}">
+            <div class="card shadow-sm card-dia">
+
+                <div class="card-header header-dia text-center">
+                    <div class="fw-bold text-white">
+                        {{ d.fecha|date:"l" }}
+                    </div>
+                    <div class="text-white-50">
+                        {{ d.fecha|date:"d/m" }}
+                    </div>
+
+                    <a class="btn btn-sm btn-light mt-2 w-100"
+                       href="{% url 'agenda_day' d.fecha.day d.fecha.month d.fecha.year %}">
+                        Ver día
+                    </a>
+                </div>
+
+                <div class="card-body body-dia">
+
+                    {% for s in d.slots %}
+                        {% if s.ocupado %}
+                            <div class="slot ocupado">
+                                <div class="slot-hora">{{ s.hora|time:"H:i" }}</div>
+                                <div class="slot-paciente">{{ s.paciente }}</div>
+
+                                <div class="slot-tags">
+                                    <span class="badge
+                                        {% if s.estado == 'confirmado' %} bg-success
+                                        {% elif s.estado == 'pendiente' %} bg-warning text-dark
+                                        {% elif s.estado == 'asistio' %} bg-primary
+                                        {% else %} bg-danger {% endif %}">
+                                        {{ s.estado }}
+                                    </span>
+
+                                    {% if s.motivo %}
+                                    <span class="badge bg-info text-dark">
+                                        {{ s.motivo }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="slot-actions">
+                                    <a href="{% url 'appointment_edit' s.id %}" class="btn btn-sm btn-info">Editar</a>
+                                    <a href="{% url 'appointment_delete' s.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="slot libre">
+                                <div class="slot-hora">{{ s.hora|time:"H:i" }}</div>
+                                <div class="slot-paciente">Libre</div>
+
+                                <!-- ✅ Link directo para crear cita en ese horario -->
+                                <div class="slot-actions">
+                                    <a href="{% url 'appointment_new' %}?fecha={{ d.fecha|date:'Y-m-d' }}&hora={{ s.hora|time:'H:i' }}"
+                                       class="btn btn-sm btn-outline-success w-100">
+                                        Agendar
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<style>
+/* Tarjeta día */
+.card-dia {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.header-dia {
+    background: #26ABA5;
+}
+.body-dia {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+/* Slots */
+.slot {
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 6px solid transparent;
+}
+.slot-hora {
+    font-size: 12px;
+    opacity: .75;
+}
+.slot-paciente {
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* Ocupado */
+.slot.ocupado {
+    background: #d9f2f1;
+    border-left-color: #26ABA5;
+}
+.slot-tags {
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.slot-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+}
+
+/* Libre */
+.slot.libre {
+    background: #f5f6f7;
+    border-left-color: #d0d0d0;
+    color: #666;
+}
+.slot.libre .slot-actions {
+    margin-top: 8px;
+}
+</style>
+
+{% endblock %}

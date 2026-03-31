@@ -1,0 +1,21 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h1>Rayos X</h1>
+
+<img src="{{ rx.imagen.url }}" style="max-width:100%; border-radius:8px;">
+
+<p><strong>Fecha:</strong> {{ rx.fecha }}</p>
+<p><strong>Descripción:</strong> {{ rx.descripcion|default:"Sin descripción" }}</p>
+
+<a href="{% url 'rayos_x_list' rx.paciente.id %}"
+   class="btn-sonrisar btn-volver">
+   ⬅ Volver
+</a>
+
+<a href="{% url 'rayos_x_delete' rx.id %}"
+   class="btn-sonrisar btn-peligro">
+   🗑 Eliminar
+</a>
+
+{% endblock %}

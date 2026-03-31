@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<h2>Subir placa de Rayos X</h2>
+<hr>
+
+<p><strong>Paciente:</strong> {{ historia.paciente }}</p>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label class="form-label">Seleccionar imagen</label>
+        <input type="file" name="imagen" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-success">
+        Guardar Rayos X
+    </button>
+
+    <a href="{% url 'clinical_record_detail' id=historia.id %}"
+       class="btn btn-secondary">
+        Cancelar
+    </a>
+</form>
+
+{% endblock %}

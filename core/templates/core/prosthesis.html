@@ -1,0 +1,67 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Prótesis - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Prótesis</h2>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">⬅ Volver al inicio</a>
+        <a href="{% url 'protesis_detail' p.id %}" class="btn btn-outline-secondary btn-sm">
+        Ver / Imprimir
+    </a>
+    </div>
+
+    <table class="table table-hover table-sonrisar align-middle">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Trabajo</th>
+                <th>Etapa</th>
+                <th>Fecha envío</th>
+                <th>Fecha recepción</th>
+                <th style="width: 220px;">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in protesis %}
+            <tr>
+                <td>{{ p.paciente }}</td>
+                <td>{{ p.trabajo }}</td>
+                <td>{{ p.etapa }}</td>
+                <td>{{ p.fecha_envio }}</td>
+                <td>
+                    {% if p.fecha_recepcion %}
+                        {{ p.fecha_recepcion }}
+                    {% else %}
+                        <span class="text-muted">Pendiente</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="{% url 'protesis_edit' p.id %}" class="btn btn-outline-primary btn-sm me-1">Editar</a>
+                    <a href="{% url 'protesis_delete' p.id %}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('¿Eliminar esta prótesis?')">
+                        Eliminar
+                    </a>
+                </td>
+            </tr>
+
+        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    No hay prótesis registradas.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+{% endblock %}

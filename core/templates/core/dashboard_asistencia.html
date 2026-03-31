@@ -1,0 +1,143 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Asistencia | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion mb-3">📊 Dashboard de Asistencia</h2>
+    <p><strong>{{ month }}/{{ year }}</strong></p>
+
+    <!-- ========================= -->
+    <!-- TARJETAS RESUMEN -->
+    <!-- ========================= -->
+    <div class="row mt-4 g-3">
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h6>Total Turnos</h6>
+                    <h3>{{ total }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-success">
+                <div class="card-body">
+                    <h6>Asistieron</h6>
+                    <h3 class="text-success">{{ asistieron }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-danger">
+                <div class="card-body">
+                    <h6>No asistieron</h6>
+                    <h3 class="text-danger">{{ no_asistieron }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-warning">
+                <div class="card-body">
+                    <h6>% Asistencia</h6>
+                    <h3>{{ porcentaje }}%</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- GRÁFICO -->
+    <!-- ========================= -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h5>Distribución de asistencia</h5>
+            <canvas id="asistenciaChart"></canvas>
+        </div>
+    </div>
+
+    <hr class="mt-5">
+
+    <!-- ========================= -->
+    <!-- RANKING -->
+    <!-- ========================= -->
+    <h4>🚨 Pacientes con más inasistencias</h4>
+
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Faltas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in ranking %}
+                <tr>
+                    <td>{{ p.paciente__apellido }}, {{ p.paciente__nombre }}</td>
+                    <td>{{ p.faltas }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="2">No hay inasistencias registradas.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<!-- ========================= -->
+<!-- CHART JS -->
+<!-- ========================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('asistenciaChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            'Asistió',
+            'No asistió',
+            'Confirmado',
+            'Cancelado',
+            'Pendiente'
+        ],
+        datasets: [{
+            data: [
+                {{ asistieron|default:0 }},
+                {{ no_asistieron|default:0 }},
+                {{ confirmados|default:0 }},
+                {{ cancelados|default:0 }},
+                {{ pendientes|default:0 }}
+            ],
+            backgroundColor: [
+                '#198754',  // verde asistió
+                '#dc3545',  // rojo no asistió
+                '#0d6efd',  // azul confirmado
+                '#6c757d',  // gris cancelado
+                '#ffc107'   // amarillo pendiente
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+
+
+{% endblock %}

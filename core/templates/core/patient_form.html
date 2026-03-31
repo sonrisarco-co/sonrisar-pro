@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paciente - Sonrisar Pro</title>
+    <style>
+        body {font-family:'Segoe UI';background:#f4f9fc;margin:0;padding:0;}
+        header {text-align:center;background:#fff;padding:20px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+        header img {height:80px;}
+        header p {color:#333;margin-top:5px;}
+        h1 {text-align:center;color:#004c63;}
+        form {width:60%;margin:20px auto;background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+        label {display:block;margin-top:12px;font-weight:600;color:#004c63;}
+        input {width:100%;padding:10px;margin-top:6px;border:1px solid #ccc;border-radius:6px;}
+        button {
+            background:#008c9e;color:#fff;border:none;padding:10px 20px;
+            border-radius:8px;margin-top:15px;cursor:pointer;
+        }
+        button:hover {background:#00b0c7;}
+        .volver {display:block;margin-top:20px;text-align:center;}
+        .volver a {color:#004c63;text-decoration:none;font-weight:600;}
+        .volver a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <header>
+        <img src="{% static 'img/logo.png' %}" alt="Sonrisar">
+        <p>Román Guerra 752 | WhatsApp 092 706 293 | Email sonrisarco@gmail.com</p>
+    </header>
+
+    <h1>{% if paciente %}Editar paciente{% else %}Nuevo paciente{% endif %}</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Guardar</button>
+    </form>
+
+    <a href="{% url 'patients_list' %}" class="btn btn-secondary">Volver</a>
+</body>
+</html>

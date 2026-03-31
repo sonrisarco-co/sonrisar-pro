@@ -1,0 +1,71 @@
+{% extends "core/base.html" %}
+
+{% block title %}Prótesis - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Prótesis</h2>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">⬅ Volver al inicio</a>
+        <a href="{% url 'protesis_new' %}" class="btn btn-secondary">+ Nueva prótesis</a>
+    </div>
+
+    <table class="table table-hover table-sonrisar align-middle">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Trabajo</th>
+                <th>Etapa</th>
+                <th>Fecha envío</th>
+                <th>Fecha retorno</th>
+                <th>Observaciones</th>
+                <th style="width: 180px;">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in protesis %}
+            <tr>
+                <td>{{ p.paciente }}</td>
+                <td>{{ p.trabajo }}</td>
+
+                <!-- Etapa con nombre completo -->
+                <td>
+                    <span style="background: #f2f2f2; padding: 3px 8px; border-radius: 4px;">
+                        {{ p.get_etapa_display }}
+                    </span>
+                </td>
+
+
+                <td>{{ p.fecha_envio|default:"-" }}</td>
+                <td>{{ p.fecha_recepcion|default:"-" }}</td>
+                <td>{{ p.observaciones|default:"" }}</td>
+
+                <td>
+                    <a href="{% url 'protesis_print' p.id %}" class="btn btn-outline-secondary btn-sm me-1">
+                        Ver / Imprimir
+                    </a>
+                    <a href="{% url 'protesis_edit' p.id %}" class="btn btn-outline-primary btn-sm me-1">
+                        Editar
+                    </a>
+                    <a href="{% url 'protesis_delete' p.id %}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('¿Eliminar esta prótesis?');">
+                        Eliminar
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No hay registros de prótesis.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

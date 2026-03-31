@@ -1,0 +1,95 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h1>Rayos X – {{ paciente.nombre }} {{ paciente.apellido }}</h1>
+
+<a href="{% url 'rayos_x_new' paciente.id %}"
+   class="btn-sonrisar btn-primario">
+   ➕ Agregar Rayos X
+</a>
+
+<p><strong>Total de placas:</strong> {{ rayos|length }}</p>
+
+{% if rayos %}
+<div class="rayos-grid">
+    {% for rx in rayos %}
+        <div class="rayo-card">
+            <img src="{{ rx.imagen.url }}"
+                 alt="Rayos X"
+                 onclick="abrirModal('{{ rx.imagen.url }}')">
+
+            <div class="rayo-fecha">{{ rx.fecha }}</div>
+            <div class="rayo-desc">
+                {{ rx.descripcion|default:"Sin descripción" }}
+            </div>
+
+            <a href="{% url 'rayos_x_detail' rx.id %}"
+               class="btn-sonrisar btn-secundario btn-sm">
+               👁 Ver
+            </a>
+
+            <a href="{% url 'rayos_x_delete' rx.id %}"
+               class="btn-sonrisar btn-peligro btn-sm">
+               🗑 Eliminar
+            </a>
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>No hay placas cargadas.</p>
+{% endif %}
+
+<a href="{% url 'patient_detail' paciente.id %}"
+   class="btn-sonrisar btn-volver">
+   ⬅ Volver a ficha
+</a>
+
+<!-- MODAL -->
+<div id="modalRayos" class="modal-rayos" onclick="cerrarModal()">
+    <img id="modalImagen" src="">
+</div>
+
+<script>
+let escala = 1;
+
+function abrirModal(src) {
+    const modal = document.getElementById("modalRayos");
+    const img = document.getElementById("modalImagen");
+
+    img.src = src;
+    escala = 1;
+    img.style.transform = "scale(1)";
+
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+function cerrarModal() {
+    const modal = document.getElementById("modalRayos");
+    modal.classList.remove("active");
+    document.body.style.overflow = "auto";
+}
+
+document.getElementById("modalRayos").addEventListener("wheel", function (e) {
+    e.preventDefault();
+
+    if (e.deltaY < 0) {
+        escala += 0.1;
+    } else {
+        escala -= 0.1;
+    }
+
+    escala = Math.min(Math.max(escala, 1), 5);
+    document.getElementById("modalImagen").style.transform = `scale(${escala})`;
+});
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        cerrarModal();
+    }
+});
+</script>
+
+
+
+{% endblock %}
