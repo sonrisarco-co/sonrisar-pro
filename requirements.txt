@@ -15,3 +15,4 @@ django-crontab
 djangorestframework
 django-cors-headers
 pdfkit
+requests
