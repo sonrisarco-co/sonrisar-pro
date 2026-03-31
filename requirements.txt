@@ -12,3 +12,4 @@ tkcalendar==1.6.1
 tzdata==2025.2
 gunicorn
 django-crontab
+djangorestframework
