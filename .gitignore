@@ -1,7 +1,6 @@
 venv/
 __pycache__/
-*.pyc
-db_*.sqlite3
+*.pyc 
 media/
 *.zip
 *.log
