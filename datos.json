@@ -3,3 +3,7 @@
     "model": "auth.user",
     "pk": 1,
     "fields": {
+      "password": "..."
+    }
+  }
+]
