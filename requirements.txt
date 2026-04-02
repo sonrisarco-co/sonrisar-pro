@@ -17,3 +17,5 @@ django-cors-headers
 pdfkit
 requests
 djangorestframework-simplejwt
+dj-database-url
+psycopg2-binary
