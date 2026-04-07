@@ -1,4 +1,3 @@
-﻿BACKEND URLS CARGADAS
 [
 {
   "model": "auth.permission",
@@ -934,7 +933,7 @@
   "pk": 7,
   "fields": {
     "nombre": "Abigail",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "5.287.765-9",
     "fecha_nacimiento": null,
     "telefono": "91797315",
@@ -952,7 +951,7 @@
     "fecha_nacimiento": "2010-05-10",
     "telefono": "94268362",
     "email": "",
-    "direccion": "Tel├®fono de contacto: Madre"
+    "direccion": "Teléfono de contacto: Madre"
   }
 },
 {
@@ -960,7 +959,7 @@
   "pk": 9,
   "fields": {
     "nombre": "Virginia",
-    "apellido": "Hern├índez",
+    "apellido": "Hernández",
     "ci": "50966765",
     "fecha_nacimiento": null,
     "telefono": "92182836",
@@ -986,7 +985,7 @@
   "pk": 11,
   "fields": {
     "nombre": "Lucas",
-    "apellido": "Nu├▒ez",
+    "apellido": "Nuñez",
     "ci": "57109710",
     "fecha_nacimiento": null,
     "telefono": "97787324",
@@ -1090,7 +1089,7 @@
   "pk": 22,
   "fields": {
     "nombre": "Luis",
-    "apellido": "Fern├índez",
+    "apellido": "Fernández",
     "ci": "52648224",
     "fecha_nacimiento": null,
     "telefono": "95680217",
@@ -1155,7 +1154,7 @@
   "pk": 34,
   "fields": {
     "nombre": "Agustin",
-    "apellido": "Pe├▒a",
+    "apellido": "Peña",
     "ci": "5.660.652-9",
     "fecha_nacimiento": null,
     "telefono": "94867519",
@@ -1259,7 +1258,7 @@
   "pk": 43,
   "fields": {
     "nombre": "Eliana",
-    "apellido": "D├¡az",
+    "apellido": "Díaz",
     "ci": "75485226",
     "fecha_nacimiento": null,
     "telefono": "93745579",
@@ -1284,8 +1283,8 @@
   "model": "core.patient",
   "pk": 45,
   "fields": {
-    "nombre": "Sof├¡a",
-    "apellido": "D├ívila",
+    "nombre": "Sofía",
+    "apellido": "Dávila",
     "ci": "5.099.418-6",
     "fecha_nacimiento": "1994-09-01",
     "telefono": "97863705",
@@ -1363,7 +1362,7 @@
   "pk": 53,
   "fields": {
     "nombre": "Nicole",
-    "apellido": "S├ínchez",
+    "apellido": "Sánchez",
     "ci": "59555292",
     "fecha_nacimiento": null,
     "telefono": "91088252",
@@ -1518,7 +1517,7 @@
   "model": "core.patient",
   "pk": 68,
   "fields": {
-    "nombre": "Andr├®s",
+    "nombre": "Andrés",
     "apellido": "Risoto Espiga",
     "ci": "4.141.488-4",
     "fecha_nacimiento": "1987-06-19",
@@ -1532,7 +1531,7 @@
   "pk": 69,
   "fields": {
     "nombre": "Milagros",
-    "apellido": "Hern├índez",
+    "apellido": "Hernández",
     "ci": "4.749.892-1",
     "fecha_nacimiento": "1988-12-31",
     "telefono": "98577424",
@@ -1544,8 +1543,8 @@
   "model": "core.patient",
   "pk": 70,
   "fields": {
-    "nombre": "Mart├¡n",
-    "apellido": "P├®rez Alvira",
+    "nombre": "Martín",
+    "apellido": "Pérez Alvira",
     "ci": "5.478.104-0",
     "fecha_nacimiento": "1990-07-11",
     "telefono": "95730185",
@@ -1635,7 +1634,7 @@
   "model": "core.patient",
   "pk": 77,
   "fields": {
-    "nombre": "Agust├¡n",
+    "nombre": "Agustín",
     "apellido": "Cardozo",
     "ci": "12",
     "fecha_nacimiento": null,
@@ -1674,7 +1673,7 @@
   "model": "core.patient",
   "pk": 80,
   "fields": {
-    "nombre": "Estefan├¡a",
+    "nombre": "Estefanía",
     "apellido": "Hitta",
     "ci": "16",
     "fecha_nacimiento": null,
@@ -1701,7 +1700,7 @@
   "pk": 82,
   "fields": {
     "nombre": "Romina",
-    "apellido": "Fern├índez",
+    "apellido": "Fernández",
     "ci": "19",
     "fecha_nacimiento": null,
     "telefono": "96169100",
@@ -1713,7 +1712,7 @@
   "model": "core.patient",
   "pk": 83,
   "fields": {
-    "nombre": "Sof├¡a",
+    "nombre": "Sofía",
     "apellido": "Pereyra",
     "ci": "20",
     "fecha_nacimiento": null,
@@ -1727,7 +1726,7 @@
   "pk": 84,
   "fields": {
     "nombre": "Santiago",
-    "apellido": "Acu├▒a",
+    "apellido": "Acuña",
     "ci": "21",
     "fecha_nacimiento": null,
     "telefono": "94232567",
@@ -1831,7 +1830,7 @@
   "pk": 92,
   "fields": {
     "nombre": "Melissa",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "80",
     "fecha_nacimiento": null,
     "telefono": "95286176",
@@ -1843,8 +1842,8 @@
   "model": "core.patient",
   "pk": 93,
   "fields": {
-    "nombre": "Sebasti├ín",
-    "apellido": "P├®rez",
+    "nombre": "Sebastián",
+    "apellido": "Pérez",
     "ci": "90",
     "fecha_nacimiento": null,
     "telefono": "92240184",
@@ -1856,7 +1855,7 @@
   "model": "core.patient",
   "pk": 94,
   "fields": {
-    "nombre": "Joaqu├¡n",
+    "nombre": "Joaquín",
     "apellido": "Olivara",
     "ci": "79",
     "fecha_nacimiento": null,
@@ -1870,7 +1869,7 @@
   "pk": 95,
   "fields": {
     "nombre": "Andrea",
-    "apellido": "Guim├®nez",
+    "apellido": "Guiménez",
     "ci": "65",
     "fecha_nacimiento": null,
     "telefono": "99255003",
@@ -1882,7 +1881,7 @@
   "model": "core.patient",
   "pk": 96,
   "fields": {
-    "nombre": "Mar├¡a",
+    "nombre": "María",
     "apellido": "Mederos",
     "ci": "33",
     "fecha_nacimiento": null,
@@ -1935,7 +1934,7 @@
   "pk": 100,
   "fields": {
     "nombre": "Nicole",
-    "apellido": "De Le├│n",
+    "apellido": "De León",
     "ci": "42",
     "fecha_nacimiento": null,
     "telefono": "94824311",
@@ -1986,7 +1985,7 @@
   "model": "core.patient",
   "pk": 104,
   "fields": {
-    "nombre": "Sebasti├ín",
+    "nombre": "Sebastián",
     "apellido": "Sosa",
     "ci": "666",
     "fecha_nacimiento": null,
@@ -2039,7 +2038,7 @@
   "pk": 108,
   "fields": {
     "nombre": "Kevin",
-    "apellido": "Maira mam├á",
+    "apellido": "Maira mamà",
     "ci": "787",
     "fecha_nacimiento": null,
     "telefono": "99322678",
@@ -2104,7 +2103,7 @@
   "pk": 114,
   "fields": {
     "nombre": "Florencia",
-    "apellido": "Garc├¡a",
+    "apellido": "García",
     "ci": "4.990.441-",
     "fecha_nacimiento": "1996-07-20",
     "telefono": "92193864",
@@ -2116,7 +2115,7 @@
   "model": "core.patient",
   "pk": 115,
   "fields": {
-    "nombre": "M├¼a",
+    "nombre": "Mìa",
     "apellido": "Navarrete",
     "ci": "6.033.616-0",
     "fecha_nacimiento": "2013-07-04",
@@ -2130,7 +2129,7 @@
   "pk": 116,
   "fields": {
     "nombre": "Angie",
-    "apellido": "Echever├¡a",
+    "apellido": "Echevería",
     "ci": "5.637.705-1",
     "fecha_nacimiento": "2005-12-03",
     "telefono": "94671059",
@@ -2221,7 +2220,7 @@
   "pk": 124,
   "fields": {
     "nombre": "Kevin",
-    "apellido": "G├│mez",
+    "apellido": "Gómez",
     "ci": "6565",
     "fecha_nacimiento": null,
     "telefono": "91810113",
@@ -2247,7 +2246,7 @@
   "pk": 126,
   "fields": {
     "nombre": "Guadalupe",
-    "apellido": "Rod├¡guez",
+    "apellido": "Rodíguez",
     "ci": "888",
     "fecha_nacimiento": null,
     "telefono": "92393409",
@@ -2260,7 +2259,7 @@
   "pk": 128,
   "fields": {
     "nombre": "Mercedes",
-    "apellido": "Cu├▒a",
+    "apellido": "Cuña",
     "ci": "8459",
     "fecha_nacimiento": null,
     "telefono": "98395204",
@@ -2493,7 +2492,7 @@
   "model": "core.patient",
   "pk": 146,
   "fields": {
-    "nombre": "Peter Andr├®s",
+    "nombre": "Peter Andrés",
     "apellido": "Vera",
     "ci": "12121",
     "fecha_nacimiento": "1993-10-07",
@@ -2585,7 +2584,7 @@
   "pk": 153,
   "fields": {
     "nombre": "Franco",
-    "apellido": "G├│mez",
+    "apellido": "Gómez",
     "ci": "5.485.392-2",
     "fecha_nacimiento": "2002-08-19",
     "telefono": "92673696",
@@ -2598,7 +2597,7 @@
   "pk": 154,
   "fields": {
     "nombre": "Brisa",
-    "apellido": "G├│mez",
+    "apellido": "Gómez",
     "ci": "88854",
     "fecha_nacimiento": null,
     "telefono": "92673696",
@@ -2780,7 +2779,7 @@
   "pk": 168,
   "fields": {
     "nombre": "Jhalya",
-    "apellido": "Vi├▒arte",
+    "apellido": "Viñarte",
     "ci": "5.796.199-4",
     "fecha_nacimiento": "2009-05-11",
     "telefono": "92864969",
@@ -2819,7 +2818,7 @@
   "pk": 171,
   "fields": {
     "nombre": "Yamila",
-    "apellido": "Pe├▒a",
+    "apellido": "Peña",
     "ci": "8547",
     "fecha_nacimiento": null,
     "telefono": "92993950",
@@ -2857,7 +2856,7 @@
   "model": "core.patient",
   "pk": 174,
   "fields": {
-    "nombre": "Mar├¡a",
+    "nombre": "María",
     "apellido": "Spinillo",
     "ci": "5.319.717-9",
     "fecha_nacimiento": "2001-01-26",
@@ -3079,7 +3078,7 @@
   "pk": 191,
   "fields": {
     "nombre": "Noelia",
-    "apellido": "Garc├¡a",
+    "apellido": "García",
     "ci": "3.981.090-5",
     "fecha_nacimiento": "1987-09-30",
     "telefono": "94813963",
@@ -3183,7 +3182,7 @@
   "pk": 199,
   "fields": {
     "nombre": "Sofia",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "5.697.376-2",
     "fecha_nacimiento": "2007-11-22",
     "telefono": "98588962",
@@ -3261,7 +3260,7 @@
   "pk": 205,
   "fields": {
     "nombre": "Zhamara",
-    "apellido": "Monz├│n",
+    "apellido": "Monzón",
     "ci": "5.626.749-8",
     "fecha_nacimiento": "2006-05-10",
     "telefono": "91976015",
@@ -3274,7 +3273,7 @@
   "pk": 206,
   "fields": {
     "nombre": "Victoria",
-    "apellido": "Gonz├íles",
+    "apellido": "Gonzáles",
     "ci": "5.192.521-5",
     "fecha_nacimiento": "2000-10-06",
     "telefono": "92775761",
@@ -3586,7 +3585,7 @@
   "pk": 230,
   "fields": {
     "nombre": "Luis",
-    "apellido": "Mari├▒o",
+    "apellido": "Mariño",
     "ci": "47774",
     "fecha_nacimiento": null,
     "telefono": "92404936",
@@ -3702,7 +3701,7 @@
   "model": "core.patient",
   "pk": 239,
   "fields": {
-    "nombre": "Acu├▒a",
+    "nombre": "Acuña",
     "apellido": "Stephanie",
     "ci": "454665464",
     "fecha_nacimiento": null,
@@ -3833,7 +3832,7 @@
   "pk": 249,
   "fields": {
     "nombre": "Maria",
-    "apellido": "Acu├▒a",
+    "apellido": "Acuña",
     "ci": "kkk",
     "fecha_nacimiento": null,
     "telefono": "92883018",
@@ -3871,7 +3870,7 @@
   "model": "core.patient",
   "pk": 252,
   "fields": {
-    "nombre": "Benjam├¡n",
+    "nombre": "Benjamín",
     "apellido": "Piriz",
     "ci": "5.754.312-0",
     "fecha_nacimiento": "2008-02-16",
@@ -3911,7 +3910,7 @@
   "pk": 255,
   "fields": {
     "nombre": "Valentina",
-    "apellido": "Mart├¡nez",
+    "apellido": "Martínez",
     "ci": "4.623.931-4",
     "fecha_nacimiento": "1993-12-02",
     "telefono": "97665853",
@@ -4015,7 +4014,7 @@
   "pk": 264,
   "fields": {
     "nombre": "Samira",
-    "apellido": "Fern├índez",
+    "apellido": "Fernández",
     "ci": "hghgh",
     "fecha_nacimiento": "2014-01-30",
     "telefono": "94100713",
@@ -4106,7 +4105,7 @@
   "pk": 272,
   "fields": {
     "nombre": "Bettina",
-    "apellido": "Pu├▒ales",
+    "apellido": "Puñales",
     "ci": "hjk",
     "fecha_nacimiento": null,
     "telefono": "95808301",
@@ -4601,7 +4600,7 @@
   "fields": {
     "nombre": "Debora",
     "apellido": "Sturla",
-    "ci": "wkjdwjdwijdwjd┬║┬║",
+    "ci": "wkjdwjdwijdwjdºº",
     "fecha_nacimiento": null,
     "telefono": "92338224",
     "email": "",
@@ -4626,7 +4625,7 @@
   "pk": 312,
   "fields": {
     "nombre": "Ernesto",
-    "apellido": "Garc├¡a",
+    "apellido": "García",
     "ci": "slsl",
     "fecha_nacimiento": null,
     "telefono": "92342452",
@@ -4653,7 +4652,7 @@
   "fields": {
     "nombre": "Kris",
     "apellido": "965",
-    "ci": "├▒├▒├▒",
+    "ci": "ñññ",
     "fecha_nacimiento": null,
     "telefono": "97602965",
     "email": "",
@@ -4665,7 +4664,7 @@
   "pk": 315,
   "fields": {
     "nombre": "Alex",
-    "apellido": "├▒├▒",
+    "apellido": "ññ",
     "ci": "kjkjk",
     "fecha_nacimiento": null,
     "telefono": "97602965",
@@ -4691,7 +4690,7 @@
   "pk": 317,
   "fields": {
     "nombre": "Shayana",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "gggg",
     "fecha_nacimiento": null,
     "telefono": "98391514",
@@ -4705,7 +4704,7 @@
   "fields": {
     "nombre": "Candela",
     "apellido": "Ruiz",
-    "ci": "a├▒a├▒a├▒",
+    "ci": "añañañ",
     "fecha_nacimiento": null,
     "telefono": "99025304",
     "email": "",
@@ -4717,7 +4716,7 @@
   "pk": 319,
   "fields": {
     "nombre": "Melanie",
-    "apellido": "D├¡az",
+    "apellido": "Díaz",
     "ci": "5.427.642-3",
     "fecha_nacimiento": "2003-06-23",
     "telefono": "97472274",
@@ -4808,7 +4807,7 @@
   "pk": 326,
   "fields": {
     "nombre": "Matias",
-    "apellido": "Mart├¡nez",
+    "apellido": "Martínez",
     "ci": "elelelel",
     "fecha_nacimiento": null,
     "telefono": "92751551",
@@ -4861,7 +4860,7 @@
   "fields": {
     "nombre": "Lucia",
     "apellido": "Marquez",
-    "ci": "w├▒w├▒w├▒w",
+    "ci": "wñwñwñw",
     "fecha_nacimiento": null,
     "telefono": "93866575",
     "email": "",
@@ -4925,7 +4924,7 @@
   "pk": 335,
   "fields": {
     "nombre": "Jhayla",
-    "apellido": "Vi├▒arte",
+    "apellido": "Viñarte",
     "ci": "xsxsxsxssxxs",
     "fecha_nacimiento": null,
     "telefono": "92464969",
@@ -5082,7 +5081,7 @@
   "fields": {
     "nombre": "Ambar",
     "apellido": "Rodriguez",
-    "ci": "xdwsdxws┬║",
+    "ci": "xdwsdxwsº",
     "fecha_nacimiento": null,
     "telefono": "94795547",
     "email": "",
@@ -5121,7 +5120,7 @@
   "fields": {
     "nombre": "Rodrigo",
     "apellido": "Lobato",
-    "ci": "iowidiwjd┬║",
+    "ci": "iowidiwjdº",
     "fecha_nacimiento": null,
     "telefono": "97622188",
     "email": "",
@@ -5262,7 +5261,7 @@
   "model": "core.patient",
   "pk": 361,
   "fields": {
-    "nombre": "Nicol├ís",
+    "nombre": "Nicolás",
     "apellido": "Piriz",
     "ci": "Lsksksksksks",
     "fecha_nacimiento": null,
@@ -5406,7 +5405,7 @@
   "pk": 372,
   "fields": {
     "nombre": "Victoria",
-    "apellido": "Acu├▒a",
+    "apellido": "Acuña",
     "ci": "djdjjddjjdjd",
     "fecha_nacimiento": null,
     "telefono": "95591961",
@@ -5600,7 +5599,7 @@
   "model": "core.patient",
   "pk": 388,
   "fields": {
-    "nombre": "Agust├¡n",
+    "nombre": "Agustín",
     "apellido": "Silva",
     "ci": "Dkskskksks",
     "fecha_nacimiento": null,
@@ -5769,7 +5768,7 @@
   "model": "core.patient",
   "pk": 403,
   "fields": {
-    "nombre": "Mar├¡a",
+    "nombre": "María",
     "apellido": "Alvarez",
     "ci": "Jajsjsisksmkdns",
     "fecha_nacimiento": null,
@@ -5795,7 +5794,7 @@
   "model": "core.patient",
   "pk": 405,
   "fields": {
-    "nombre": "Andr├®s",
+    "nombre": "Andrés",
     "apellido": "Silva",
     "ci": "Djkskssmssms",
     "fecha_nacimiento": null,
@@ -5809,7 +5808,7 @@
   "pk": 406,
   "fields": {
     "nombre": "Maria",
-    "apellido": "├ülvarez",
+    "apellido": "Álvarez",
     "ci": "Jajajsja",
     "fecha_nacimiento": null,
     "telefono": "97800515",
@@ -5821,7 +5820,7 @@
   "model": "core.patient",
   "pk": 407,
   "fields": {
-    "nombre": "Mart├¡n",
+    "nombre": "Martín",
     "apellido": "Hernandorena",
     "ci": "Vvvvvv",
     "fecha_nacimiento": null,
@@ -5835,7 +5834,7 @@
   "pk": 408,
   "fields": {
     "nombre": "Josefina",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "Jjjjjj",
     "fecha_nacimiento": null,
     "telefono": "99400000",
@@ -5861,7 +5860,7 @@
   "pk": 410,
   "fields": {
     "nombre": "Junior",
-    "apellido": "Gonz├ílez",
+    "apellido": "González",
     "ci": "Kkkkkkllll",
     "fecha_nacimiento": null,
     "telefono": "98821429",
@@ -5913,7 +5912,7 @@
   "pk": 414,
   "fields": {
     "nombre": "Jazmin",
-    "apellido": "Garc├¡a",
+    "apellido": "García",
     "ci": "Sjsjsjsjjsjs",
     "fecha_nacimiento": null,
     "telefono": "91250839",
@@ -5951,7 +5950,7 @@
   "model": "core.patient",
   "pk": 417,
   "fields": {
-    "nombre": "Gast├│n",
+    "nombre": "Gastón",
     "apellido": "Cano",
     "ci": "Hsjsksksksk",
     "fecha_nacimiento": null,
@@ -5990,8 +5989,8 @@
   "model": "core.patient",
   "pk": 420,
   "fields": {
-    "nombre": "Mart├¡n",
-    "apellido": "D├¡az",
+    "nombre": "Martín",
+    "apellido": "Díaz",
     "ci": "Jdkssksiskdjd",
     "fecha_nacimiento": null,
     "telefono": "99942836",
@@ -6082,7 +6081,7 @@
   "pk": 428,
   "fields": {
     "nombre": "Sandra",
-    "apellido": "P├®rez",
+    "apellido": "Pérez",
     "ci": "Bsksksksns",
     "fecha_nacimiento": null,
     "telefono": "92160319",
@@ -6134,7 +6133,7 @@
   "pk": 432,
   "fields": {
     "nombre": "Natasha",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "Lslsksksmsmks",
     "fecha_nacimiento": null,
     "telefono": "91892046",
@@ -6186,7 +6185,7 @@
   "pk": 436,
   "fields": {
     "nombre": "Jhon",
-    "apellido": "Rodr├¡guez",
+    "apellido": "Rodríguez",
     "ci": "Ksoskskmsms",
     "fecha_nacimiento": null,
     "telefono": "95455524",
@@ -6381,7 +6380,7 @@
   "pk": 456,
   "fields": {
     "nombre": "Alejandro",
-    "apellido": "Lapid├│",
+    "apellido": "Lapidó",
     "ci": "46501187",
     "fecha_nacimiento": null,
     "telefono": "99259806",
@@ -6445,7 +6444,7 @@
   "model": "core.patient",
   "pk": 461,
   "fields": {
-    "nombre": "Mat├¡as",
+    "nombre": "Matías",
     "apellido": "Ismas",
     "ci": "Ksksksmskks",
     "fecha_nacimiento": null,
@@ -6550,7 +6549,7 @@
   "pk": 469,
   "fields": {
     "nombre": "Inty",
-    "apellido": "Garc├¡a",
+    "apellido": "García",
     "ci": "Isimsksksks",
     "fecha_nacimiento": null,
     "telefono": "92673965",
@@ -6628,7 +6627,7 @@
   "pk": 476,
   "fields": {
     "nombre": "Asdrubal",
-    "apellido": "de Le├│n",
+    "apellido": "de León",
     "ci": "Kaksmsmsmsm",
     "fecha_nacimiento": null,
     "telefono": "99816035",
@@ -6667,7 +6666,7 @@
   "pk": 479,
   "fields": {
     "nombre": "Romina",
-    "apellido": "Gonz├ílez",
+    "apellido": "González",
     "ci": "Ksosksksksms",
     "fecha_nacimiento": null,
     "telefono": "91328419",
@@ -6683,7 +6682,7 @@
     "apellido": "De santis",
     "ci": "Kxosksks",
     "fecha_nacimiento": "2026-03-17",
-    "telefono": "95┬á711┬á663ÔÇ¼",
+    "telefono": "95 711 663‬",
     "email": "",
     "direccion": ""
   }
@@ -6745,7 +6744,7 @@
   "pk": 485,
   "fields": {
     "nombre": "Jonas",
-    "apellido": "Garc├¡a",
+    "apellido": "García",
     "ci": "Jsksksksksnsn",
     "fecha_nacimiento": null,
     "telefono": "92308413",
@@ -6758,7 +6757,7 @@
   "pk": 486,
   "fields": {
     "nombre": "Belen",
-    "apellido": "D├¡az",
+    "apellido": "Díaz",
     "ci": "Jaiqksosmslls",
     "fecha_nacimiento": null,
     "telefono": "99898646",
@@ -6783,7 +6782,7 @@
   "model": "core.patient",
   "pk": 488,
   "fields": {
-    "nombre": "Mar├¡a Jos├®",
+    "nombre": "María José",
     "apellido": "Rocha",
     "ci": "Jeiwkwkwkkwk",
     "fecha_nacimiento": null,
@@ -6826,7 +6825,7 @@
     "apellido": "Dorelo",
     "ci": "Jsjwjsksksksnsk",
     "fecha_nacimiento": null,
-    "telefono": "98┬á146┬á304ÔÇ¼",
+    "telefono": "98 146 304‬",
     "email": "",
     "direccion": ""
   }
@@ -6837,7 +6836,7 @@
   "fields": {
     "nombre": "Maiky",
     "apellido": "Etchegoyen",
-    "ci": "eoedede┬┤pdekl",
+    "ci": "eoedede´pdekl",
     "fecha_nacimiento": null,
     "telefono": "",
     "email": "",
@@ -6849,7 +6848,7 @@
   "pk": 493,
   "fields": {
     "nombre": "Andrea",
-    "apellido": "Guti├®rrez",
+    "apellido": "Gutiérrez",
     "ci": "hbjhbjhbjhb",
     "fecha_nacimiento": null,
     "telefono": "92308413",
@@ -7030,7 +7029,7 @@
   "model": "core.patient",
   "pk": 507,
   "fields": {
-    "nombre": "Mar├¡a Bel├®n",
+    "nombre": "María Belén",
     "apellido": "Iriarte",
     "ci": "5.595.180-8",
     "fecha_nacimiento": "2000-09-20",
@@ -7083,7 +7082,7 @@
   "pk": 511,
   "fields": {
     "nombre": "Nicole",
-    "apellido": "Rold├ín",
+    "apellido": "Roldán",
     "ci": "54445822",
     "fecha_nacimiento": "2026-03-29",
     "telefono": "98472309",
@@ -7096,7 +7095,7 @@
   "pk": 512,
   "fields": {
     "nombre": "Franco",
-    "apellido": "P├®rez",
+    "apellido": "Pérez",
     "ci": "58294566",
     "fecha_nacimiento": null,
     "telefono": "92931629",
@@ -7160,14 +7159,14 @@
   "model": "core.procedure",
   "pk": 1,
   "fields": {
-    "nombre": "Extracci├│n"
+    "nombre": "Extracción"
   }
 },
 {
   "model": "core.procedure",
   "pk": 2,
   "fields": {
-    "nombre": "Radiograf├¡a"
+    "nombre": "Radiografía"
   }
 },
 {
@@ -7209,7 +7208,7 @@
   "model": "core.procedure",
   "pk": 8,
   "fields": {
-    "nombre": "Pr├│tesis"
+    "nombre": "Prótesis"
   }
 },
 {
@@ -7297,7 +7296,7 @@
     "paciente": 74,
     "fecha": "2026-01-05",
     "hora": "10:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9364,7 +9363,7 @@
     "paciente": 49,
     "fecha": "2026-01-26",
     "hora": "10:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9377,7 +9376,7 @@
     "paciente": 50,
     "fecha": "2026-01-26",
     "hora": "10:30:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "cancelado",
     "observaciones": "",
     "procedimientos": []
@@ -9676,7 +9675,7 @@
     "paciente": 248,
     "fecha": "2026-01-28",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9780,7 +9779,7 @@
     "paciente": 151,
     "fecha": "2026-01-29",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -9793,7 +9792,7 @@
     "paciente": 73,
     "fecha": "2026-01-27",
     "hora": "09:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9806,7 +9805,7 @@
     "paciente": 283,
     "fecha": "2026-01-29",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -9819,7 +9818,7 @@
     "paciente": 152,
     "fecha": "2026-01-29",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -9832,7 +9831,7 @@
     "paciente": 284,
     "fecha": "2026-01-29",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9858,7 +9857,7 @@
     "paciente": 248,
     "fecha": "2026-01-31",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9871,7 +9870,7 @@
     "paciente": 274,
     "fecha": "2026-01-31",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9949,7 +9948,7 @@
     "paciente": 282,
     "fecha": "2026-02-03",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9962,7 +9961,7 @@
     "paciente": 288,
     "fecha": "2026-02-03",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -9975,7 +9974,7 @@
     "paciente": 289,
     "fecha": "2026-02-03",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10001,7 +10000,7 @@
     "paciente": 244,
     "fecha": "2026-02-04",
     "hora": "10:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10027,7 +10026,7 @@
     "paciente": 304,
     "fecha": "2026-02-04",
     "hora": "12:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10040,7 +10039,7 @@
     "paciente": 305,
     "fecha": "2026-02-04",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10053,7 +10052,7 @@
     "paciente": 306,
     "fecha": "2026-02-04",
     "hora": "13:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10118,7 +10117,7 @@
     "paciente": 310,
     "fecha": "2026-02-04",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -10261,7 +10260,7 @@
     "paciente": 195,
     "fecha": "2026-02-05",
     "hora": "16:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10365,7 +10364,7 @@
     "paciente": 299,
     "fecha": "2026-02-07",
     "hora": "12:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -10378,7 +10377,7 @@
     "paciente": 265,
     "fecha": "2026-02-07",
     "hora": "12:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -10417,7 +10416,7 @@
     "paciente": 31,
     "fecha": "2026-02-07",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10586,7 +10585,7 @@
     "paciente": 292,
     "fecha": "2026-02-06",
     "hora": "17:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -10638,7 +10637,7 @@
     "paciente": 256,
     "fecha": "2026-02-06",
     "hora": "19:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -10664,7 +10663,7 @@
     "paciente": 124,
     "fecha": "2026-02-07",
     "hora": "14:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10703,7 +10702,7 @@
     "paciente": 322,
     "fecha": "2026-02-09",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10924,7 +10923,7 @@
     "paciente": 167,
     "fecha": "2026-02-09",
     "hora": "15:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10950,7 +10949,7 @@
     "paciente": 48,
     "fecha": "2026-02-11",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -10963,7 +10962,7 @@
     "paciente": 338,
     "fecha": "2026-02-11",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10976,7 +10975,7 @@
     "paciente": 330,
     "fecha": "2026-02-11",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -10989,7 +10988,7 @@
     "paciente": 302,
     "fecha": "2026-02-11",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11002,7 +11001,7 @@
     "paciente": 340,
     "fecha": "2026-02-11",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11015,7 +11014,7 @@
     "paciente": 341,
     "fecha": "2026-02-11",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11028,7 +11027,7 @@
     "paciente": 313,
     "fecha": "2026-02-11",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11041,7 +11040,7 @@
     "paciente": 342,
     "fecha": "2026-02-11",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11054,7 +11053,7 @@
     "paciente": 343,
     "fecha": "2026-02-11",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11067,7 +11066,7 @@
     "paciente": 136,
     "fecha": "2026-02-11",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11080,7 +11079,7 @@
     "paciente": 345,
     "fecha": "2026-02-11",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11093,7 +11092,7 @@
     "paciente": 128,
     "fecha": "2026-02-11",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11106,7 +11105,7 @@
     "paciente": 295,
     "fecha": "2026-02-12",
     "hora": "10:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11119,7 +11118,7 @@
     "paciente": 202,
     "fecha": "2026-02-12",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11132,7 +11131,7 @@
     "paciente": 40,
     "fecha": "2026-02-12",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11145,7 +11144,7 @@
     "paciente": 346,
     "fecha": "2026-02-12",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11158,7 +11157,7 @@
     "paciente": 116,
     "fecha": "2026-02-12",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11184,7 +11183,7 @@
     "paciente": 349,
     "fecha": "2026-02-12",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11197,7 +11196,7 @@
     "paciente": 300,
     "fecha": "2026-02-12",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11210,7 +11209,7 @@
     "paciente": 352,
     "fecha": "2026-02-12",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11223,7 +11222,7 @@
     "paciente": 353,
     "fecha": "2026-02-12",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11249,7 +11248,7 @@
     "paciente": 42,
     "fecha": "2026-02-13",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11262,7 +11261,7 @@
     "paciente": 327,
     "fecha": "2026-02-13",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11288,7 +11287,7 @@
     "paciente": 230,
     "fecha": "2026-02-13",
     "hora": "12:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11457,7 +11456,7 @@
     "paciente": 358,
     "fecha": "2026-02-14",
     "hora": "12:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -11470,7 +11469,7 @@
     "paciente": 268,
     "fecha": "2026-02-14",
     "hora": "12:30:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -11600,7 +11599,7 @@
     "paciente": 269,
     "fecha": "2026-02-19",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -11899,7 +11898,7 @@
     "paciente": 333,
     "fecha": "2026-03-09",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12055,7 +12054,7 @@
     "paciente": 255,
     "fecha": "2026-02-16",
     "hora": "15:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12068,7 +12067,7 @@
     "paciente": 268,
     "fecha": "2026-02-14",
     "hora": "13:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12081,7 +12080,7 @@
     "paciente": 205,
     "fecha": "2026-02-16",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12094,7 +12093,7 @@
     "paciente": 268,
     "fecha": "2026-02-14",
     "hora": "13:30:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12120,7 +12119,7 @@
     "paciente": 365,
     "fecha": "2026-02-17",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12445,7 +12444,7 @@
     "paciente": 364,
     "fecha": "2026-02-13",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12484,7 +12483,7 @@
     "paciente": 280,
     "fecha": "2026-02-14",
     "hora": "14:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12497,7 +12496,7 @@
     "paciente": 328,
     "fecha": "2026-02-14",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12510,7 +12509,7 @@
     "paciente": 332,
     "fecha": "2026-03-11",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12536,7 +12535,7 @@
     "paciente": 377,
     "fecha": "2026-02-11",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12562,7 +12561,7 @@
     "paciente": 100,
     "fecha": "2026-02-13",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12575,7 +12574,7 @@
     "paciente": 379,
     "fecha": "2026-03-07",
     "hora": "13:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12588,7 +12587,7 @@
     "paciente": 380,
     "fecha": "2026-02-12",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12601,7 +12600,7 @@
     "paciente": 278,
     "fecha": "2026-03-11",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12614,7 +12613,7 @@
     "paciente": 362,
     "fecha": "2026-03-11",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12640,7 +12639,7 @@
     "paciente": 342,
     "fecha": "2026-03-09",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12666,7 +12665,7 @@
     "paciente": 381,
     "fecha": "2026-02-12",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12692,7 +12691,7 @@
     "paciente": 382,
     "fecha": "2026-02-12",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12705,7 +12704,7 @@
     "paciente": 343,
     "fecha": "2026-02-23",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12718,7 +12717,7 @@
     "paciente": 343,
     "fecha": "2026-03-11",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12731,7 +12730,7 @@
     "paciente": 384,
     "fecha": "2026-03-07",
     "hora": "12:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12744,7 +12743,7 @@
     "paciente": 352,
     "fecha": "2026-03-12",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12757,7 +12756,7 @@
     "paciente": 304,
     "fecha": "2026-02-17",
     "hora": "15:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12783,7 +12782,7 @@
     "paciente": 385,
     "fecha": "2026-02-13",
     "hora": "09:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12796,7 +12795,7 @@
     "paciente": 277,
     "fecha": "2026-02-13",
     "hora": "09:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12822,7 +12821,7 @@
     "paciente": 249,
     "fecha": "2026-02-13",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12848,7 +12847,7 @@
     "paciente": 364,
     "fecha": "2026-02-18",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -12861,7 +12860,7 @@
     "paciente": 234,
     "fecha": "2026-02-18",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12900,7 +12899,7 @@
     "paciente": 30,
     "fecha": "2026-04-10",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12913,7 +12912,7 @@
     "paciente": 102,
     "fecha": "2026-03-09",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12939,7 +12938,7 @@
     "paciente": 347,
     "fecha": "2026-02-16",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12952,7 +12951,7 @@
     "paciente": 387,
     "fecha": "2026-02-16",
     "hora": "19:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -12978,7 +12977,7 @@
     "paciente": 390,
     "fecha": "2026-02-16",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13004,7 +13003,7 @@
     "paciente": 8,
     "fecha": "2026-03-09",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -13017,7 +13016,7 @@
     "paciente": 144,
     "fecha": "2026-03-09",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13043,7 +13042,7 @@
     "paciente": 153,
     "fecha": "2026-03-16",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13056,7 +13055,7 @@
     "paciente": 227,
     "fecha": "2026-02-21",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13108,7 +13107,7 @@
     "paciente": 388,
     "fecha": "2026-02-17",
     "hora": "11:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -13370,7 +13369,7 @@
     "paciente": 192,
     "fecha": "2026-02-18",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13422,7 +13421,7 @@
     "paciente": 273,
     "fecha": "2026-03-18",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13474,7 +13473,7 @@
     "paciente": 105,
     "fecha": "2026-01-07",
     "hora": "10:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -13552,7 +13551,7 @@
     "paciente": 70,
     "fecha": "2026-01-07",
     "hora": "18:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -13565,7 +13564,7 @@
     "paciente": 116,
     "fecha": "2026-03-19",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13578,7 +13577,7 @@
     "paciente": 364,
     "fecha": "2026-03-12",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -13617,7 +13616,7 @@
     "paciente": 358,
     "fecha": "2026-02-21",
     "hora": "10:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13630,7 +13629,7 @@
     "paciente": 328,
     "fecha": "2026-02-21",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13643,7 +13642,7 @@
     "paciente": 136,
     "fecha": "2026-02-21",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13656,7 +13655,7 @@
     "paciente": 397,
     "fecha": "2026-02-19",
     "hora": "13:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -13669,7 +13668,7 @@
     "paciente": 137,
     "fecha": "2026-02-21",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13682,7 +13681,7 @@
     "paciente": 398,
     "fecha": "2026-02-19",
     "hora": "13:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -13695,7 +13694,7 @@
     "paciente": 399,
     "fecha": "2026-02-19",
     "hora": "15:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -13760,7 +13759,7 @@
     "paciente": 18,
     "fecha": "2026-02-28",
     "hora": "13:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13773,7 +13772,7 @@
     "paciente": 256,
     "fecha": "2026-02-25",
     "hora": "17:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -13786,7 +13785,7 @@
     "paciente": 402,
     "fecha": "2026-02-19",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13799,7 +13798,7 @@
     "paciente": 402,
     "fecha": "2026-02-19",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13812,7 +13811,7 @@
     "paciente": 402,
     "fecha": "2026-02-20",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13825,7 +13824,7 @@
     "paciente": 402,
     "fecha": "2026-02-20",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13838,7 +13837,7 @@
     "paciente": 367,
     "fecha": "2026-03-17",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13864,7 +13863,7 @@
     "paciente": 369,
     "fecha": "2026-03-20",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13877,7 +13876,7 @@
     "paciente": 405,
     "fecha": "2026-02-24",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -13903,7 +13902,7 @@
     "paciente": 281,
     "fecha": "2026-02-28",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -13929,7 +13928,7 @@
     "paciente": 403,
     "fecha": "2026-03-02",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14020,7 +14019,7 @@
     "paciente": 227,
     "fecha": "2026-02-23",
     "hora": "17:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14033,7 +14032,7 @@
     "paciente": 41,
     "fecha": "2026-03-20",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14046,7 +14045,7 @@
     "paciente": 238,
     "fecha": "2026-03-16",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14059,7 +14058,7 @@
     "paciente": 262,
     "fecha": "2026-03-02",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14111,7 +14110,7 @@
     "paciente": 407,
     "fecha": "2026-02-24",
     "hora": "16:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14124,7 +14123,7 @@
     "paciente": 126,
     "fecha": "2026-02-24",
     "hora": "13:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14150,7 +14149,7 @@
     "paciente": 157,
     "fecha": "2026-02-27",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14176,7 +14175,7 @@
     "paciente": 211,
     "fecha": "2026-02-25",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14202,7 +14201,7 @@
     "paciente": 160,
     "fecha": "2026-02-25",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14215,7 +14214,7 @@
     "paciente": 412,
     "fecha": "2026-02-25",
     "hora": "18:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14228,7 +14227,7 @@
     "paciente": 240,
     "fecha": "2026-02-25",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14241,7 +14240,7 @@
     "paciente": 410,
     "fecha": "2026-02-25",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14254,7 +14253,7 @@
     "paciente": 347,
     "fecha": "2026-02-26",
     "hora": "12:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -14280,7 +14279,7 @@
     "paciente": 203,
     "fecha": "2026-02-27",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14293,7 +14292,7 @@
     "paciente": 220,
     "fecha": "2026-02-07",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14306,7 +14305,7 @@
     "paciente": 220,
     "fecha": "2026-02-28",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14319,7 +14318,7 @@
     "paciente": 357,
     "fecha": "2026-02-28",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14332,7 +14331,7 @@
     "paciente": 75,
     "fecha": "2026-02-28",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14345,7 +14344,7 @@
     "paciente": 267,
     "fecha": "2026-02-28",
     "hora": "12:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14358,7 +14357,7 @@
     "paciente": 402,
     "fecha": "2026-02-28",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14371,7 +14370,7 @@
     "paciente": 227,
     "fecha": "2026-02-28",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14384,7 +14383,7 @@
     "paciente": 89,
     "fecha": "2026-03-02",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14397,7 +14396,7 @@
     "paciente": 161,
     "fecha": "2026-03-02",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14436,7 +14435,7 @@
     "paciente": 314,
     "fecha": "2026-03-05",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14462,7 +14461,7 @@
     "paciente": 104,
     "fecha": "2026-03-06",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14475,7 +14474,7 @@
     "paciente": 90,
     "fecha": "2026-03-06",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14488,7 +14487,7 @@
     "paciente": 301,
     "fecha": "2026-02-25",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14501,7 +14500,7 @@
     "paciente": 210,
     "fecha": "2026-03-21",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14527,7 +14526,7 @@
     "paciente": 402,
     "fecha": "2026-02-25",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14540,7 +14539,7 @@
     "paciente": 402,
     "fecha": "2026-02-25",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14553,7 +14552,7 @@
     "paciente": 222,
     "fecha": "2026-02-26",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14579,7 +14578,7 @@
     "paciente": 241,
     "fecha": "2026-02-26",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14592,7 +14591,7 @@
     "paciente": 407,
     "fecha": "2026-03-17",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14618,7 +14617,7 @@
     "paciente": 402,
     "fecha": "2026-03-10",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14631,7 +14630,7 @@
     "paciente": 402,
     "fecha": "2026-03-10",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14670,7 +14669,7 @@
     "paciente": 113,
     "fecha": "2026-03-14",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14696,7 +14695,7 @@
     "paciente": 249,
     "fecha": "2026-02-27",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14709,7 +14708,7 @@
     "paciente": 304,
     "fecha": "2026-02-27",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14722,7 +14721,7 @@
     "paciente": 402,
     "fecha": "2026-03-02",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14735,7 +14734,7 @@
     "paciente": 402,
     "fecha": "2026-03-02",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14748,7 +14747,7 @@
     "paciente": 412,
     "fecha": "2026-03-11",
     "hora": "10:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14761,7 +14760,7 @@
     "paciente": 402,
     "fecha": "2026-03-04",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14774,7 +14773,7 @@
     "paciente": 402,
     "fecha": "2026-03-04",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14826,7 +14825,7 @@
     "paciente": 257,
     "fecha": "2026-03-17",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14852,7 +14851,7 @@
     "paciente": 347,
     "fecha": "2026-03-14",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14865,7 +14864,7 @@
     "paciente": 176,
     "fecha": "2026-03-19",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14878,7 +14877,7 @@
     "paciente": 121,
     "fecha": "2026-03-12",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14891,7 +14890,7 @@
     "paciente": 251,
     "fecha": "2026-02-28",
     "hora": "14:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14904,7 +14903,7 @@
     "paciente": 71,
     "fecha": "2026-03-27",
     "hora": "15:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -14930,7 +14929,7 @@
     "paciente": 38,
     "fecha": "2026-03-02",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14943,7 +14942,7 @@
     "paciente": 207,
     "fecha": "2026-02-27",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14956,7 +14955,7 @@
     "paciente": 416,
     "fecha": "2026-02-27",
     "hora": "19:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14969,7 +14968,7 @@
     "paciente": 254,
     "fecha": "2026-03-02",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -14982,7 +14981,7 @@
     "paciente": 417,
     "fecha": "2026-03-06",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -14995,7 +14994,7 @@
     "paciente": 157,
     "fecha": "2026-03-13",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15008,7 +15007,7 @@
     "paciente": 418,
     "fecha": "2026-03-10",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15034,7 +15033,7 @@
     "paciente": 75,
     "fecha": "2026-03-20",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15047,7 +15046,7 @@
     "paciente": 279,
     "fecha": "2026-03-02",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -15060,7 +15059,7 @@
     "paciente": 124,
     "fecha": "2026-03-02",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -15073,7 +15072,7 @@
     "paciente": 150,
     "fecha": "2026-03-03",
     "hora": "16:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15086,7 +15085,7 @@
     "paciente": 402,
     "fecha": "2026-04-01",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15099,7 +15098,7 @@
     "paciente": 122,
     "fecha": "2026-03-02",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -15112,7 +15111,7 @@
     "paciente": 423,
     "fecha": "2026-03-17",
     "hora": "18:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15138,7 +15137,7 @@
     "paciente": 424,
     "fecha": "2026-03-03",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15151,7 +15150,7 @@
     "paciente": 89,
     "fecha": "2026-04-01",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15177,7 +15176,7 @@
     "paciente": 413,
     "fecha": "2026-03-02",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15190,7 +15189,7 @@
     "paciente": 38,
     "fecha": "2026-04-01",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15229,7 +15228,7 @@
     "paciente": 112,
     "fecha": "2026-03-06",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15242,7 +15241,7 @@
     "paciente": 372,
     "fecha": "2026-03-20",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15255,7 +15254,7 @@
     "paciente": 420,
     "fecha": "2026-03-18",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15268,7 +15267,7 @@
     "paciente": 427,
     "fecha": "2026-03-03",
     "hora": "15:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15281,7 +15280,7 @@
     "paciente": 230,
     "fecha": "2026-03-03",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15294,7 +15293,7 @@
     "paciente": 428,
     "fecha": "2026-03-03",
     "hora": "12:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15307,7 +15306,7 @@
     "paciente": 413,
     "fecha": "2026-03-02",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15320,7 +15319,7 @@
     "paciente": 430,
     "fecha": "2026-03-12",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15372,7 +15371,7 @@
     "paciente": 262,
     "fecha": "2026-04-08",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15398,7 +15397,7 @@
     "paciente": 79,
     "fecha": "2026-03-10",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15411,7 +15410,7 @@
     "paciente": 298,
     "fecha": "2026-03-05",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15424,7 +15423,7 @@
     "paciente": 431,
     "fecha": "2026-03-13",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15437,7 +15436,7 @@
     "paciente": 343,
     "fecha": "2026-04-17",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15450,7 +15449,7 @@
     "paciente": 432,
     "fecha": "2026-03-04",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15502,7 +15501,7 @@
     "paciente": 299,
     "fecha": "2026-02-10",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15515,7 +15514,7 @@
     "paciente": 313,
     "fecha": "2026-03-09",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15541,7 +15540,7 @@
     "paciente": 300,
     "fecha": "2026-03-09",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15554,7 +15553,7 @@
     "paciente": 241,
     "fecha": "2026-04-08",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15606,7 +15605,7 @@
     "paciente": 340,
     "fecha": "2026-04-13",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15619,7 +15618,7 @@
     "paciente": 402,
     "fecha": "2026-03-06",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15632,7 +15631,7 @@
     "paciente": 402,
     "fecha": "2026-03-06",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15645,7 +15644,7 @@
     "paciente": 402,
     "fecha": "2026-03-06",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15658,7 +15657,7 @@
     "paciente": 402,
     "fecha": "2026-03-06",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15671,7 +15670,7 @@
     "paciente": 36,
     "fecha": "2026-03-10",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15684,7 +15683,7 @@
     "paciente": 436,
     "fecha": "2026-03-06",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15697,7 +15696,7 @@
     "paciente": 52,
     "fecha": "2026-03-06",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15710,7 +15709,7 @@
     "paciente": 180,
     "fecha": "2026-03-09",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -15723,7 +15722,7 @@
     "paciente": 320,
     "fecha": "2026-03-09",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15736,7 +15735,7 @@
     "paciente": 320,
     "fecha": "2026-03-09",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15749,7 +15748,7 @@
     "paciente": 296,
     "fecha": "2026-03-06",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15762,7 +15761,7 @@
     "paciente": 93,
     "fecha": "2026-03-06",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15788,7 +15787,7 @@
     "paciente": 435,
     "fecha": "2026-04-10",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15801,7 +15800,7 @@
     "paciente": 153,
     "fecha": "2026-04-10",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15814,7 +15813,7 @@
     "paciente": 439,
     "fecha": "2026-04-06",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15840,7 +15839,7 @@
     "paciente": 74,
     "fecha": "2026-03-03",
     "hora": "09:45:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15853,7 +15852,7 @@
     "paciente": 314,
     "fecha": "2026-03-06",
     "hora": "10:15:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15892,7 +15891,7 @@
     "paciente": 169,
     "fecha": "2026-04-07",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15905,7 +15904,7 @@
     "paciente": 86,
     "fecha": "2026-03-06",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15918,7 +15917,7 @@
     "paciente": 445,
     "fecha": "2026-04-07",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15931,7 +15930,7 @@
     "paciente": 235,
     "fecha": "2026-03-05",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15957,7 +15956,7 @@
     "paciente": 76,
     "fecha": "2026-04-06",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -15996,7 +15995,7 @@
     "paciente": 33,
     "fecha": "2026-03-06",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16009,7 +16008,7 @@
     "paciente": 12,
     "fecha": "2026-04-06",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16048,7 +16047,7 @@
     "paciente": 235,
     "fecha": "2026-04-07",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16087,7 +16086,7 @@
     "paciente": 234,
     "fecha": "2026-03-10",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -16100,7 +16099,7 @@
     "paciente": 424,
     "fecha": "2026-04-10",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16113,7 +16112,7 @@
     "paciente": 55,
     "fecha": "2026-03-06",
     "hora": "12:15:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16126,7 +16125,7 @@
     "paciente": 90,
     "fecha": "2026-04-10",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16139,7 +16138,7 @@
     "paciente": 93,
     "fecha": "2026-04-10",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16152,7 +16151,7 @@
     "paciente": 90,
     "fecha": "2026-03-06",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16165,7 +16164,7 @@
     "paciente": 86,
     "fecha": "2026-04-06",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16178,7 +16177,7 @@
     "paciente": 344,
     "fecha": "2026-03-02",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16191,7 +16190,7 @@
     "paciente": 240,
     "fecha": "2026-03-04",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16204,7 +16203,7 @@
     "paciente": 446,
     "fecha": "2026-03-17",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16243,7 +16242,7 @@
     "paciente": 436,
     "fecha": "2026-03-13",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16256,7 +16255,7 @@
     "paciente": 448,
     "fecha": "2026-03-07",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -16269,7 +16268,7 @@
     "paciente": 10,
     "fecha": "2026-03-07",
     "hora": "14:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16282,7 +16281,7 @@
     "paciente": 91,
     "fecha": "2026-03-09",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16295,7 +16294,7 @@
     "paciente": 32,
     "fecha": "2026-03-21",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16308,7 +16307,7 @@
     "paciente": 31,
     "fecha": "2026-03-21",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16321,7 +16320,7 @@
     "paciente": 33,
     "fecha": "2026-04-03",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16334,7 +16333,7 @@
     "paciente": 220,
     "fecha": "2026-03-07",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16347,7 +16346,7 @@
     "paciente": 265,
     "fecha": "2026-03-07",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16360,7 +16359,7 @@
     "paciente": 10,
     "fecha": "2026-03-07",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16373,7 +16372,7 @@
     "paciente": 354,
     "fecha": "2026-04-11",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16386,7 +16385,7 @@
     "paciente": 174,
     "fecha": "2026-03-20",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16399,7 +16398,7 @@
     "paciente": 438,
     "fecha": "2026-03-12",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16412,7 +16411,7 @@
     "paciente": 220,
     "fecha": "2026-04-06",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16425,7 +16424,7 @@
     "paciente": 265,
     "fecha": "2026-04-11",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16451,7 +16450,7 @@
     "paciente": 449,
     "fecha": "2026-03-11",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -16464,7 +16463,7 @@
     "paciente": 450,
     "fecha": "2026-03-11",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16477,7 +16476,7 @@
     "paciente": 357,
     "fecha": "2026-03-10",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -16490,7 +16489,7 @@
     "paciente": 451,
     "fecha": "2026-03-14",
     "hora": "09:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16503,7 +16502,7 @@
     "paciente": 451,
     "fecha": "2026-03-14",
     "hora": "09:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16529,7 +16528,7 @@
     "paciente": 342,
     "fecha": "2026-04-15",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16542,7 +16541,7 @@
     "paciente": 154,
     "fecha": "2026-04-15",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16555,7 +16554,7 @@
     "paciente": 194,
     "fecha": "2026-03-17",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16568,7 +16567,7 @@
     "paciente": 393,
     "fecha": "2026-03-18",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16581,7 +16580,7 @@
     "paciente": 328,
     "fecha": "2026-03-12",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16594,7 +16593,7 @@
     "paciente": 164,
     "fecha": "2026-03-12",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16607,7 +16606,7 @@
     "paciente": 420,
     "fecha": "2026-03-19",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16620,7 +16619,7 @@
     "paciente": 298,
     "fecha": "2026-03-20",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16633,7 +16632,7 @@
     "paciente": 300,
     "fecha": "2026-04-06",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16646,7 +16645,7 @@
     "paciente": 313,
     "fecha": "2026-04-07",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16659,7 +16658,7 @@
     "paciente": 453,
     "fecha": "2026-03-16",
     "hora": "17:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -16672,7 +16671,7 @@
     "paciente": 454,
     "fecha": "2026-03-12",
     "hora": "13:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16698,7 +16697,7 @@
     "paciente": 454,
     "fecha": "2026-03-12",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16711,7 +16710,7 @@
     "paciente": 69,
     "fecha": "2026-03-21",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16724,7 +16723,7 @@
     "paciente": 455,
     "fecha": "2026-03-03",
     "hora": "10:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16737,7 +16736,7 @@
     "paciente": 456,
     "fecha": "2026-03-30",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -16763,7 +16762,7 @@
     "paciente": 323,
     "fecha": "2026-04-06",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16776,7 +16775,7 @@
     "paciente": 344,
     "fecha": "2026-04-13",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16789,7 +16788,7 @@
     "paciente": 102,
     "fecha": "2026-03-06",
     "hora": "19:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16815,7 +16814,7 @@
     "paciente": 101,
     "fecha": "2026-03-20",
     "hora": "11:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16828,7 +16827,7 @@
     "paciente": 460,
     "fecha": "2026-03-17",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16854,7 +16853,7 @@
     "paciente": 102,
     "fecha": "2026-04-01",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16880,7 +16879,7 @@
     "paciente": 304,
     "fecha": "2026-03-12",
     "hora": "16:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16893,7 +16892,7 @@
     "paciente": 461,
     "fecha": "2026-03-03",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16906,7 +16905,7 @@
     "paciente": 381,
     "fecha": "2026-03-17",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -16919,7 +16918,7 @@
     "paciente": 234,
     "fecha": "2026-04-06",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16932,7 +16931,7 @@
     "paciente": 457,
     "fecha": "2026-03-13",
     "hora": "12:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -16971,7 +16970,7 @@
     "paciente": 295,
     "fecha": "2026-03-21",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16984,7 +16983,7 @@
     "paciente": 251,
     "fecha": "2026-03-12",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -16997,7 +16996,7 @@
     "paciente": 17,
     "fecha": "2026-04-07",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17010,7 +17009,7 @@
     "paciente": 141,
     "fecha": "2026-04-07",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17023,7 +17022,7 @@
     "paciente": 461,
     "fecha": "2026-04-07",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17036,7 +17035,7 @@
     "paciente": 302,
     "fecha": "2026-04-06",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17049,7 +17048,7 @@
     "paciente": 149,
     "fecha": "2026-04-07",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17062,7 +17061,7 @@
     "paciente": 240,
     "fecha": "2026-04-09",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17088,7 +17087,7 @@
     "paciente": 425,
     "fecha": "2026-03-23",
     "hora": "16:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -17114,7 +17113,7 @@
     "paciente": 299,
     "fecha": "2026-03-13",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17140,7 +17139,7 @@
     "paciente": 92,
     "fecha": "2026-04-07",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17166,7 +17165,7 @@
     "paciente": 363,
     "fecha": "2026-03-13",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17179,7 +17178,7 @@
     "paciente": 224,
     "fecha": "2026-03-17",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -17192,7 +17191,7 @@
     "paciente": 36,
     "fecha": "2026-03-24",
     "hora": "15:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -17205,7 +17204,7 @@
     "paciente": 116,
     "fecha": "2026-03-16",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17231,7 +17230,7 @@
     "paciente": 463,
     "fecha": "2026-03-13",
     "hora": "13:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17244,7 +17243,7 @@
     "paciente": 37,
     "fecha": "2026-03-17",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17257,7 +17256,7 @@
     "paciente": 465,
     "fecha": "2026-04-08",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17270,7 +17269,7 @@
     "paciente": 332,
     "fecha": "2026-04-08",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17283,7 +17282,7 @@
     "paciente": 173,
     "fecha": "2026-03-19",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17296,7 +17295,7 @@
     "paciente": 331,
     "fecha": "2026-04-07",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17309,7 +17308,7 @@
     "paciente": 464,
     "fecha": "2026-03-12",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -17335,7 +17334,7 @@
     "paciente": 464,
     "fecha": "2026-04-07",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17348,7 +17347,7 @@
     "paciente": 304,
     "fecha": "2026-04-07",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17361,7 +17360,7 @@
     "paciente": 100,
     "fecha": "2026-04-08",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17374,7 +17373,7 @@
     "paciente": 349,
     "fecha": "2026-04-09",
     "hora": "19:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17387,7 +17386,7 @@
     "paciente": 298,
     "fecha": "2026-03-13",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17426,7 +17425,7 @@
     "paciente": 402,
     "fecha": "2026-03-13",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17439,7 +17438,7 @@
     "paciente": 227,
     "fecha": "2026-03-13",
     "hora": "09:45:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17452,7 +17451,7 @@
     "paciente": 227,
     "fecha": "2026-04-11",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17465,7 +17464,7 @@
     "paciente": 192,
     "fecha": "2026-03-18",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17478,7 +17477,7 @@
     "paciente": 419,
     "fecha": "2026-04-09",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17491,7 +17490,7 @@
     "paciente": 170,
     "fecha": "2026-04-13",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17504,7 +17503,7 @@
     "paciente": 348,
     "fecha": "2026-04-06",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17517,7 +17516,7 @@
     "paciente": 463,
     "fecha": "2026-04-10",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17543,7 +17542,7 @@
     "paciente": 397,
     "fecha": "2026-03-17",
     "hora": "18:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17569,7 +17568,7 @@
     "paciente": 299,
     "fecha": "2026-04-10",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17595,7 +17594,7 @@
     "paciente": 298,
     "fecha": "2026-04-10",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17608,7 +17607,7 @@
     "paciente": 157,
     "fecha": "2026-03-30",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -17621,7 +17620,7 @@
     "paciente": 157,
     "fecha": "2026-04-15",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17634,7 +17633,7 @@
     "paciente": 448,
     "fecha": "2026-04-30",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "Debe $100",
     "procedimientos": []
@@ -17647,7 +17646,7 @@
     "paciente": 285,
     "fecha": "2026-03-02",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17660,7 +17659,7 @@
     "paciente": 228,
     "fecha": "2026-03-02",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17699,7 +17698,7 @@
     "paciente": 321,
     "fecha": "2026-03-17",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17725,7 +17724,7 @@
     "paciente": 467,
     "fecha": "2026-03-16",
     "hora": "19:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17738,7 +17737,7 @@
     "paciente": 356,
     "fecha": "2026-03-17",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -17751,7 +17750,7 @@
     "paciente": 451,
     "fecha": "2026-03-26",
     "hora": "09:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17764,7 +17763,7 @@
     "paciente": 468,
     "fecha": "2026-03-16",
     "hora": "16:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17777,7 +17776,7 @@
     "paciente": 469,
     "fecha": "2026-03-16",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17790,7 +17789,7 @@
     "paciente": 395,
     "fecha": "2026-03-16",
     "hora": "15:15:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17829,7 +17828,7 @@
     "paciente": 341,
     "fecha": "2026-03-16",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17842,7 +17841,7 @@
     "paciente": 472,
     "fecha": "2026-03-17",
     "hora": "09:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -17881,7 +17880,7 @@
     "paciente": 352,
     "fecha": "2026-03-20",
     "hora": "11:15:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17894,7 +17893,7 @@
     "paciente": 451,
     "fecha": "2026-03-26",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17907,7 +17906,7 @@
     "paciente": 451,
     "fecha": "2026-03-26",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17946,7 +17945,7 @@
     "paciente": 148,
     "fecha": "2026-04-14",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17959,7 +17958,7 @@
     "paciente": 452,
     "fecha": "2026-04-14",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17972,7 +17971,7 @@
     "paciente": 390,
     "fecha": "2026-03-18",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17985,7 +17984,7 @@
     "paciente": 451,
     "fecha": "2026-03-16",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -17998,7 +17997,7 @@
     "paciente": 298,
     "fecha": "2026-03-11",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18011,7 +18010,7 @@
     "paciente": 451,
     "fecha": "2026-03-26",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18024,7 +18023,7 @@
     "paciente": 451,
     "fecha": "2026-03-26",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18037,7 +18036,7 @@
     "paciente": 140,
     "fecha": "2026-03-23",
     "hora": "17:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -18063,7 +18062,7 @@
     "paciente": 473,
     "fecha": "2026-03-27",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18102,7 +18101,7 @@
     "paciente": 238,
     "fecha": "2026-04-13",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18115,7 +18114,7 @@
     "paciente": 205,
     "fecha": "2026-04-09",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18143,7 +18142,7 @@
     "paciente": 341,
     "fecha": "2026-04-09",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18156,7 +18155,7 @@
     "paciente": 254,
     "fecha": "2026-04-10",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18169,7 +18168,7 @@
     "paciente": 362,
     "fecha": "2026-03-20",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18182,7 +18181,7 @@
     "paciente": 476,
     "fecha": "2026-03-17",
     "hora": "12:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18195,7 +18194,7 @@
     "paciente": 257,
     "fecha": "2026-04-14",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18208,7 +18207,7 @@
     "paciente": 194,
     "fecha": "2026-04-09",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18221,7 +18220,7 @@
     "paciente": 381,
     "fecha": "2026-04-14",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18247,7 +18246,7 @@
     "paciente": 478,
     "fecha": "2026-03-18",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -18286,7 +18285,7 @@
     "paciente": 153,
     "fecha": "2026-03-19",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18312,7 +18311,7 @@
     "paciente": 480,
     "fecha": "2026-03-21",
     "hora": "11:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18338,7 +18337,7 @@
     "paciente": 276,
     "fecha": "2026-04-08",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18351,7 +18350,7 @@
     "paciente": 472,
     "fecha": "2026-03-19",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18364,7 +18363,7 @@
     "paciente": 407,
     "fecha": "2026-04-07",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18377,7 +18376,7 @@
     "paciente": 390,
     "fecha": "2026-04-08",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18520,7 +18519,7 @@
     "paciente": 192,
     "fecha": "2026-04-14",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18533,7 +18532,7 @@
     "paciente": 393,
     "fecha": "2026-04-15",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18546,7 +18545,7 @@
     "paciente": 393,
     "fecha": "2026-03-25",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -18559,7 +18558,7 @@
     "paciente": 387,
     "fecha": "2026-04-16",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18611,7 +18610,7 @@
     "paciente": 298,
     "fecha": "2026-03-20",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18663,7 +18662,7 @@
     "paciente": 356,
     "fecha": "2026-03-19",
     "hora": "18:15:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18676,7 +18675,7 @@
     "paciente": 250,
     "fecha": "2026-03-19",
     "hora": "16:45:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18741,7 +18740,7 @@
     "paciente": 10,
     "fecha": "2026-04-10",
     "hora": "11:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18767,7 +18766,7 @@
     "paciente": 57,
     "fecha": "2026-04-15",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18806,7 +18805,7 @@
     "paciente": 375,
     "fecha": "2026-03-25",
     "hora": "10:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "+ 2 despegados",
     "procedimientos": []
@@ -18819,7 +18818,7 @@
     "paciente": 436,
     "fecha": "2026-03-24",
     "hora": "16:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18858,7 +18857,7 @@
     "paciente": 218,
     "fecha": "2026-04-08",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18897,7 +18896,7 @@
     "paciente": 278,
     "fecha": "2026-04-17",
     "hora": "13:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -18936,7 +18935,7 @@
     "paciente": 297,
     "fecha": "2026-03-24",
     "hora": "17:45:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -19001,7 +19000,7 @@
     "paciente": 487,
     "fecha": "2026-03-24",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19040,7 +19039,7 @@
     "paciente": 488,
     "fecha": "2026-03-23",
     "hora": "13:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": [
@@ -19068,7 +19067,7 @@
     "paciente": 367,
     "fecha": "2026-04-17",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19081,7 +19080,7 @@
     "paciente": 160,
     "fecha": "2026-03-26",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19094,7 +19093,7 @@
     "paciente": 174,
     "fecha": "2026-04-06",
     "hora": "19:45:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19107,7 +19106,7 @@
     "paciente": 48,
     "fecha": "2026-04-20",
     "hora": "19:45:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19120,7 +19119,7 @@
     "paciente": 358,
     "fecha": "2026-03-28",
     "hora": "12:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -19133,7 +19132,7 @@
     "paciente": 210,
     "fecha": "2026-04-11",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19159,7 +19158,7 @@
     "paciente": 480,
     "fecha": "2026-04-25",
     "hora": "13:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19213,7 +19212,7 @@
     "paciente": 490,
     "fecha": "2026-03-23",
     "hora": "10:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19226,7 +19225,7 @@
     "paciente": 491,
     "fecha": "2026-04-15",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19239,7 +19238,7 @@
     "paciente": 84,
     "fecha": "2026-03-23",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19319,7 +19318,7 @@
     "hora": "12:30:00",
     "motivo": "Urgencia",
     "estado": "asistio",
-    "observaciones": "colocaci├│n inferior nomas",
+    "observaciones": "colocación inferior nomas",
     "procedimientos": []
   }
 },
@@ -19330,7 +19329,7 @@
     "paciente": 492,
     "fecha": "2026-03-23",
     "hora": "16:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "asistio",
     "observaciones": "ya se cobro",
     "procedimientos": []
@@ -19399,7 +19398,7 @@
     "paciente": 494,
     "fecha": "2026-03-24",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "confirmado",
     "observaciones": "",
     "procedimientos": []
@@ -19425,7 +19424,7 @@
     "paciente": 425,
     "fecha": "2026-04-23",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -19494,7 +19493,7 @@
     "paciente": 496,
     "fecha": "2026-03-30",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19585,7 +19584,7 @@
     "paciente": 497,
     "fecha": "2026-03-25",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19611,7 +19610,7 @@
     "paciente": 498,
     "fecha": "2026-04-24",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19637,7 +19636,7 @@
     "paciente": 432,
     "fecha": "2026-03-30",
     "hora": "10:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19689,7 +19688,7 @@
     "paciente": 477,
     "fecha": "2026-03-30",
     "hora": "11:30:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19704,7 +19703,7 @@
     "hora": "18:30:00",
     "motivo": "Ajuste (ortodoncia)",
     "estado": "pendiente",
-    "observaciones": "┬í┬í┬í DEBE $100!!!",
+    "observaciones": "¡¡¡ DEBE $100!!!",
     "procedimientos": []
   }
 },
@@ -19821,7 +19820,7 @@
     "hora": "12:00:00",
     "motivo": "Limpieza",
     "estado": "asistio",
-    "observaciones": "Retiro brackets y contenci├│n fija",
+    "observaciones": "Retiro brackets y contención fija",
     "procedimientos": []
   }
 },
@@ -19834,7 +19833,7 @@
     "hora": "11:00:00",
     "motivo": "Ajuste (ortodoncia)",
     "estado": "asistio",
-    "observaciones": "retiro y contenci├│n + 3 resinas \r\nYa Pag├│",
+    "observaciones": "retiro y contención + 3 resinas \r\nYa Pagó",
     "procedimientos": []
   }
 },
@@ -19845,9 +19844,9 @@
     "paciente": 164,
     "fecha": "2026-03-27",
     "hora": "11:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
-    "observaciones": "retiro y contenci├│n + 3 resinas\r\nYa Pag├│",
+    "observaciones": "retiro y contención + 3 resinas\r\nYa Pagó",
     "procedimientos": []
   }
 },
@@ -19910,7 +19909,7 @@
     "paciente": 500,
     "fecha": "2026-03-30",
     "hora": "16:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -19936,7 +19935,7 @@
     "paciente": 501,
     "fecha": "2026-03-27",
     "hora": "12:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": [
@@ -19951,7 +19950,7 @@
     "paciente": 448,
     "fecha": "2026-03-27",
     "hora": "10:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "no_asistio",
     "observaciones": "",
     "procedimientos": []
@@ -19977,7 +19976,7 @@
     "paciente": 91,
     "fecha": "2026-03-27",
     "hora": "17:00:00",
-    "motivo": "Extracci├│n",
+    "motivo": "Extracción",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20016,7 +20015,7 @@
     "paciente": 502,
     "fecha": "2026-03-27",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "no_asistio",
     "observaciones": "Se reipien sin coso",
     "procedimientos": [
@@ -20044,7 +20043,7 @@
     "paciente": 503,
     "fecha": "2026-03-30",
     "hora": "17:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -20057,7 +20056,7 @@
     "paciente": 504,
     "fecha": "2026-04-06",
     "hora": "16:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20083,7 +20082,7 @@
     "paciente": 497,
     "fecha": "2026-03-28",
     "hora": "13:45:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -20122,7 +20121,7 @@
     "paciente": 505,
     "fecha": "2026-04-09",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20135,7 +20134,7 @@
     "paciente": 506,
     "fecha": "2026-04-09",
     "hora": "17:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20148,7 +20147,7 @@
     "paciente": 476,
     "fecha": "2026-03-30",
     "hora": "13:00:00",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -20187,7 +20186,7 @@
     "paciente": 164,
     "fecha": "2026-06-01",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20200,7 +20199,7 @@
     "paciente": 224,
     "fecha": "2026-03-27",
     "hora": "16:45:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -20265,7 +20264,7 @@
     "paciente": 507,
     "fecha": "2026-03-30",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20278,7 +20277,7 @@
     "paciente": 123,
     "fecha": "2026-03-30",
     "hora": "12:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20304,7 +20303,7 @@
     "paciente": 408,
     "fecha": "2026-03-30",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "Hermano retiro brackets",
     "procedimientos": []
@@ -20343,7 +20342,7 @@
     "paciente": 372,
     "fecha": "2026-03-30",
     "hora": "16:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -20356,7 +20355,7 @@
     "paciente": 272,
     "fecha": "2026-03-28",
     "hora": "14:15:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20410,7 +20409,7 @@
     "paciente": 509,
     "fecha": "2026-04-06",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20423,7 +20422,7 @@
     "paciente": 272,
     "fecha": "2026-05-04",
     "hora": "15:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20451,7 +20450,7 @@
     "paciente": 510,
     "fecha": "2026-03-30",
     "hora": "14:30:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20477,7 +20476,7 @@
     "paciente": 347,
     "fecha": "2026-04-06",
     "hora": "12:00:00",
-    "motivo": "Segunda colocaci├│n + ajuste",
+    "motivo": "Segunda colocación + ajuste",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20490,7 +20489,7 @@
     "paciente": 486,
     "fecha": "2026-04-13",
     "hora": "18:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -20544,7 +20543,7 @@
     "paciente": 513,
     "fecha": "2026-03-30",
     "hora": "14:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -20559,7 +20558,7 @@
     "paciente": 40,
     "fecha": "2026-05-04",
     "hora": "09:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20572,7 +20571,7 @@
     "paciente": 477,
     "fecha": "2026-04-07",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20585,7 +20584,7 @@
     "paciente": 319,
     "fecha": "2026-05-04",
     "hora": "16:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "viene con su hijo",
     "procedimientos": []
@@ -20598,7 +20597,7 @@
     "paciente": 476,
     "fecha": "2026-04-07",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20624,7 +20623,7 @@
     "paciente": 456,
     "fecha": "2026-05-04",
     "hora": "14:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20650,7 +20649,7 @@
     "paciente": 513,
     "fecha": "2026-05-07",
     "hora": "18:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -20665,7 +20664,7 @@
     "paciente": 510,
     "fecha": "2026-04-09",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -20695,7 +20694,7 @@
     "paciente": 248,
     "fecha": "2026-04-09",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -20710,7 +20709,7 @@
     "paciente": 494,
     "fecha": "2026-04-10",
     "hora": "10:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20723,7 +20722,7 @@
     "paciente": 500,
     "fecha": "2026-04-10",
     "hora": "19:00:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20736,7 +20735,7 @@
     "paciente": 255,
     "fecha": "2026-04-06",
     "hora": "10:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20749,7 +20748,7 @@
     "paciente": 511,
     "fecha": "2026-05-08",
     "hora": "17:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": [
@@ -20777,9 +20776,9 @@
     "paciente": 432,
     "fecha": "2026-03-31",
     "hora": "16:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
-    "observaciones": "Ya pag├│",
+    "observaciones": "Ya pagó",
     "procedimientos": []
   }
 },
@@ -20803,7 +20802,7 @@
     "paciente": 486,
     "fecha": "2026-03-31",
     "hora": "18:00:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "Limpieza aparte",
     "procedimientos": [
@@ -20831,7 +20830,7 @@
     "paciente": 494,
     "fecha": "2026-03-31",
     "hora": "18:30:00",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": [
@@ -20860,7 +20859,7 @@
     "paciente": 447,
     "fecha": "2026-03-31",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "asistio",
     "observaciones": "",
     "procedimientos": []
@@ -20951,7 +20950,7 @@
     "paciente": 515,
     "fecha": "2026-04-29",
     "hora": "18:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20964,7 +20963,7 @@
     "paciente": 486,
     "fecha": "2026-04-08",
     "hora": "15:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -20977,7 +20976,7 @@
     "paciente": 180,
     "fecha": "2026-04-06",
     "hora": "12:30:00",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "estado": "pendiente",
     "observaciones": "",
     "procedimientos": []
@@ -21004,7 +21003,7 @@
     "fecha": "2025-12-17",
     "motivo": "Ortodoncia",
     "diagnostico": "",
-    "tratamiento": "17/12/2025\r\nArco 0.18 sup y colocaci├│n inf 0.12",
+    "tratamiento": "17/12/2025\r\nArco 0.18 sup y colocación inf 0.12",
     "observaciones": ""
   }
 },
@@ -21028,7 +21027,7 @@
     "fecha": "2025-12-17",
     "motivo": "Ortodoncia y Caries",
     "diagnostico": "",
-    "tratamiento": "17/12/2025\r\nExtracci├│n pieza 15 y ajuste sup 0.18 e inf 016",
+    "tratamiento": "17/12/2025\r\nExtracción pieza 15 y ajuste sup 0.18 e inf 016",
     "observaciones": ""
   }
 },
@@ -21134,9 +21133,9 @@
   "fields": {
     "paciente": 70,
     "fecha": "2026-01-03",
-    "motivo": "Pr├│tesis",
+    "motivo": "Prótesis",
     "diagnostico": "",
-    "tratamiento": "02/01/2026\r\nExtracciones e impresi├│n primaria para pr├│tesis",
+    "tratamiento": "02/01/2026\r\nExtracciones e impresión primaria para prótesis",
     "observaciones": ""
   }
 },
@@ -21148,7 +21147,7 @@
     "fecha": "2026-01-03",
     "motivo": "Ortodoncia",
     "diagnostico": "",
-    "tratamiento": "02/01/2026\r\nColocaci├│n Brackets, sup 0.12\r\n\r\n27/03/2026 ÔÇô Motivo de cita: Segunda colocaci├│n + ajuste.\r\n\r\n18 superior y 0.12 inferior",
+    "tratamiento": "02/01/2026\r\nColocación Brackets, sup 0.12\r\n\r\n27/03/2026 – Motivo de cita: Segunda colocación + ajuste.\r\n\r\n18 superior y 0.12 inferior",
     "observaciones": ""
   }
 },
@@ -21160,7 +21159,7 @@
     "fecha": "2026-01-13",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "21/12/25\r\nColocaci├│n brackets sup arco 0,12\r\n\r\n13/01/26\r\nAjuste sup 0,14 y colocaci├│n inf 0,12",
+    "tratamiento": "21/12/25\r\nColocación brackets sup arco 0,12\r\n\r\n13/01/26\r\nAjuste sup 0,14 y colocación inf 0,12",
     "observaciones": ""
   }
 },
@@ -21172,7 +21171,7 @@
     "fecha": "2026-01-13",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "21/12/25\r\nColocaci├│n brackets sup 0,12\r\n\r\n13/01/26\r\nAjuste sup 0,12",
+    "tratamiento": "21/12/25\r\nColocación brackets sup 0,12\r\n\r\n13/01/26\r\nAjuste sup 0,12",
     "observaciones": ""
   }
 },
@@ -21184,7 +21183,7 @@
     "fecha": "2026-01-17",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "18/12/25\r\nSegunda colocaci├│n",
+    "tratamiento": "18/12/25\r\nSegunda colocación",
     "observaciones": ""
   }
 },
@@ -21196,7 +21195,7 @@
     "fecha": "2026-01-17",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "18/12/25\r\nSegunda colocaci├│n",
+    "tratamiento": "18/12/25\r\nSegunda colocación",
     "observaciones": ""
   }
 },
@@ -21244,7 +21243,7 @@
     "fecha": "2026-01-17",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "18/12/25\r\nAjuste sup 0.14\r\nEvaluar en abril colocaci├│n inf",
+    "tratamiento": "18/12/25\r\nAjuste sup 0.14\r\nEvaluar en abril colocación inf",
     "observaciones": ""
   }
 },
@@ -21280,7 +21279,7 @@
     "fecha": "2026-01-17",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "17/01/26\r\nAjuste sup 0,16 e inf 0,14\r\n\r\n        09/02/2026 ÔÇô\r\n        Superior 0,20\r\nInferior 0,16",
+    "tratamiento": "17/01/26\r\nAjuste sup 0,16 e inf 0,14\r\n\r\n        09/02/2026 –\r\n        Superior 0,20\r\nInferior 0,16",
     "observaciones": ""
   }
 },
@@ -21316,7 +21315,7 @@
     "fecha": "2026-01-17",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "17/01/25\r\nColocaci├│n brackets sup 0.12\r\nEn mayo evaluar dientes inferiores",
+    "tratamiento": "17/01/25\r\nColocación brackets sup 0.12\r\nEn mayo evaluar dientes inferiores",
     "observaciones": ""
   }
 },
@@ -21340,7 +21339,7 @@
     "fecha": "2026-01-18",
     "motivo": "Bk",
     "diagnostico": "",
-    "tratamiento": "18/01/26\r\nNueva colocaci├│n sup 0,12\r\nSe eval├║a en el mes de abril segunda colocaci├│n",
+    "tratamiento": "18/01/26\r\nNueva colocación sup 0,12\r\nSe evalúa en el mes de abril segunda colocación",
     "observaciones": ""
   }
 },
@@ -21352,7 +21351,7 @@
     "fecha": "2026-01-18",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "18/01/26\r\nNueva colocaci├│n sup 0,12\r\nSe eval├║a en mes de abril segunda colocaci├│n",
+    "tratamiento": "18/01/26\r\nNueva colocación sup 0,12\r\nSe evalúa en mes de abril segunda colocación",
     "observaciones": ""
   }
 },
@@ -21364,7 +21363,7 @@
     "fecha": "2026-01-18",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "18/01/26\r\nNueva colocaci├│n brackets sup 0,12",
+    "tratamiento": "18/01/26\r\nNueva colocación brackets sup 0,12",
     "observaciones": ""
   }
 },
@@ -21376,7 +21375,7 @@
     "fecha": "2026-01-22",
     "motivo": "Bk",
     "diagnostico": "",
-    "tratamiento": "22/01/26\r\nColocaci├│n nueva de brackets sup 0.12\r\nResina compuesta en pieza 16",
+    "tratamiento": "22/01/26\r\nColocación nueva de brackets sup 0.12\r\nResina compuesta en pieza 16",
     "observaciones": ""
   }
 },
@@ -21388,7 +21387,7 @@
     "fecha": "2026-01-24",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "24/01/26\r\nNueva colocaci├│n brackets sup 0.12",
+    "tratamiento": "24/01/26\r\nNueva colocación brackets sup 0.12",
     "observaciones": ""
   }
 },
@@ -21412,7 +21411,7 @@
     "fecha": "2026-01-24",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "24/01/26\r\nColocaci├│n nueva sup 0.12",
+    "tratamiento": "24/01/26\r\nColocación nueva sup 0.12",
     "observaciones": ""
   }
 },
@@ -21484,7 +21483,7 @@
     "fecha": "2026-01-26",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "26/01/26\r\nNueva colocaci├│n sup 0.12",
+    "tratamiento": "26/01/26\r\nNueva colocación sup 0.12",
     "observaciones": ""
   }
 },
@@ -21496,7 +21495,7 @@
     "fecha": "2026-01-26",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "26/01/26\r\nAjuste inf 0.20 con cadena\r\n\r\n27/03/2026 ÔÇô Motivo de cita: retiro de bks\r\ncontenci├│n fija inferior\r\n\r\nresinas en 26 36 46",
+    "tratamiento": "26/01/26\r\nAjuste inf 0.20 con cadena\r\n\r\n27/03/2026 – Motivo de cita: retiro de bks\r\ncontención fija inferior\r\n\r\nresinas en 26 36 46",
     "observaciones": ""
   }
 },
@@ -21520,7 +21519,7 @@
     "fecha": "2026-01-26",
     "motivo": "BK",
     "diagnostico": "",
-    "tratamiento": "26/01/2026\r\nAjuste sup 0.14 e inf colocaci├│n con 0.12",
+    "tratamiento": "26/01/2026\r\nAjuste sup 0.14 e inf colocación con 0.12",
     "observaciones": ""
   }
 },
@@ -21532,7 +21531,7 @@
     "fecha": "2026-02-04",
     "motivo": "Ajuste",
     "diagnostico": "",
-    "tratamiento": "ÔÇô bk 25 despegado , arco 16  I superior inferior",
+    "tratamiento": "– bk 25 despegado , arco 16  I superior inferior",
     "observaciones": ""
   }
 },
@@ -21556,7 +21555,7 @@
     "fecha": "2026-03-05",
     "motivo": "Ortodoncia",
     "diagnostico": "",
-    "tratamiento": "5/3/26       ÔÇô\r\n        \r\n            20 superior e inferior niti \r\nEvaluar si cambiar brackets de posici├│n el 23",
+    "tratamiento": "5/3/26       –\r\n        \r\n            20 superior e inferior niti \r\nEvaluar si cambiar brackets de posición el 23",
     "observaciones": ""
   }
 },
@@ -21566,9 +21565,9 @@
   "fields": {
     "paciente": 227,
     "fecha": "2026-03-13",
-    "motivo": "Pr├│tesis",
-    "diagnostico": "Extracci├│n",
-    "tratamiento": "ÔÇô\r\n   Instalaci├│n pr├│tesis parcial piezas 31 y 41",
+    "motivo": "Prótesis",
+    "diagnostico": "Extracción",
+    "tratamiento": "–\r\n   Instalación prótesis parcial piezas 31 y 41",
     "observaciones": ""
   }
 },
@@ -21580,7 +21579,7 @@
     "fecha": "2026-03-19",
     "motivo": "Bk",
     "diagnostico": "",
-    "tratamiento": "ÔÇô\r\n       Arcoos 20 superior e inferior acero , mantener 3 meses y luego retiro \r\n\r\nReitera en junio",
+    "tratamiento": "–\r\n       Arcoos 20 superior e inferior acero , mantener 3 meses y luego retiro \r\n\r\nReitera en junio",
     "observaciones": ""
   }
 },
@@ -21592,7 +21591,7 @@
     "fecha": "2026-03-22",
     "motivo": "Ajuste (ortodoncia)",
     "diagnostico": "",
-    "tratamiento": "22/03/2026 ÔÇô Motivo de cita: Ajuste (ortodoncia). Procedimientos: Limpieza.",
+    "tratamiento": "22/03/2026 – Motivo de cita: Ajuste (ortodoncia). Procedimientos: Limpieza.",
     "observaciones": ""
   }
 },
@@ -21602,9 +21601,9 @@
   "fields": {
     "paciente": 68,
     "fecha": "2026-03-24",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "diagnostico": "",
-    "tratamiento": "24/03/2026 ÔÇô Motivo de cita: Colocaci├│n nueva. Procedimientos: Limpieza.\r\nAjusteÔÇªÔÇª.\r\nLimpieza\r\nResina 22",
+    "tratamiento": "24/03/2026 – Motivo de cita: Colocación nueva. Procedimientos: Limpieza.\r\nAjuste…….\r\nLimpieza\r\nResina 22",
     "observaciones": ""
   }
 },
@@ -21616,7 +21615,7 @@
     "fecha": "2026-03-27",
     "motivo": "Ajuste (ortodoncia)",
     "diagnostico": "",
-    "tratamiento": "27/03/2026 ÔÇô Motivo de cita: Ajuste (ortodoncia).\r\nArco 0.18 superior\r\narco 0.12 inf",
+    "tratamiento": "27/03/2026 – Motivo de cita: Ajuste (ortodoncia).\r\nArco 0.18 superior\r\narco 0.12 inf",
     "observaciones": ""
   }
 },
@@ -21626,9 +21625,9 @@
   "fields": {
     "paciente": 501,
     "fecha": "2026-03-27",
-    "motivo": "Colocaci├│n nueva",
+    "motivo": "Colocación nueva",
     "diagnostico": "",
-    "tratamiento": "27/03/2026 ÔÇô Motivo de cita: Colocaci├│n nueva. Procedimientos: Limpieza.\r\narco 0.12 superior niti",
+    "tratamiento": "27/03/2026 – Motivo de cita: Colocación nueva. Procedimientos: Limpieza.\r\narco 0.12 superior niti",
     "observaciones": ""
   }
 },
@@ -21640,7 +21639,7 @@
     "fecha": "2026-03-27",
     "motivo": "Ajuste (ortodoncia)",
     "diagnostico": "",
-    "tratamiento": "27/03/2026 ÔÇô Motivo de cita: Ajuste (ortodoncia).\r\n\r\n14sup\r\n14 inf\r\n\r\n2 despegados",
+    "tratamiento": "27/03/2026 – Motivo de cita: Ajuste (ortodoncia).\r\n\r\n14sup\r\n14 inf\r\n\r\n2 despegados",
     "observaciones": ""
   }
 },
@@ -21652,7 +21651,7 @@
     "fecha": "2026-03-28",
     "motivo": "Ajuste (ortodoncia)",
     "diagnostico": "",
-    "tratamiento": "28/03/2026 ÔÇô Motivo de cita: Ajuste (ortodoncia).\r\n.020 sup y .016 inf\r\n+ Limpieza",
+    "tratamiento": "28/03/2026 – Motivo de cita: Ajuste (ortodoncia).\r\n.020 sup y .016 inf\r\n+ Limpieza",
     "observaciones": ""
   }
 },
@@ -21664,7 +21663,7 @@
     "fecha": "2026-03-28",
     "motivo": "Ajuste (ortodoncia)",
     "diagnostico": "",
-    "tratamiento": "28/03/2026 ÔÇô Motivo de cita: Ajuste (ortodoncia).\r\n0.20 sup\r\n0.16 inf",
+    "tratamiento": "28/03/2026 – Motivo de cita: Ajuste (ortodoncia).\r\n0.20 sup\r\n0.16 inf",
     "observaciones": ""
   }
 },
@@ -21674,9 +21673,9 @@
   "fields": {
     "paciente": 497,
     "fecha": "2026-03-28",
-    "motivo": "Consulta / diagn├│stico",
+    "motivo": "Consulta / diagnóstico",
     "diagnostico": "p\r\n\r\n40000 protesis bi maxikaer  3 extraccion",
-    "tratamiento": "28/03/2026 ÔÇô Motivo de cita: Consulta / diagn├│stico.",
+    "tratamiento": "28/03/2026 – Motivo de cita: Consulta / diagnóstico.",
     "observaciones": ""
   }
 },
@@ -21743,7 +21742,7 @@
   "pk": 36,
   "fields": {
     "presupuesto": 26,
-    "concepto": "Extracci├│n ",
+    "concepto": "Extracción ",
     "cantidad": 2,
     "valor": "1300.00",
     "total_item": "2600.00"
@@ -21754,7 +21753,7 @@
   "pk": 37,
   "fields": {
     "presupuesto": 26,
-    "concepto": "Pr├│tesis flexible (solo maxilar sup)",
+    "concepto": "Prótesis flexible (solo maxilar sup)",
     "cantidad": 1,
     "valor": "14200.00",
     "total_item": "14200.00"
@@ -21765,7 +21764,7 @@
   "pk": 49,
   "fields": {
     "presupuesto": 29,
-    "concepto": "Pr├│tesis parcial",
+    "concepto": "Prótesis parcial",
     "cantidad": 1,
     "valor": "12000.00",
     "total_item": "12000.00"
@@ -21814,7 +21813,7 @@
     "monto": "11600.00",
     "metodo_pago": "efectivo",
     "tipo": "pago_final",
-    "observacion": "A favor $400 (pag├│ con 12000)"
+    "observacion": "A favor $400 (pagó con 12000)"
   }
 },
 {
@@ -21826,7 +21825,7 @@
     "etapa": "terminacion",
     "fecha_envio": "2026-01-02",
     "fecha_retorno": "2026-01-02",
-    "observaciones": "Pr├│tesis Urgente\r\nEntregada!!!"
+    "observaciones": "Prótesis Urgente\r\nEntregada!!!"
   }
 },
 {
@@ -21834,7 +21833,7 @@
   "pk": 10,
   "fields": {
     "paciente": 251,
-    "trabajo": "Pr├│tesis parcial acr├¡lica",
+    "trabajo": "Prótesis parcial acrílica",
     "etapa": "terminacion",
     "fecha_envio": null,
     "fecha_retorno": null,
@@ -21858,7 +21857,7 @@
   "pk": 12,
   "fields": {
     "paciente": 256,
-    "trabajo": "Pr├│tesis Cromo",
+    "trabajo": "Prótesis Cromo",
     "etapa": "cubeta",
     "fecha_envio": "2026-01-26",
     "fecha_retorno": "2026-02-09",
@@ -21870,7 +21869,7 @@
   "pk": 13,
   "fields": {
     "paciente": 251,
-    "trabajo": "Pr├│tesis",
+    "trabajo": "Prótesis",
     "etapa": "enfilado",
     "fecha_envio": null,
     "fecha_retorno": null,
@@ -21894,7 +21893,7 @@
   "pk": 15,
   "fields": {
     "paciente": 477,
-    "trabajo": "Pr├│tesis",
+    "trabajo": "Prótesis",
     "etapa": "placa",
     "fecha_envio": "2026-03-23",
     "fecha_retorno": "2026-03-27",
@@ -21910,7 +21909,7 @@
     "etapa": "enfilado",
     "fecha_envio": "2026-03-23",
     "fecha_retorno": "2026-03-25",
-    "observaciones": "Enfilado de 14 a 24\r\nColor A1\r\n\r\n┬í┬íATENCI├ôN!!!! Mi├®rcoles a ├║ltima hora"
+    "observaciones": "Enfilado de 14 a 24\r\nColor A1\r\n\r\n¡¡ATENCIÓN!!!! Miércoles a última hora"
   }
 },
 {
@@ -21918,7 +21917,7 @@
   "pk": 81,
   "fields": {
     "codigo": "314193001-.012sup",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Sup .012",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Sup .012",
     "categoria": "Ortodoncia",
     "stock": 3,
     "stock_minimo": 1,
@@ -21931,7 +21930,7 @@
   "pk": 82,
   "fields": {
     "codigo": "287274001-.014sup",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Sup .014",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Sup .014",
     "categoria": "Ortodoncia",
     "stock": 3,
     "stock_minimo": 1,
@@ -21944,7 +21943,7 @@
   "pk": 83,
   "fields": {
     "codigo": "315875001-.016sup",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Sup .016",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Sup .016",
     "categoria": "Ortodoncia",
     "stock": 2,
     "stock_minimo": 1,
@@ -21957,7 +21956,7 @@
   "pk": 84,
   "fields": {
     "codigo": "312315001-.018sup",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Sup .018",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Sup .018",
     "categoria": "Ortodoncia",
     "stock": 2,
     "stock_minimo": 1,
@@ -21970,7 +21969,7 @@
   "pk": 85,
   "fields": {
     "codigo": "316760001-.020sup",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Sup .020",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Sup .020",
     "categoria": "Ortodoncia",
     "stock": 3,
     "stock_minimo": 1,
@@ -21983,7 +21982,7 @@
   "pk": 86,
   "fields": {
     "codigo": "314192001-.016x.022sup",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Sup .016x0.22",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Sup .016x0.22",
     "categoria": "Ortodoncia",
     "stock": 1,
     "stock_minimo": 1,
@@ -21996,7 +21995,7 @@
   "pk": 87,
   "fields": {
     "codigo": "314193001-0.12inf",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Inf .012",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Inf .012",
     "categoria": "Ortodoncia",
     "stock": 2,
     "stock_minimo": 1,
@@ -22009,7 +22008,7 @@
   "pk": 88,
   "fields": {
     "codigo": "311585001-.0014inf",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Inf .014",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Inf .014",
     "categoria": "Ortodoncia",
     "stock": 2,
     "stock_minimo": 1,
@@ -22022,7 +22021,7 @@
   "pk": 89,
   "fields": {
     "codigo": "315818001-.016inf",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Inf .016",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Inf .016",
     "categoria": "Ortodoncia",
     "stock": 2,
     "stock_minimo": 1,
@@ -22035,7 +22034,7 @@
   "pk": 90,
   "fields": {
     "codigo": "314185001-.018inf",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Inf .018",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Inf .018",
     "categoria": "Ortodoncia",
     "stock": 3,
     "stock_minimo": 1,
@@ -22048,7 +22047,7 @@
   "pk": 91,
   "fields": {
     "codigo": "316863001-.020inf",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Inf .020",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Inf .020",
     "categoria": "Ortodoncia",
     "stock": 3,
     "stock_minimo": 1,
@@ -22061,7 +22060,7 @@
   "pk": 92,
   "fields": {
     "codigo": "295776001-.016x.022inf",
-    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35┬░ Inf .016x.022",
+    "nombre": "Orthometric Arco Flexi Niti Termoactivado 35° Inf .016x.022",
     "categoria": "Ortodoncia",
     "stock": 2,
     "stock_minimo": 1,
@@ -22100,7 +22099,7 @@
   "pk": 95,
   "fields": {
     "codigo": "169731240025",
-    "nombre": "Rollos de Algod├│n",
+    "nombre": "Rollos de Algodón",
     "categoria": "Materiales Descartables",
     "stock": 19,
     "stock_minimo": 5,
@@ -22114,7 +22113,7 @@
   "fields": {
     "codigo": null,
     "nombre": "Acrilico Autocurable Liquido 200cc",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 1,
     "stock_minimo": 1,
     "precio": "527.00",
@@ -22127,7 +22126,7 @@
   "fields": {
     "codigo": null,
     "nombre": "Acrilico Autocurable Polvo 250gr",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 0,
     "stock_minimo": 1,
     "precio": "608.00",
@@ -22140,7 +22139,7 @@
   "fields": {
     "codigo": "010103300",
     "nombre": "Adhesivo Bonding 2.1",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 4,
     "stock_minimo": 1,
     "precio": "650.00",
@@ -22152,7 +22151,7 @@
   "pk": 99,
   "fields": {
     "codigo": "314366001",
-    "nombre": "Orthometric El├ístico Intra-oral Medio 1/8",
+    "nombre": "Orthometric Elástico Intra-oral Medio 1/8",
     "categoria": "Ortodoncia",
     "stock": 1,
     "stock_minimo": 1,
@@ -22165,7 +22164,7 @@
   "pk": 100,
   "fields": {
     "codigo": "223944001",
-    "nombre": "Orthometric El├ístico Intra-oral Leve 1/8",
+    "nombre": "Orthometric Elástico Intra-oral Leve 1/8",
     "categoria": "Ortodoncia",
     "stock": 1,
     "stock_minimo": 1,
@@ -22178,8 +22177,8 @@
   "pk": 101,
   "fields": {
     "codigo": "0101038002",
-    "nombre": "Maquira Alginato para Impresi├│n",
-    "categoria": "Material Cl├¡nico",
+    "nombre": "Maquira Alginato para Impresión",
+    "categoria": "Material Clínico",
     "stock": 2,
     "stock_minimo": 1,
     "precio": "400.00",
@@ -22205,7 +22204,7 @@
   "fields": {
     "codigo": "010300300",
     "nombre": "Maquira Acido Gel 37% (2.5ml Jeringa)",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 12,
     "stock_minimo": 3,
     "precio": "290.00",
@@ -22218,7 +22217,7 @@
   "fields": {
     "codigo": "05912-05",
     "nombre": "Anestesia Odontocaina 2% con Epinefrina",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 40,
     "stock_minimo": 10,
     "precio": "0.00",
@@ -22231,7 +22230,7 @@
   "fields": {
     "codigo": null,
     "nombre": "Anestesia Odontocaina 3% s/vasoconstrictor",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 0,
     "stock_minimo": 10,
     "precio": "0.00",
@@ -22296,7 +22295,7 @@
   "fields": {
     "codigo": "0101037004",
     "nombre": "Maquira Resina EA 3,5",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 1,
     "stock_minimo": 1,
     "precio": "400.00",
@@ -22309,7 +22308,7 @@
   "fields": {
     "codigo": "0101037003",
     "nombre": "Maquira Resina EA 3",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 1,
     "stock_minimo": 1,
     "precio": "400.00",
@@ -22322,7 +22321,7 @@
   "fields": {
     "codigo": "0101037015",
     "nombre": "Maquira Resina EA 4",
-    "categoria": "Material Cl├¡nico",
+    "categoria": "Material Clínico",
     "stock": 1,
     "stock_minimo": 1,
     "precio": "400.00",
@@ -22361,7 +22360,7 @@
   "fields": {
     "codigo": "0140010003",
     "nombre": "Blanqueador al 10%",
-    "categoria": "Est├®tica",
+    "categoria": "Estética",
     "stock": 7,
     "stock_minimo": 1,
     "precio": "1500.00",
