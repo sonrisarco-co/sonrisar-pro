@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Control de Prótesis - Sonrisar Pro</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+
+        /* ====== HEADER ====== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #26ABA5;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-info {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .titulo-doc {
+            font-size: 20px;
+            font-weight: 700;
+            color: #26ABA5;
+            margin-bottom: 6px;
+        }
+
+        .logo {
+            max-height: 160px;
+        }
+
+        /* ====== DATOS ====== */
+        .datos p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        .datos strong {
+            color: #26ABA5;
+            width: 140px;
+            display: inline-block;
+        }
+
+        .box {
+            margin-top: 25px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        /* ====== ACCIONES ====== */
+        .acciones {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn-print {
+            background-color: #26ABA5;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ====== FOOTER ====== */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+
+        @media print {
+            .acciones { display: none; }
+            body { margin: 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ENCABEZADO -->
+<div class="header">
+    <div class="header-info">
+        <div class="titulo-doc">Control de Prótesis</div>
+        <div>Román Guerra 752</div>
+        <div>WhatsApp 092 706 293</div>
+        <div>sonrisarco@gmail.com</div>
+    </div>
+
+    <img src="{% static 'img/logo.png' %}" class="logo" alt="Sonrisar">
+</div>
+
+<!-- DATOS -->
+<div class="datos">
+    <p><strong>Paciente:</strong> {{ protesis.paciente.nombre }} {{ protesis.paciente.apellido }}</p>
+    <p><strong>Trabajo:</strong> {{ protesis.trabajo }}</p>
+    <p><strong>Etapa:</strong> {{ protesis.get_etapa_display }}</p>
+
+    {% if protesis.fecha_envio %}
+        <p><strong>Fecha envío:</strong> {{ protesis.fecha_envio|date:"d/m/Y" }}</p>
+    {% endif %}
+
+    {% if protesis.fecha_retorno %}
+        <p><strong>Fecha retorno:</strong> {{ protesis.fecha_retorno|date:"d/m/Y" }}</p>
+    {% endif %}
+</div>
+
+{% if protesis.observaciones %}
+<div class="box">
+    <strong>Observaciones:</strong><br>
+    {{ protesis.observaciones|linebreaks }}
+</div>
+{% endif %}
+
+<!-- BOTÓN IMPRIMIR -->
+<div class="acciones">
+    <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
+</div>
+
+<div class="footer">
+    © Sonrisar Pro – Dr. Rodrigo Suma · Todos los derechos reservados
+</div>
+
+</body>
+</html>

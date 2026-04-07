@@ -1,0 +1,87 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Pagos - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-primary mb-4">💳 Control de Pagos</h2>
+
+    <div class="text-end mb-3">
+        <a href="#" class="btn btn-success btn-lg">➕ Registrar Pago</a>
+    </div>
+
+    <table class="table table-hover text-center align-middle shadow-sm">
+        <thead class="table-info">
+            <tr>
+                <th>Paciente</th>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Concepto</th>
+                <th>Método</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pago in pagos %}
+            <tr>
+                <td>{{ pago.paciente.nombre }}</td>
+                <td>{{ pago.fecha|date:"d/m/Y" }}</td>
+                <td>${{ pago.monto }}</td>
+                <td>{{ pago.concepto|default:"—" }}</td>
+                <td>{{ pago.metodo_pago|default:"Efectivo" }}</td>
+                <td>
+                    {% if pago.estado == "Pendiente" %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% elif pago.estado == "Completado" %}
+                        <span class="badge bg-success">Completado</span>
+                    {% elif pago.estado == "Anulado" %}
+                        <span class="badge bg-danger">Anulado</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Sin Estado</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="#" class="btn btn-outline-primary btn-sm me-2">Editar</a>
+                    <a href="#" class="btn btn-outline-danger btn-sm">Borrar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No hay pagos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+h2 {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 700;
+}
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+.table-info {
+    background-color: #00bcd4 !important;
+    color: white;
+}
+.btn {
+    border-radius: 12px;
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+}
+.badge {
+    font-size: 0.95rem;
+    padding: 6px 12px;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}

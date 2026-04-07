@@ -1,0 +1,33 @@
+{% extends "core/base.html" %}
+
+{% block title %}Buscar paciente - Historia Clínica{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4" style="max-width:600px;">
+
+    <h2 class="titulo-seccion text-center">Buscar paciente</h2>
+
+    <form method="get" class="mt-4">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Escribe nombre, apellido o CI"
+            value="{{ query }}"
+            style="padding: 12px; border-radius: 8px;"
+        >
+        <button class="btn btn-primary mt-3 w-100" style="background:#26ABA5;">
+            Buscar
+        </button>
+    </form>
+
+    {% if query %}
+        <p class="text-center text-muted mt-3">
+            No se encontró ningún paciente con "{{ query }}"
+        </p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

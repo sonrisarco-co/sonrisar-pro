@@ -1,0 +1,57 @@
+{% extends "core/base.html" %}
+{% block title %}Nuevo producto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Nuevo producto</h2>
+
+    <div class="card shadow-sm p-4">
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Código</label>
+                    {{ form.codigo }}
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label">Nombre</label>
+                    {{ form.nombre }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Cantidad</label>
+                    {{ form.cantidad }}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Stock mínimo</label>
+                    {{ form.stock_bajo }}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Precio unitario ($)</label>
+                    {{ form.precio }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Proveedor</label>
+                {{ form.proveedor }}
+            </div>
+
+            <div class="text-end">
+                <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary me-2">Cancelar</a>
+                <button class="btn btn-primary">Guardar producto</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{% endblock %}

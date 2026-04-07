@@ -1,0 +1,55 @@
+<table class="table table-hover align-middle">
+
+    <thead style="background-color:#4fa3a5;color:white;">
+        <tr>
+            <th>Día</th>
+            <th>Paciente</th>
+            <th>Hora</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% if citas %}
+            {% for cita in citas %}
+                <tr>
+                    <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+
+                    <td>{{ cita.paciente }}</td>
+
+                    <td>{{ cita.hora|time:"H:i" }}</td>
+
+                    <td>
+                        {% if cita.estado == "confirmado" %}
+                            <span class="estado-confirmado">Confirmada</span>
+                        {% elif cita.estado == "pendiente" %}
+                            <span class="estado-pendiente">Pendiente</span>
+                        {% elif cita.estado == "cancelado" %}
+                            <span class="estado-cancelado">Cancelada</span>
+                        {% else %}
+                            {{ cita.estado }}
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center">
+                        <a href="{% url 'appointment_edit' cita.id %}" class="btn-accion editar">
+                            Editar
+                        </a>
+                        <br>
+                        <a href="{% url 'appointment_delete' cita.id %}" class="btn-accion eliminar">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No hay citas para mostrar.
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+
+</table>

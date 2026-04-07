@@ -1,0 +1,56 @@
+{% extends "core/base.html" %}
+{% load l10n %}
+
+{% block title %}Registrar pago - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion mb-4">Registrar pago / seña</h2>
+
+    <div class="card shadow-sm p-4 mb-4">
+        <p class="mb-1"><strong>Paciente:</strong> {{ presupuesto.paciente }}</p>
+        <p class="mb-1"><strong>Presupuesto:</strong> #{{ presupuesto.id }}</p>
+        <p class="mb-1"><strong>Total:</strong> $ {{ presupuesto.total|unlocalize }}</p>
+        <p class="mb-1"><strong>Total pagado:</strong> $ {{ presupuesto.total_pagado|unlocalize }}</p>
+        <p class="mb-0"><strong>Saldo pendiente:</strong> $ {{ presupuesto.saldo_pendiente|unlocalize }}</p>
+    </div>
+
+    <div class="card shadow-sm p-4">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Monto</label>
+                {{ form.monto }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Método de pago</label>
+                {{ form.metodo_pago }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tipo</label>
+                {{ form.tipo }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Observación</label>
+                {{ form.observacion }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">💾 Guardar pago</button>
+            <a href="{% url 'budget_detail' presupuesto.id %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+
+</div>
+
+<style>
+.titulo-seccion {
+    color: #107361;
+    font-weight: 700;
+}
+</style>
+{% endblock %}

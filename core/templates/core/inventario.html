@@ -1,0 +1,162 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Inventario | Sonrisar{% endblock %}
+
+{% block content %}
+
+<!-- ======== ESTILO LOCAL PARA INVENTARIO ======== -->
+<style>
+    /* Fondo blanco total */
+    body {
+        background: #ffffff !important;
+    }
+
+    /* Contenedor principal */
+    .inventario-contenedor {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e5e5e5;
+        margin-top: 20px;
+    }
+
+    /* ===== BOTONES SONRISAR (COHERENCIA CON TODO EL SISTEMA) ===== */
+    .btn-sonrisar {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        color: white !important;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-verde {
+        background-color: #26ABA5;
+    }
+
+    .btn-editar {
+        background-color: #007bff;
+    }
+
+    .btn-eliminar {
+        background-color: #c91c1c;
+    }
+
+    .btn-sonrisar:hover {
+        opacity: 0.85;
+    }
+
+    /* ===== TABLA ===== */
+    table.table-sonrisar {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table.table-sonrisar thead th {
+        background: #26ABA5;
+        color: white;
+        padding: 10px;
+        font-weight: 600;
+    }
+
+    table.table-sonrisar tbody td {
+        padding: 10px;
+        border-bottom: 1px solid #e1e1e1;
+    }
+
+    /* Rojo del stock mínimo */
+    .stock-alerta {
+        background: #c91c1c;
+        color: white;
+        font-weight: bold;
+        padding: 4px 10px;
+        border-radius: 50px;
+        display: inline-block;
+    }
+</style>
+
+
+<div class="container inventario-contenedor">
+
+    <h2 class="titulo-seccion">Inventario</h2>
+
+    <!-- BOTÓN NUEVO PRODUCTO -->
+    <div class="mb-3 text-end">
+        <a href="{% url 'inventory_new' %}" class="btn-sonrisar btn-verde">+ Nuevo producto</a>
+    </div>
+
+    <!-- BUSCADOR -->
+    <form method="get" class="row mb-3">
+        <div class="col-md-9">
+            <input type="text" name="q" class="form-control"
+                   placeholder="Buscar por nombre, código, proveedor o categoría"
+                   value="{{ request.GET.q }}">
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn-sonrisar btn-verde w-100">Buscar</button>
+        </div>
+    </form>
+
+    <!-- TABLA INVENTARIO -->
+    <table class="table-sonrisar">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Proveedor</th>
+                <th>Stock</th>
+                <th>Stock mín.</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for p in productos %}
+            <tr>
+                <td>{{ p.code }}</td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.category }}</td>
+                <td>{{ p.provider }}</td>
+
+                <td>
+                    {% if p.stock <= p.min_stock %}
+                        <span class="stock-alerta">{{ p.stock }}</span>
+                    {% else %}
+                        {{ p.stock }}
+                    {% endif %}
+                </td>
+
+                <td>{{ p.min_stock }}</td>
+                <td>${{ p.unit_price }}</td>
+
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventory_edit' p.id %}" class="btn-sonrisar btn-editar">Editar</a>
+                        <a href="{% url 'inventory_delete' p.id %}" 
+                           class="btn-sonrisar btn-eliminar"
+                           onclick="return confirm('¿Eliminar este producto?');">
+                           Eliminar
+                        </a>
+                    </div>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center py-3">
+                    No hay productos registrados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

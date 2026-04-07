@@ -1,0 +1,65 @@
+{% extends "core/base.html" %}
+
+{% block title %}Citas del paciente | Sonrisar{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="titulo-seccion mb-0">
+            Citas — {{ paciente.apellido }}, {{ paciente.nombre }}
+        </h3>
+
+        <a href="{% url 'patient_detail' paciente.id %}" class="btn btn-outline-secondary btn-sm">
+            ← Volver a ficha
+        </a>
+    </div>
+
+    {% if citas %}
+        <table class="table table-hover align-middle">
+            <thead class="table-sonrisar">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Motivo</th>
+                    <th>Estado</th>
+                    <th style="width:220px;">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for c in citas %}
+                <tr>
+                    <td>{{ c.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ c.hora|time:"H:i" }}</td>
+                    <td>{{ c.motivo }}</td>
+                    <td>
+                        <span class="badge
+                            {% if c.estado == 'confirmado' %} bg-success
+                            {% elif c.estado == 'pendiente' %} bg-warning text-dark
+                            {% else %} bg-danger {% endif %}">
+                            {{ c.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'agenda_day' c.fecha.day c.fecha.month c.fecha.year %}"
+                           class="btn btn-sm btn-sonrisar-outline">
+                            Ver día
+                        </a>
+
+                        <a href="{% url 'appointment_edit' c.id %}"
+                           class="btn btn-sm btn-info">
+                            Editar
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <p class="text-muted">Este paciente no tiene citas registradas.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

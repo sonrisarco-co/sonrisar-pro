@@ -1,0 +1,395 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load l10n %}
+
+{% block content %}
+
+<div class="container mt-4 budget-detail-page">
+
+    <!-- BOTONES SOLO PANTALLA -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <a href="{% url 'budgets_list' %}" class="btn btn-outline-secondary">← Volver</a>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'budget_edit' presupuesto.id %}" class="btn btn-outline-primary">
+                ✏ Editar
+            </a>
+
+            <a href="{% url 'budget_add_payment' presupuesto.id %}" class="btn btn-success">
+                💵 Registrar seña / pago
+            </a>
+
+            <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
+
+            <form method="post" action="{% url 'budget_delete' presupuesto.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-danger"
+                        onclick="return confirm('¿Seguro que querés eliminar este presupuesto?');">
+                    🗑 Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HOJA -->
+    <div class="print-sheet" id="print-sheet">
+
+        <!-- CABECERA DEL DOCUMENTO -->
+        <div class="budget-doc-header page-avoid-break">
+            <div class="budget-doc-logo-wrap">
+                <img src="{% static 'img/logo.png' %}"
+                     alt="Sonrisar"
+                     class="budget-doc-logo"
+                     onerror="this.style.display='none'">
+
+                <div class="clinic-info">
+                    Román Guerra 752 | WhatsApp 092 706 293 | sonrisarco@gmail.com
+                </div>
+            </div>
+
+            <div class="budget-doc-meta">
+                <p><strong>Fecha:</strong> {{ presupuesto.fecha|date:"d/m/Y" }}</p>
+                <p><strong>Estado:</strong> {{ presupuesto.get_estado_display }}</p>
+            </div>
+        </div>
+
+        <h1 class="budget-doc-title">Presupuesto Odontológico</h1>
+
+        <!-- DATOS DEL PACIENTE -->
+        <div class="card shadow-sm mb-3 page-avoid-break">
+            <div class="card-body compact-card">
+                <p><strong>Paciente:</strong> {{ presupuesto.paciente }}</p>
+                <p><strong>CI:</strong> {{ presupuesto.paciente.ci }}</p>
+                <p><strong>Teléfono:</strong> {{ presupuesto.paciente.telefono }}</p>
+            </div>
+        </div>
+
+        <!-- DIAGNÓSTICO -->
+        <div class="card shadow-sm mb-3 page-avoid-break">
+            <div class="card-body compact-card">
+                <h5 class="section-title">Diagnóstico</h5>
+                <p class="mb-0">{{ presupuesto.diagnostico|default:"—" }}</p>
+
+                {% if presupuesto.observaciones %}
+                    <hr class="my-2">
+                    <h5 class="section-title">Observaciones</h5>
+                    <p class="mb-0">{{ presupuesto.observaciones }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- CAMBIAR ESTADO SOLO PANTALLA -->
+        <div class="card shadow-sm mb-3 no-print">
+            <div class="card-body compact-card">
+                <form method="post" action="{% url 'budget_change_status' presupuesto.id %}">
+                    {% csrf_token %}
+                    <div class="row align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Cambiar estado</label>
+                            <select name="estado" class="form-control">
+                                <option value="pendiente" {% if presupuesto.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+                                <option value="confirmado" {% if presupuesto.estado == "confirmado" %}selected{% endif %}>Confirmado</option>
+                                <option value="en_proceso" {% if presupuesto.estado == "en_proceso" %}selected{% endif %}>En proceso</option>
+                                <option value="entregado" {% if presupuesto.estado == "entregado" %}selected{% endif %}>Entregado</option>
+                                <option value="cancelado" {% if presupuesto.estado == "cancelado" %}selected{% endif %}>Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <button type="submit" class="btn btn-outline-dark">
+                                Actualizar estado
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- DETALLE -->
+        <div class="card shadow-sm mb-3 page-avoid-break">
+            <div class="card-body compact-card">
+                <h5 class="section-title mb-2">Detalle del presupuesto</h5>
+
+                <table class="table table-bordered budget-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th style="width: 100px;">Cantidad</th>
+                            <th style="width: 150px;">Valor unitario</th>
+                            <th style="width: 140px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.concepto }}</td>
+                                <td class="text-center">{{ item.cantidad }}</td>
+                                <td class="text-end">$ {{ item.valor|unlocalize }}</td>
+                                <td class="text-end">$ {{ item.total_item|unlocalize }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No hay ítems cargados.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGOS -->
+        <div class="card shadow-sm mb-3 page-avoid-break">
+            <div class="card-body compact-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="section-title mb-0">Pagos asociados</h5>
+                    <a href="{% url 'budget_add_payment' presupuesto.id %}" class="btn btn-success btn-sm no-print">
+                        💵 Registrar seña / pago
+                    </a>
+                </div>
+
+                <table class="table table-striped budget-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Método</th>
+                            <th>Observación</th>
+                            <th class="text-end">Monto</th>
+                            <th class="text-center no-print">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pagos %}
+                            <tr>
+                                <td>{{ p.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ p.get_tipo_display }}</td>
+                                <td>{{ p.get_metodo_pago_display|default:"-" }}</td>
+                                <td>{{ p.observacion|default:"-" }}</td>
+                                <td class="text-end">$ {{ p.monto|unlocalize }}</td>
+                                <td class="text-center no-print">
+                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                        <a href="{% url 'budget_payment_receipt' p.id %}" class="btn btn-sm btn-outline-primary">
+                                            Recibo
+                                        </a>
+
+                                        <form method="post"
+                                            action="{% url 'budget_payment_delete' p.id %}"
+                                            style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('¿Seguro que querés eliminar este pago?');">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Aún no hay pagos registrados.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="d-flex justify-content-end mb-2 page-avoid-break">
+            <div class="card shadow-sm summary-card">
+                <div class="card-body compact-card">
+                    <p class="mb-1 d-flex justify-content-between">
+                        <strong>Total presupuesto:</strong>
+                        <span>$ {{ presupuesto.total|unlocalize }}</span>
+                    </p>
+                    <p class="mb-1 d-flex justify-content-between">
+                        <strong>Total pagado:</strong>
+                        <span>$ {{ presupuesto.total_pagado|unlocalize }}</span>
+                    </p>
+                    <p class="mb-0 d-flex justify-content-between fs-5">
+                        <strong>Saldo pendiente:</strong>
+                        <span class="{% if presupuesto.saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">
+                            $ {{ presupuesto.saldo_pendiente|unlocalize }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.budget-detail-page {
+    max-width: 1100px;
+}
+
+.print-sheet {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.budget-doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    gap: 20px;
+}
+
+.budget-doc-logo-wrap {
+    flex: 1;
+}
+
+.budget-doc-logo {
+    max-height: 110px;
+    width: auto;
+    display: block;
+}
+
+.clinic-info {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}
+
+.budget-doc-meta {
+    text-align: right;
+    min-width: 210px;
+}
+
+.budget-doc-meta p {
+    margin-bottom: 4px;
+}
+
+.budget-doc-title {
+    text-align: center;
+    font-size: 2.1rem;
+    font-weight: 500;
+    margin-bottom: 14px;
+}
+
+.section-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.compact-card {
+    padding: 16px 18px;
+}
+
+.compact-card p:last-child {
+    margin-bottom: 0;
+}
+
+.budget-table th {
+    background: #26aba5;
+    text-align: center;
+}
+
+.budget-table td,
+.budget-table th {
+    vertical-align: middle;
+    padding: 9px 10px;
+}
+
+.summary-card {
+    width: 360px;
+}
+
+.page-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    html, body {
+        background: #fff !important;
+        font-size: 11px;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* OCULTAR TODO */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* MOSTRAR SOLO LA HOJA DEL PRESUPUESTO */
+    #print-sheet,
+    #print-sheet * {
+        visibility: visible !important;
+    }
+
+    #print-sheet {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .no-print,
+    .no-print * {
+        display: none !important;
+    }
+
+    .budget-doc-header {
+        margin-bottom: 10px;
+    }
+
+    .budget-doc-logo {
+        max-height: 90px;
+    }
+
+    .clinic-info {
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    .budget-doc-title {
+        font-size: 20pt;
+        margin-bottom: 10px;
+    }
+
+    .compact-card {
+        padding: 10px 12px !important;
+    }
+
+    .card {
+        border: 1px solid #d9d9d9 !important;
+        box-shadow: none !important;
+        margin-bottom: 8px !important;
+    }
+
+    .budget-table {
+        margin-bottom: 0 !important;
+        font-size: 11px;
+    }
+
+    .budget-table td,
+    .budget-table th {
+        padding: 6px 8px !important;
+    }
+
+    .summary-card {
+        width: 320px !important;
+    }
+
+    .page-avoid-break {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+</style>
+
+{% endblock %}

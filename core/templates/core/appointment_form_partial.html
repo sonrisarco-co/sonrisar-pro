@@ -1,0 +1,296 @@
+<h2 class="text-center titulo-seccion mb-4">{{ titulo }}</h2>
+
+<div class="card shadow-sm p-4">
+
+    <form method="post" novalidate id="appointmentAjaxForm">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'' }}">
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <label for="id_paciente" class="mb-0">Paciente</label>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnNuevoPacienteModal">
+                        ➕ Nuevo paciente
+                    </button>
+                </div>
+
+                <select id="id_paciente" name="paciente" class="form-select">
+                    <option value=""></option>
+
+                    {% for p in form.fields.paciente.queryset %}
+                        <option value="{{ p.id }}"
+                            {% if form.paciente.value|stringformat:"s" == p.id|stringformat:"s" %}
+                                selected
+                            {% endif %}>
+                            {{ p.apellido }}, {{ p.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                {% if form.paciente.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.paciente.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="id_fecha">Fecha</label>
+                {{ form.fecha }}
+                {% if form.fecha.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.fecha.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="id_hora">Hora</label>
+                {{ form.hora }}
+                {% if form.hora.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.hora.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="id_estado">Estado</label>
+                {{ form.estado }}
+                {% if form.estado.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.estado.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label for="id_motivo">Motivo principal</label>
+                {{ form.motivo }}
+                {% if form.motivo.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.motivo.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label for="id_procedimientos">Procedimientos adicionales</label>
+                <div class="procedimientos-box">
+                    {{ form.procedimientos }}
+                </div>
+
+                <div class="form-text mt-2">
+                    Para seleccionar varios:
+                    <strong>Ctrl + clic</strong> en Windows o
+                    <strong>Cmd + clic</strong> en Mac.
+                </div>
+
+                {% if form.procedimientos.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.procedimientos.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label for="id_observaciones">Observaciones</label>
+                {{ form.observaciones }}
+                {% if form.observaciones.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.observaciones.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary px-4">Guardar</button>
+        </div>
+    </form>
+
+</div>
+
+<div class="modal fade" id="quickPatientModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">➕ Nuevo paciente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div id="quickPatientBody" class="text-center py-3">
+            Cargando...
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.titulo-seccion {
+    color: #107361;
+    font-weight: 700;
+}
+
+input, select, textarea {
+    border-radius: 8px !important;
+    border: 1px solid #b5b5b5 !important;
+    padding: 6px 10px !important;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+#id_fecha,
+#id_hora,
+#id_estado,
+#id_motivo,
+#id_observaciones {
+    width: 100%;
+}
+
+#id_observaciones {
+    min-height: 95px;
+    resize: vertical;
+}
+
+.procedimientos-box {
+    border: 1px solid #d8e2e1;
+    border-radius: 10px;
+    padding: 8px;
+    background: #f8fbfb;
+}
+
+#id_procedimientos {
+    width: 100%;
+    min-height: 180px;
+    border: 1px solid #cfd8dc !important;
+    border-radius: 8px !important;
+    background: #fff;
+    padding: 6px !important;
+}
+
+#id_procedimientos option {
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+}
+
+#id_procedimientos option:checked {
+    background: linear-gradient(0deg, #26ABA5, #26ABA5);
+    color: #fff;
+}
+
+.form-text {
+    font-size: 0.88rem;
+    color: #6c757d;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const select = document.getElementById("id_paciente");
+
+    if (select && window.jQuery && $(select).data("select2") === undefined) {
+        $(select).select2({
+            width: "100%",
+            placeholder: "Buscar paciente...",
+            allowClear: true,
+            language: {
+                noResults: function () {
+                    return `No encontrado.
+                            <button type="button" class="btn btn-link p-0 ms-1" id="noResultsCreateBtn">
+                            ➕ Crear paciente
+                            </button>`;
+                }
+            },
+            escapeMarkup: function (m) { return m; }
+        });
+    }
+
+    const modalEl = document.getElementById("quickPatientModal");
+    const body = document.getElementById("quickPatientBody");
+
+    if (!modalEl || !body) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+
+    async function abrirModalNuevoPaciente() {
+        body.innerHTML = "Cargando...";
+
+        const res = await fetch("{% url 'patient_quick_new' %}", {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            body.innerHTML = "Error cargando formulario.";
+            modal.show();
+            return;
+        }
+
+        body.innerHTML = data.html;
+        modal.show();
+
+        const form = document.getElementById("quickPatientForm");
+        if (!form) return;
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const fd = new FormData(form);
+
+            const postRes = await fetch("{% url 'patient_quick_new' %}", {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                body: fd
+            });
+
+            const postData = await postRes.json();
+
+            if (!postData.success) {
+                alert("No se pudo guardar el paciente.");
+                return;
+            }
+
+            if (select) {
+                const option = new Option(postData.text, postData.id, true, true);
+                select.append(option);
+                $(select).trigger("change");
+            }
+
+            modal.hide();
+        }, { once: true });
+    }
+
+    const btnNuevo = document.getElementById("btnNuevoPacienteModal");
+
+    if (btnNuevo) {
+        btnNuevo.addEventListener("click", abrirModalNuevoPaciente);
+    }
+
+    document.addEventListener("click", function (e) {
+        if (e.target && e.target.id === "noResultsCreateBtn") {
+            abrirModalNuevoPaciente();
+        }
+    });
+
+});
+</script>

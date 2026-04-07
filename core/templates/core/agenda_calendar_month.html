@@ -1,0 +1,125 @@
+{% extends "core/base.html" %}
+
+{% block title %}Agenda mensual | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+        <h5 class="mb-0">
+            📅 {{ nombre_mes|capfirst }} {{ year }}
+        </h5>
+
+        <div>
+            <a href="?month={{ prev_month }}&year={{ prev_year }}"
+               class="btn btn-sm btn-outline-secondary">◀</a>
+
+            <a href="?month={{ next_month }}&year={{ next_year }}"
+               class="btn btn-sm btn-outline-secondary ms-2">▶</a>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+
+        <table class="table table-bordered mb-0 text-center calendar-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Lun</th>
+                    <th>Mar</th>
+                    <th>Mié</th>
+                    <th>Jue</th>
+                    <th>Vie</th>
+                    <th>Sáb</th>
+                    <th>Dom</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for semana in semanas %}
+                <tr>
+                    {% for dia in semana %}
+
+                        {% if dia == 0 %}
+                            <td class="bg-light"></td>
+
+                        {% else %}
+                            <td class="calendar-cell d-flex flex-column">
+
+                                <!-- Día -->
+                                <div class="calendar-day-number mb-1">
+                                    {{ dia }}
+                                </div>
+
+                                <!-- ⬆️ BOTÓN ARRIBA SÍ O SÍ -->
+                                <a href="{% url 'agenda_day' dia month year %}"
+                                class="btn btn-sm btn-sonrisar w-100 mb-2 order-1">
+                                    Ver día
+                                </a>
+
+                                <!-- Lista de citas -->
+                                <div class="appointments-container order-2">
+                                    {% if dia in citas_por_dia %}
+                                        {% for c in citas_por_dia[dia] %}
+                                            <div class="calendar-appointment">
+                                                <small class="text-muted">
+                                                    {{ c.hora|time:"H:i" }}
+                                                </small><br>
+
+                                                <strong>
+                                                    {{ c.paciente.apellido }},
+                                                    {{ c.paciente.nombre }}
+                                                </strong>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                            </td>
+
+                        {% endif %}
+
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+<style>
+.calendar-table td {
+    vertical-align: top;
+    height: 140px;
+    padding: 6px;
+}
+
+.calendar-day-number {
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 1.1rem;
+}
+
+.calendar-appointment {
+    background: #e6f6f5;
+    border-left: 4px solid #26ABA5;
+    padding: 4px 6px;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.calendar-cell {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.appointments-container {
+    flex-grow: 1;
+}
+</style>
+
+
+{% endblock %}

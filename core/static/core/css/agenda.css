@@ -1,0 +1,243 @@
+/* ===============================
+   AGENDA – SONRISAR
+   =============================== */
+
+.table th {
+    background-color: #2c7a7b;
+    color: white;
+}
+
+.estado-programada {
+    color: #2c7a7b;
+    font-weight: 600;
+}
+
+.estado-confirmada {
+    color: #2f855a;
+}
+
+.estado-cancelada {
+    color: #c53030;
+}
+
+
+/* =================================================
+   SONRISAR – FORZAR COLOR ÚNICO
+   ================================================= */
+
+/* BARRA INICIO */
+.navbar,
+.navbar-expand-lg,
+.sonrisar-navbar {
+    background-color: #2c9faf !important;
+}
+
+
+/* LINKS NAVBAR */
+.navbar .nav-link,
+.navbar .navbar-brand {
+    color: #ffffff !important;
+}
+
+/* BOTÓN AGENDA MENSUAL (CALENDARIO) */
+.dashboard a[href*="calendario"],
+.dashboard a[href*="agenda"] {
+    background-color: #2c9faf !important;
+    border-color: #2c9faf !important;
+}
+
+/* BOTONES INTERNOS */
+.btn,
+.btn-primary,
+button {
+    background-color: #2c9faf !important;
+    border-color: #2c9faf !important;
+}
+
+
+/* ===============================
+   SONRISAR - COLORES DEFINITIVOS
+   =============================== */
+
+/* Barra superior (Inicio, Agenda, etc) */
+nav.navbar,
+nav.navbar.sonrisar-navbar {
+    background-color: #26aba5 !important;
+}
+
+/* Texto de la barra */
+nav.navbar .nav-link,
+nav.navbar .navbar-brand {
+    color: #ffffff !important;
+}
+
+/* Hover navbar */
+nav.navbar .nav-link:hover {
+    color: #e6f5f4 !important;
+}
+
+/* Botón Agenda mensual (calendario) */
+a.btn,
+a.btn-primary,
+a.agenda-calendario,
+.btn-agenda-calendario {
+    background-color: #26aba5 !important;
+    border-color: #26aba5 !important;
+    color: #ffffff !important;
+}
+
+/* Hover botones */
+a.btn:hover,
+.btn:hover {
+    background-color: #256d6f !important;
+}
+
+
+/* ===============================
+   AGENDA MENSUAL - AJUSTES SONRISAR
+   =============================== */
+
+/* Barra de días (lun, mar, mié...) */
+.calendar thead th {
+    background-color: #eaf4f7;   /* celeste muy claro */
+    color: #26aba5,              /* color Sonrisar */
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #cfdde3;
+}
+
+/* Números de los días */
+.calendar td a,
+.calendar td span,
+.calendar td {
+    color: #000 !important;   /* elimina azul feo */
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Día actual */
+.calendar .today {
+    background-color: #d9eef3;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+/* Hover suave */
+.calendar td:hover {
+    background-color: #f3f9fb;
+}
+
+
+/* ===============================
+   AGENDA MENSUAL - FIX REAL
+   =============================== */
+
+/* Barra de días (lun, mar, mié...) */
+table.month thead th {
+    background-color: #eaf4f7 !important;
+    color: #004c63 !important;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #cfdde3;
+}
+
+/* Números de los días */
+table.month td,
+table.month td a {
+    color: #004c63 !important;
+    text-decoration: none !important;
+    font-weight: 500;
+}
+
+/* Día actual */
+table.month td.today {
+    background-color: #d9eef3 !important;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+/* Hover */
+table.month td:hover {
+    background-color: #f3f9fb;
+}
+
+
+/* ================================
+   FULLCALENDAR – AJUSTES SONRISAR
+   ================================ */
+
+/* 1. Barra de días de la semana (lun, mar, mié...) */
+.fc .fc-col-header-cell {
+    background-color: #e9f5f4;   /* fondo claro */
+    color: #006d6f;              /* texto oscuro legible */
+    font-weight: 600;
+    border: 1px solid #d6eaea;
+}
+
+/* Texto del día (lun, mar, etc) */
+.fc .fc-col-header-cell-cushion {
+    color: #006d6f !important;
+    text-decoration: none;
+}
+
+/* 2. Números del calendario (1, 2, 3...) */
+.fc .fc-daygrid-day-number {
+    color: #006d6f !important;   /* saca el azul */
+    font-weight: 500;
+}
+
+/* Día de hoy */
+.fc .fc-day-today {
+    background-color: #f2fbfa !important;
+}
+
+/* 3. Bordes más suaves */
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border-color: #e0eeee;
+}
+
+
+/* =========================
+   FIX COLORES FULLCALENDAR
+   ========================= */
+
+/* Barra de días (lun, mar, mié...) */
+.fc .fc-col-header-cell {
+    background-color: #e9f2f4 !important;
+    color: #004c63 !important;
+    font-weight: 600;
+}
+
+/* Texto del día */
+.fc .fc-col-header-cell a {
+    color: #004c63 !important;
+    text-decoration: none;
+}
+
+/* Números de los días */
+.fc .fc-daygrid-day-number {
+    color: #004c63 !important;
+    font-weight: 500;
+}
+
+/* Día actual */
+.fc .fc-day-today {
+    background-color: #f0f8fa !important;
+}
+
+/* 🔴 CRÍTICO: no romper el layout */
+.fc,
+.fc-view-harness,
+.fc-view,
+.fc-scrollgrid {
+    height: auto !important;
+}
+
+/* Números del calendario */
+.calendar td .day-number,
+.calendar td a.day-number,
+.calendar td span.day-number {
+    color: #000 !important;
+    font-weight: 500;
+}

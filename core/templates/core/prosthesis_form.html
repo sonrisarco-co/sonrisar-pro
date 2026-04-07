@@ -1,0 +1,65 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ titulo }} - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">{{ titulo }}</h2>
+
+    <a href="{% url 'protesis_list' %}" class="btn btn-outline-secondary mb-3">
+        ⬅ Volver a la lista
+    </a>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label class="form-label">Paciente</label>
+            {{ form.paciente }}
+            {{ form.paciente.errors }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Trabajo</label>
+            {{ form.trabajo }}
+            {{ form.trabajo.errors }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Etapa</label>
+            {{ form.etapa }}
+            {{ form.etapa.errors }}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fecha de envío</label>
+                {{ form.fecha_envio }}
+                {{ form.fecha_envio.errors }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fecha de retorno</label>
+                {{ form.fecha_retorno }}
+
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Observaciones</label>
+            {{ form.observaciones }}
+            {{ form.observaciones.errors }}
+        </div>
+
+        <button type="submit" class="btn btn-sonrisar">Guardar</button>
+
+    </form>
+
+</div>
+{% endblock %}

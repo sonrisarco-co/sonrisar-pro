@@ -1,0 +1,19 @@
+{% extends "core/base.html" %}
+{% block title %}Borrar Registro - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="titulo-seccion">Borrar registro</h2>
+
+  <p>
+    ¿Seguro que querés borrar este registro de
+    <strong>{{ paciente.nombre }} {{ paciente.apellido }}</strong>?
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn-sonrisar-danger" type="submit">Sí, borrar</button>
+    <a class="btn-sonrisar-sec" href="{% url 'clinical_record_detail' registro.id %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

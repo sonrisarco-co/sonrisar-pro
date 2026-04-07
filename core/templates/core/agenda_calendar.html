@@ -1,0 +1,44 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <a href="{% url 'agenda_calendar' %}" class="btn btn-outline-secondary btn-sm mb-3">
+    ← Volver al calendario
+  </a>
+
+  <h4 class="mb-3">
+    Agenda del {{ fecha|date:"d/m/Y" }}
+  </h4>
+
+  <div class="list-group">
+    {% for h in horarios %}
+
+      {% if h.ocupado %}
+        <!-- HORA OCUPADA → PACIENTE + COLOR DE MOTIVO -->
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+
+            <div>
+              <strong>{{ h.hora|time:"H:i" }}</strong> — {{ h.paciente }}
+            </div>
+
+            <span class="badge motivo-color motivo-{{ h.motivo_slug }}">
+              {{ h.motivo }}
+            </span>
+        </div>
+
+      {% else %}
+        <!-- HORA DISPONIBLE -->
+        <a class="list-group-item list-group-item-action d-flex justify-content-between"
+           href="{% url 'appointment_new' %}?fecha={{ fecha|date:'Y-m-d' }}&hora={{ h.hora|time:'H:i' }}">
+
+           <div><strong>{{ h.hora|time:"H:i" }}</strong> — Disponible</div>
+        </a>
+
+      {% endif %}
+
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

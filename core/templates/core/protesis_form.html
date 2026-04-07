@@ -1,0 +1,88 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ titulo }} - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="text-center titulo-seccion mb-4">{{ titulo }}</h2>
+
+    <div class="mb-3">
+        <a href="{% url 'protesis_list' %}" class="btn btn-outline-secondary">
+            ⬅ Volver a la lista
+        </a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Paciente</label>
+                    {{ form.paciente }}
+                    {{ form.paciente.errors }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Trabajo</label>
+                    {{ form.trabajo }}
+                    {{ form.trabajo.errors }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Etapa</label>
+                    {{ form.etapa }}
+                    {{ form.etapa.errors }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Fecha de envío</label>
+                    {{ form.fecha_envio }}
+                    {{ form.fecha_envio.errors }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Fecha de retorno</label>
+                    {{ form.fecha_retorno }}
+                    {{ form.fecha_retorno.errors }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Observaciones</label>
+                {{ form.observaciones }}
+                {{ form.observaciones.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-sonrisar">Guardar</button>
+
+        </form>
+
+    </div>
+</div>
+
+<style>
+    .titulo-seccion {
+        color: #107361;
+        font-weight: 700;
+    }
+
+    input, select, textarea {
+        border-radius: 8px !important;
+        border: 1px solid #b5b5b5 !important;
+        padding: 6px 10px !important;
+    }
+
+    .card {
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}

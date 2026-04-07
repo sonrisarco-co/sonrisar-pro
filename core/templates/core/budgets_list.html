@@ -1,0 +1,174 @@
+{% extends "core/base.html" %}
+{% load l10n %}
+
+{% block title %}Presupuestos - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<style>
+/* ==========================================
+   TABLA ESTILO SONRISAR
+========================================== */
+.table-sonrisar {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table-sonrisar thead th {
+    background: #26ABA5 !important;
+    color: #ffffff !important;
+    padding: 10px;
+    text-align: left;
+    border-bottom: none;
+    vertical-align: middle;
+}
+
+.table-sonrisar tbody tr:nth-child(even) {
+    background: #f2f8f7;
+}
+
+.table-sonrisar tbody tr:nth-child(odd) {
+    background: #ffffff;
+}
+
+.table-sonrisar td {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333 !important;
+    vertical-align: middle;
+}
+
+/* ==========================================
+   ACCIONES
+========================================== */
+.acciones-cell {
+    white-space: nowrap;
+    min-width: 280px;
+}
+
+.acciones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.acciones form {
+    margin: 0;
+}
+
+/* ==========================================
+   BOTONES
+========================================== */
+.btn-outline-edit,
+.btn-outline-delete,
+.btn-outline-pdf,
+.btn-outline-view {
+    background: #fff;
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 4px 10px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.btn-outline-view {
+    border: 1px solid #198754;
+    color: #198754 !important;
+}
+
+.btn-outline-view:hover {
+    background: #198754;
+    color: #fff !important;
+}
+
+.btn-outline-edit {
+    border: 1px solid #0d6efd;
+    color: #0d6efd !important;
+}
+
+.btn-outline-edit:hover {
+    background: #0d6efd;
+    color: #fff !important;
+}
+
+.btn-outline-delete {
+    border: 1px solid #b81313;
+    color: #b81313 !important;
+}
+
+.btn-outline-delete:hover {
+    background: #b81313;
+    color: #fff !important;
+}
+
+.btn-outline-pdf {
+    border: 1px solid #0b6fa4;
+    color: #0b6fa4 !important;
+}
+
+.btn-outline-pdf:hover {
+    background: #0b6fa4;
+    color: #fff !important;
+}
+
+.titulo-seccion {
+    color: #107361;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+</style>
+
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Presupuestos</h2>
+
+    <table class="table table-hover table-sonrisar align-middle table-presupuestos">
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th style="width: 320px;">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for p in presupuestos %}
+            <tr>
+                <td>{{ p.paciente.nombre }} {{ p.paciente.apellido }}</td>
+                <td>{{ p.fecha|date:"j \\d\\e F \\d\\e Y" }}</td>
+                <td>$ {{ p.total|unlocalize }}</td>
+                <td class="acciones-cell">
+                    <div class="acciones">
+                        <a href="{% url 'budget_detail' p.id %}" class="btn-outline-view">Ver</a>
+
+                        <a href="{% url 'budget_edit' p.id %}" class="btn-outline-edit">Editar</a>
+
+                        <form method="post" action="{% url 'budget_delete' p.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn-outline-delete"
+                                    onclick="return confirm('¿Seguro que querés eliminar este presupuesto?');">
+                                Eliminar
+                            </button>
+                        </form>
+
+                        <a href="{% url 'budget_print' p.id %}" class="btn-outline-pdf">PDF</a>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-3">No hay presupuestos registrados.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

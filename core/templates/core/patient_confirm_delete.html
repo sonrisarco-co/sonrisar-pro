@@ -1,0 +1,43 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Eliminar paciente - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <div class="card shadow-sm p-4">
+
+        <h3 class="text-danger mb-3">⚠️ Eliminar paciente</h3>
+
+        <p>
+            ¿Estás seguro que deseas eliminar al siguiente paciente?
+        </p>
+
+        <ul class="list-group mb-4">
+            <li class="list-group-item">
+                <strong>Nombre:</strong> {{ paciente.apellido }}, {{ paciente.nombre }}
+            </li>
+            <li class="list-group-item">
+                <strong>CI:</strong> {{ paciente.ci }}
+            </li>
+        </ul>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'patient_list' %}">Cancelar 
+                    
+                </a>
+
+                <button type="submit" class="btn btn-danger">
+                    Sí, eliminar paciente
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

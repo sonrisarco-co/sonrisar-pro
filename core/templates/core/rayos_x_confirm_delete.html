@@ -1,0 +1,21 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h2>¿Eliminar esta placa?</h2>
+
+<img src="{{ rx.imagen.url }}" style="max-width:100%; border-radius:8px;">
+
+<form method="post">
+    {% csrf_token %}
+
+    <button type="submit" class="btn-sonrisar btn-peligro">
+        🗑 Sí, eliminar
+    </button>
+
+    <a href="{% url 'rayos_x_list' rx.paciente.id %}"
+       class="btn-sonrisar btn-volver">
+       Cancelar
+    </a>
+</form>
+
+{% endblock %}

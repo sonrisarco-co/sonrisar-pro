@@ -1,0 +1,259 @@
+{% extends "core/base.html" %}
+{% load l10n %}
+
+{% block title %}
+{% if modo == "editar" %}Editar presupuesto{% else %}Nuevo presupuesto{% endif %} - Sonrisar Pro
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion mb-4">
+        {% if modo == "editar" %}
+            Editar presupuesto
+        {% else %}
+            Nuevo presupuesto
+        {% endif %}
+    </h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- ================= PACIENTE ================= -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Paciente</label>
+
+            {% if presupuesto.paciente %}
+                <input type="text"
+                       class="form-control"
+                       value="{{ presupuesto.paciente }}"
+                       readonly>
+
+                <input type="hidden"
+                       name="paciente_id"
+                       value="{{ presupuesto.paciente.id }}">
+            {% elif paciente %}
+                <input type="text"
+                       class="form-control"
+                       value="{{ paciente }}"
+                       readonly>
+
+                <input type="hidden"
+                       name="paciente_id"
+                       value="{{ paciente.id }}">
+            {% else %}
+                <select name="paciente_id" class="form-control" required>
+                    <option value="">Seleccionar paciente</option>
+                    {% for p in pacientes %}
+                        <option value="{{ p.id }}">{{ p }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </div>
+
+        <!-- ================= DIAGNÓSTICO ================= -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">Diagnóstico</label>
+            <textarea name="diagnostico"
+                      class="form-control"
+                      rows="3">{% if presupuesto %}{{ presupuesto.diagnostico }}{% endif %}</textarea>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold">Observaciones</label>
+            <textarea name="observaciones"
+                    class="form-control"
+                    rows="3">{% if presupuesto %}{{ presupuesto.observaciones }}{% endif %}</textarea>
+        </div>
+
+        <!-- ================= TABLA ================= -->
+        <table class="table table-bordered align-middle">
+            <thead class="table-sonrisar">
+                <tr>
+                    <th>Concepto</th>
+                    <th style="width:120px">Cantidad</th>
+                    <th style="width:140px">Valor</th>
+                    <th style="width:160px">Subtotal</th>
+                </tr>
+            </thead>
+
+            <tbody id="items-body">
+                {% if items %}
+                    {% for i in items %}
+                    <tr>
+                        <td>
+                            <input type="text"
+                                   name="concepto[]"
+                                   class="form-control"
+                                   value="{{ i.concepto }}">
+                        </td>
+                        <td>
+                            <input type="number"
+                                   name="cantidad[]"
+                                   class="form-control cantidad"
+                                   value="{{ i.cantidad }}">
+                        </td>
+                        <td>
+                            <input type="number"
+                                   name="valor[]"
+                                   class="form-control valor"
+                                   step="0.01"
+                                   value="{{ i.valor|unlocalize }}">
+                        </td>
+                        <td>
+                            <input type="number"
+                                   name="subtotal[]"
+                                   class="form-control subtotal"
+                                   readonly
+                                   step="0.01"
+                                   value="{{ i.total_item|unlocalize }}">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td>
+                            <input type="text"
+                                   name="concepto[]"
+                                   class="form-control">
+                        </td>
+                        <td>
+                            <input type="number"
+                                   name="cantidad[]"
+                                   class="form-control cantidad"
+                                   value="1">
+                        </td>
+                        <td>
+                            <input type="number"
+                                   name="valor[]"
+                                   class="form-control valor"
+                                   step="0.01">
+                        </td>
+                        <td>
+                            <input type="number"
+                                   name="subtotal[]"
+                                   class="form-control subtotal"
+                                   readonly
+                                   step="0.01"
+                                   value="0.00">
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- ================= TOTAL ================= -->
+        <div class="d-flex justify-content-end mb-4">
+            <div style="width:260px">
+                <label class="fw-bold">Total presupuesto</label>
+                <input type="text"
+                       id="total_presupuesto"
+                       name="total_presupuesto"
+                       class="form-control text-end fw-bold"
+                       readonly
+                       value="{% if presupuesto %}{{ presupuesto.total|unlocalize }}{% else %}0.00{% endif %}">
+            </div>
+        </div>
+
+        <!-- ================= BOTONES ================= -->
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">
+                💾 Guardar
+            </button>
+            <a href="{% url 'budgets_list' %}" class="btn btn-secondary">
+                Cancelar
+            </a>
+        </div>
+
+    </form>
+</div>
+
+<style>
+.table-sonrisar {
+    background-color: #26ABA5;
+    color: white;
+}
+
+.titulo-seccion {
+    color: #107361;
+    font-weight: 700;
+}
+</style>
+
+<script>
+function parseNumero(valor) {
+    if (!valor) return 0;
+    valor = valor.toString().replace(",", ".");
+    return parseFloat(valor) || 0;
+}
+
+function recalcularFila(row) {
+    const cantidadInput = row.querySelector(".cantidad");
+    const valorInput = row.querySelector(".valor");
+    const subtotalInput = row.querySelector(".subtotal");
+
+    const cantidad = parseNumero(cantidadInput.value);
+    const valor = parseNumero(valorInput.value);
+    const subtotal = cantidad * valor;
+
+    subtotalInput.value = subtotal.toFixed(2);
+    recalcularTotal();
+}
+
+function recalcularTotal() {
+    let total = 0;
+
+    document.querySelectorAll(".subtotal").forEach(input => {
+        total += parseNumero(input.value);
+    });
+
+    document.getElementById("total_presupuesto").value = total.toFixed(2);
+}
+
+function nuevaFila() {
+    const tbody = document.getElementById("items-body");
+
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+        <td>
+            <input type="text" name="concepto[]" class="form-control">
+        </td>
+        <td>
+            <input type="number" name="cantidad[]" class="form-control cantidad" value="1">
+        </td>
+        <td>
+            <input type="number" name="valor[]" class="form-control valor" step="0.01">
+        </td>
+        <td>
+            <input type="number" name="subtotal[]" class="form-control subtotal" readonly step="0.01" value="0.00">
+        </td>
+    `;
+
+    tbody.appendChild(fila);
+    bindFila(fila);
+    fila.querySelector('input[name="concepto[]"]').focus();
+}
+
+function bindFila(row) {
+    row.querySelectorAll(".cantidad, .valor").forEach(input => {
+        input.addEventListener("input", function() {
+            recalcularFila(row);
+        });
+    });
+
+    row.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            nuevaFila();
+        }
+    });
+}
+
+document.querySelectorAll("#items-body tr").forEach(row => {
+    bindFila(row);
+});
+
+recalcularTotal();
+</script>
+
+{% endblock %}

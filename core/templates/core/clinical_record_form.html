@@ -1,0 +1,184 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<div class="hc-wrapper">
+
+    <h2 class="hc-title">
+        {% if registro %}
+            Editar Historia Clínica
+        {% else %}
+            Nueva Historia Clínica
+        {% endif %}
+    </h2>
+
+    <p class="hc-paciente">
+        Paciente: <strong>{{ paciente.apellido }}, {{ paciente.nombre }}</strong>
+    </p>
+
+    <form method="post" class="hc-form">
+        {% csrf_token %}
+
+        <input type="hidden" name="appointment_id" value="{{ appointment_id|default:'' }}">
+        <input type="hidden" name="next" value="{{ volver_url|default:'' }}">
+
+        <div class="hc-field hc-inline">
+            <label for="id_motivo">Motivo</label>
+            {{ form.motivo }}
+            {% if form.motivo.errors %}
+                <div class="text-danger small mt-1">
+                    {{ form.motivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="hc-field">
+            <label for="id_diagnostico">Diagnóstico</label>
+            {{ form.diagnostico }}
+            {% if form.diagnostico.errors %}
+                <div class="text-danger small mt-1">
+                    {{ form.diagnostico.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="hc-field">
+            <label for="id_tratamiento">Evolución</label>
+            {{ form.tratamiento }}
+            {% if form.tratamiento.errors %}
+                <div class="text-danger small mt-1">
+                    {{ form.tratamiento.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="hc-field">
+            <label for="id_observaciones">Observaciones</label>
+            {{ form.observaciones }}
+            {% if form.observaciones.errors %}
+                <div class="text-danger small mt-1">
+                    {{ form.observaciones.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="hc-actions">
+            <button type="submit" class="btn-sonrisar">
+                Guardar
+            </button>
+
+            <a href="{{ volver_url }}" class="btn-sonrisar-outline">
+                Cancelar
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+<style>
+.hc-wrapper {
+    max-width: 980px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.hc-title {
+    color: #146B6C;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.hc-paciente {
+    font-size: 1rem;
+    margin-bottom: 24px;
+    color: #333;
+}
+
+.hc-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.hc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hc-field label {
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.hc-field input,
+.hc-field textarea,
+.hc-field select {
+    width: 100%;
+    border: 1px solid #cfd8dc;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 1rem;
+    background: #fff;
+}
+
+.hc-field textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.hc-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.btn-sonrisar {
+    background: #26ABA5;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-sonrisar:hover {
+    background: #1f8f89;
+    color: white;
+}
+
+.btn-sonrisar-outline {
+    background: white;
+    color: #26ABA5;
+    border: 1px solid #26ABA5;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-sonrisar-outline:hover {
+    background: #f3fffe;
+    color: #1f8f89;
+}
+</style>
+
+<script>
+document.querySelectorAll("textarea").forEach(function(textarea) {
+    function autoResize() {
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }
+    textarea.addEventListener("input", autoResize);
+    autoResize();
+});
+</script>
+
+{% endblock %}

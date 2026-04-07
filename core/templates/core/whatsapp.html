@@ -1,0 +1,42 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+<h2>Recordatorios WhatsApp</h2>
+<p><strong>Citas para:</strong> {{ fecha|date:"d/m/Y" }}</p>
+
+<div style="margin: 15px 0;">
+  <a href="{% url 'iniciar_recordatorios_manana' %}" class="btn btn-primary">
+    Iniciar envío automático (una por una)
+  </a>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Hora</th>
+      <th>Paciente</th>
+      <th>Teléfono</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in citas %}
+    <tr>
+      <td>{{ c.hora|time:"H:i" }}</td>
+      <td>{{ c.paciente }}</td>
+      <td>{{ c.paciente.telefono }}</td>
+      <td>
+        <a class="btn btn-success" href="{% url 'cita_recordatorio' c.id %}" target="_blank">
+          Abrir WhatsApp
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4">No hay citas para mañana.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Agenda semanal - Sonrisar Pro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- TÍTULO -->
+    <div class="text-center mb-3">
+        <h2 class="titulo-seccion">Agenda semanal</h2>
+        <h4 id="titulo-semana" class="text-muted"></h4>
+    </div>
+
+    <!-- CONTROLES -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+            <button id="prevWeek" class="btn btn-sm btn-outline-secondary">‹</button>
+            <button id="nextWeek" class="btn btn-sm btn-outline-secondary">›</button>
+            <button id="todayBtn" class="btn btn-sm btn-outline-secondary">Hoy</button>
+        </div>
+
+        <a href="{% url 'agenda_week' %}" class="btn btn-sm btn-sonrisar">
+            Ver lista semanal
+        </a>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div id="calendar"></div>
+</div>
+
+<!-- FULLCALENDAR -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const calendarEl = document.getElementById("calendar");
+    const tituloSemana = document.getElementById("titulo-semana");
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "timeGridWeek",
+        locale: "es",
+        allDaySlot: false,
+        height: "auto",
+        slotMinTime: "08:00:00",
+        slotMaxTime: "20:00:00",
+
+        headerToolbar: false,
+
+        datesSet: function(info) {
+            const inicio = info.start;
+            const fin = info.end;
+
+            tituloSemana.innerText =
+                inicio.toLocaleDateString("es-ES", { day: "numeric", month: "long" }) +
+                " al " +
+                new Date(fin - 86400000).toLocaleDateString("es-ES", { 
+                    day: "numeric", 
+                    month: "long", 
+                    year: "numeric" 
+                });
+        },
+
+        events: "{% url 'agenda_citas_json' %}",
+
+        dateClick: function(info) {
+            window.location.href = "{% url 'appointment_new' %}?fecha=" + info.dateStr;
+        },
+
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            window.location.href = info.event.url;
+        },
+
+        eventDidMount: function(info) {
+            const estado = info.event.extendedProps.estado;
+            const motivo = info.event.extendedProps.motivo;
+
+            // ESTILO BASE
+            info.el.style.backgroundColor = "white";
+            info.el.style.border = "1px solid #ccc";
+            info.el.style.color = "#333";
+            info.el.style.fontSize = "0.85rem";
+
+            // COLORES POR ESTADO
+            if (estado === "confirmado") {
+                info.el.style.borderLeft = "6px solid #2e7d32";
+            } 
+            else if (estado === "pendiente") {
+                info.el.style.borderLeft = "6px solid #f9a825";
+            } 
+            else if (estado === "cancelado") {
+                info.el.style.borderLeft = "6px solid #c62828";
+            }
+
+            // --- COLORES SONRISAR POR MOTIVO ---
+            const colores = {
+                "Consulta / diagnóstico": "#666666",
+                "Limpieza": "#00AEEF",
+                "Resina": "#FFD400",
+                "Ajuste (ortodoncia)": "#1ABC9C",
+                "Segunda colocación + ajuste": "#1E7D33",
+                "Colocación nueva": "#0054D1",
+                "Endodoncia": "#7D2AE8",
+                "Extracción": "#C62828",
+                "Prótesis": "#E91E63",
+                "Urgencia": "#FF6A00"
+            };
+
+            // COLOR DEL MOTIVO
+            if (colores[motivo]) {
+                info.el.style.borderLeft = "6px solid " + colores[motivo];
+            }
+
+            // MOSTRAR EL MOTIVO DEBAJO DEL NOMBRE
+            const titleEl = info.el.querySelector(".fc-event-title");
+            if (titleEl && motivo) {
+                titleEl.innerHTML =
+                    info.event.title +
+                    "<br><small style='color:#555; font-size:0.75rem;'>" +
+                    motivo +
+                    "</small>";
+            }
+        }
+    });
+
+    calendar.render();
+
+    document.getElementById("prevWeek").onclick = () => calendar.prev();
+    document.getElementById("nextWeek").onclick = () => calendar.next();
+    document.getElementById("todayBtn").onclick = () => calendar.today();
+});
+</script>
+
+<style>
+/* BOTÓN SONRISAR */
+.btn-sonrisar {
+    background-color: #1f6f78;
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+}
+.btn-sonrisar:hover {
+    background-color: #165b62;
+    color: #fff;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+
+{% block title %}Horarios disponibles{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h3 class="mb-4">
+        Horarios disponibles – {{ fecha|date:"d/m/Y" }}
+    </h3>
+
+    <div class="row">
+        {% for hora in horarios %}
+            <div class="col-md-2 mb-3 text-center">
+                {% if hora in ocupados %}
+                    <div class="btn btn-outline-danger w-100 disabled">
+                        {{ hora|time:"H:i" }}<br>
+                        Ocupado
+                    </div>
+                {% else %}
+                    <a href="{% url 'appointment_new' %}?fecha={{ fecha }}&hora={{ hora }}"
+                       class="btn btn-sonrisar w-100">
+                        {{ hora|time:"H:i" }}
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'agenda_calendario' %}" class="btn btn-secondary mt-3">
+        Volver al calendario
+    </a>
+
+</div>
+{% endblock %}

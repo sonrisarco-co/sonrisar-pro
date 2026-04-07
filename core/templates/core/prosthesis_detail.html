@@ -1,0 +1,20 @@
+{% extends "core/base.html" %}
+
+{% block title %}Detalle de Prótesis{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="titulo-seccion">Detalle de Prótesis</h2>
+
+    <p><strong>Paciente:</strong> {{ protesis.paciente }}</p>
+    <p><strong>Trabajo:</strong> {{ protesis.trabajo }}</p>
+    <p><strong>Etapa:</strong> {{ protesis.etapa }}</p>
+    <p><strong>Fecha de envío:</strong> {{ protesis.fecha_envio }}</p>
+    <p><strong>Fecha de recepción:</strong> {{ protesis.fecha_recepcion }}</p>
+
+    <a href="#" onclick="window.print()" class="btn btn-primary mt-3">🖨 Imprimir</a>
+    <a href="{% url 'protesis_list' %}" class="btn btn-secondary mt-3">Volver</a>
+
+</div>
+{% endblock %}

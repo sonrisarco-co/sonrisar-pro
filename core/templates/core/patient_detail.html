@@ -1,0 +1,175 @@
+{% extends "core/base.html" %}
+
+{% block title %}Ficha del Paciente - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<style>
+/* === SONRISAR PRO – FICHA PACIENTE === */
+
+.ficha-container {
+    max-width: 900px;
+    margin: 30px auto;
+}
+
+.ficha-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.ficha-header h2 {
+    color: #107361;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ficha-header h2 i {
+    color: #26ABA5;
+}
+
+.ficha-actions a {
+    margin-left: 10px;
+}
+
+.card-sonrisar {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.datos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 30px;
+}
+
+.dato {
+    font-size: 0.95rem;
+}
+
+.dato span {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 3px;
+}
+
+.dato strong {
+    font-size: 1.05rem;
+    color: #212529;
+}
+
+.acciones-paciente {
+    margin-top: 30px;
+}
+
+.acciones-paciente h4 {
+    color: #107361;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.acciones-paciente a {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .datos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="ficha-container">
+
+    <!-- HEADER -->
+    <div class="ficha-header">
+        <h2>
+            📄 Ficha del Paciente
+        </h2>
+
+        <div class="ficha-actions">
+            <a href="{% url 'patient_edit' paciente.id %}" class="btn btn-outline-primary">
+                ✏️ Editar
+            </a>
+
+            <a href="{% url 'patient_delete' paciente.id %}"
+               class="btn btn-outline-danger"
+               onclick="return confirm('¿Seguro que deseas eliminar este paciente?');">
+                🗑️ Eliminar
+            </a>
+        </div>
+    </div>
+
+    <!-- DATOS -->
+    <div class="card-sonrisar">
+
+        <div class="datos-grid">
+
+            <div class="dato">
+                <span>Nombre</span>
+                <strong>{{ paciente.nombre }}</strong>
+            </div>
+
+            <div class="dato">
+                <span>Apellido</span>
+                <strong>{{ paciente.apellido }}</strong>
+            </div>
+
+            <div class="dato">
+                <span>C.I.</span>
+                <strong>{{ paciente.ci }}</strong>
+            </div>
+
+            <div class="dato">
+                <span>Fecha de nacimiento</span>
+                <strong>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</strong>
+            </div>
+
+            <div class="dato">
+                <span>Teléfono</span>
+                <strong>{{ paciente.telefono|default:"—" }}</strong>
+            </div>
+
+            <div class="dato">
+                <span>Email</span>
+                <strong>{{ paciente.email|default:"—" }}</strong>
+            </div>
+
+            <div class="dato" style="grid-column: span 2;">
+                <span>Dirección</span>
+                <strong>{{ paciente.direccion|default:"—" }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="acciones-paciente">
+        <h4>Acciones del paciente</h4>
+
+        <a href="{% url 'patient_appointments' paciente.id %}" class="btn btn-sonrisar">
+            Citas
+        </a>
+
+
+        <a href="{% url 'patient_budgets' paciente.id %}" class="btn btn-sonrisar">
+            Presupuestos
+        </a>
+
+
+        <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}" class="btn btn-rayos">
+            🩻 Rayos X
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

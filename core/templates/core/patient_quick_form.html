@@ -1,0 +1,45 @@
+<form id="quickPatientForm">
+  {% csrf_token %}
+
+  <div class="row">
+    <div class="col-md-6 mb-2">
+      <label class="form-label">Nombre</label>
+      <input class="form-control" type="text" name="nombre" required>
+    </div>
+
+    <div class="col-md-6 mb-2">
+      <label class="form-label">Apellido</label>
+      <input class="form-control" type="text" name="apellido" required>
+    </div>
+
+    <div class="col-md-6 mb-2">
+      <label class="form-label">C.I.</label>
+      <input class="form-control" type="text" name="ci">
+    </div>
+
+    <div class="col-md-6 mb-2">
+      <label class="form-label">Teléfono</label>
+      <input class="form-control" type="text" name="telefono">
+    </div>
+
+    <div class="col-md-6 mb-2">
+      <label class="form-label">Fecha de nacimiento</label>
+      <input class="form-control" type="date" name="fecha_nacimiento">
+    </div>
+
+    <div class="col-md-6 mb-2">
+      <label class="form-label">Email</label>
+      <input class="form-control" type="email" name="email">
+    </div>
+
+    <div class="col-md-12 mb-2">
+      <label class="form-label">Dirección</label>
+      <input class="form-control" type="text" name="direccion">
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 mt-3">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+  </div>
+</form>
