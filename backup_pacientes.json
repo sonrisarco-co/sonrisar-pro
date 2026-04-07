@@ -1,0 +1,600 @@
+[
+{
+  "model": "core.patient",
+  "pk": 6,
+  "fields": {
+    "nombre": "Jeferson",
+    "apellido": "Muniz",
+    "ci": "55222514",
+    "fecha_nacimiento": null,
+    "telefono": "96379729",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 7,
+  "fields": {
+    "nombre": "Abigail",
+    "apellido": "Rodríguez",
+    "ci": "52877659",
+    "fecha_nacimiento": null,
+    "telefono": "91797315",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 8,
+  "fields": {
+    "nombre": "Nahiara",
+    "apellido": "Guevara",
+    "ci": "58543143",
+    "fecha_nacimiento": null,
+    "telefono": "94268362",
+    "email": "",
+    "direccion": "Teléfono de contacto: Madre"
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 9,
+  "fields": {
+    "nombre": "Virginia",
+    "apellido": "Hernández",
+    "ci": "50966765",
+    "fecha_nacimiento": null,
+    "telefono": "92182836",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 10,
+  "fields": {
+    "nombre": "Brandon",
+    "apellido": "Galvan",
+    "ci": "5847692",
+    "fecha_nacimiento": null,
+    "telefono": "93509762",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 11,
+  "fields": {
+    "nombre": "Lucas",
+    "apellido": "Nuñez",
+    "ci": "57109710",
+    "fecha_nacimiento": null,
+    "telefono": "97787324",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 12,
+  "fields": {
+    "nombre": "Valeria",
+    "apellido": "Reyes",
+    "ci": "54046618",
+    "fecha_nacimiento": null,
+    "telefono": "92762384",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 14,
+  "fields": {
+    "nombre": "Kevin",
+    "apellido": "De Los Santos",
+    "ci": "56648604",
+    "fecha_nacimiento": null,
+    "telefono": "92170402",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 16,
+  "fields": {
+    "nombre": "Agustina",
+    "apellido": "Sandoval",
+    "ci": "55149986",
+    "fecha_nacimiento": null,
+    "telefono": "97039708",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 17,
+  "fields": {
+    "nombre": "Lucia",
+    "apellido": "Zimerman",
+    "ci": "49855466",
+    "fecha_nacimiento": null,
+    "telefono": "91933876",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 18,
+  "fields": {
+    "nombre": "Emily",
+    "apellido": "Acosta",
+    "ci": "57398069",
+    "fecha_nacimiento": null,
+    "telefono": "98657350",
+    "email": "",
+    "direccion": "eee"
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 20,
+  "fields": {
+    "nombre": "Luna",
+    "apellido": "Gonzales",
+    "ci": "56882474",
+    "fecha_nacimiento": null,
+    "telefono": "99156155",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 21,
+  "fields": {
+    "nombre": "Luz",
+    "apellido": "Carrasco",
+    "ci": "53959911",
+    "fecha_nacimiento": null,
+    "telefono": "92658200",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 22,
+  "fields": {
+    "nombre": "Luis",
+    "apellido": "Fernández",
+    "ci": "52648224",
+    "fecha_nacimiento": null,
+    "telefono": "95680217",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 30,
+  "fields": {
+    "nombre": "Jenifer",
+    "apellido": "Bach",
+    "ci": "54376550",
+    "fecha_nacimiento": null,
+    "telefono": "98263412",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 31,
+  "fields": {
+    "nombre": "Alejandro",
+    "apellido": "San Martin",
+    "ci": "57350393",
+    "fecha_nacimiento": null,
+    "telefono": "92844552",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 32,
+  "fields": {
+    "nombre": "Valeria",
+    "apellido": "Miguez",
+    "ci": "49791341",
+    "fecha_nacimiento": null,
+    "telefono": "92807069",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 33,
+  "fields": {
+    "nombre": "Milagros",
+    "apellido": "Pereira",
+    "ci": "56073651",
+    "fecha_nacimiento": null,
+    "telefono": "95215336",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 34,
+  "fields": {
+    "nombre": "Agustin",
+    "apellido": "Peña",
+    "ci": "56606529",
+    "fecha_nacimiento": null,
+    "telefono": "94867519",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 35,
+  "fields": {
+    "nombre": "Braian",
+    "apellido": "Del Puerto",
+    "ci": "58451500",
+    "fecha_nacimiento": null,
+    "telefono": "92281800",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 36,
+  "fields": {
+    "nombre": "Facundo",
+    "apellido": "Sosa",
+    "ci": "56835136",
+    "fecha_nacimiento": null,
+    "telefono": "97730292",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 37,
+  "fields": {
+    "nombre": "Emilio",
+    "apellido": "Aire",
+    "ci": "55421019",
+    "fecha_nacimiento": null,
+    "telefono": "92398759",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 38,
+  "fields": {
+    "nombre": "Adriana",
+    "apellido": "Del Puerto",
+    "ci": "22222222",
+    "fecha_nacimiento": null,
+    "telefono": "92760587",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 40,
+  "fields": {
+    "nombre": "Nicole",
+    "apellido": "Macorani",
+    "ci": "12345678",
+    "fecha_nacimiento": null,
+    "telefono": "98801125",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 41,
+  "fields": {
+    "nombre": "Juan Manuel",
+    "apellido": "Silva",
+    "ci": "59222615",
+    "fecha_nacimiento": null,
+    "telefono": "98473495",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 42,
+  "fields": {
+    "nombre": "Valeria",
+    "apellido": "Alvarez",
+    "ci": "12346578",
+    "fecha_nacimiento": null,
+    "telefono": "93397859",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 43,
+  "fields": {
+    "nombre": "Eliana",
+    "apellido": "Díaz",
+    "ci": "75485226",
+    "fecha_nacimiento": null,
+    "telefono": "93745579",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 44,
+  "fields": {
+    "nombre": "Emiliano",
+    "apellido": "Molinari",
+    "ci": "45874552",
+    "fecha_nacimiento": null,
+    "telefono": "92967512",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 45,
+  "fields": {
+    "nombre": "Sofía",
+    "apellido": "Dávila",
+    "ci": "84759661",
+    "fecha_nacimiento": null,
+    "telefono": "97863705",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 46,
+  "fields": {
+    "nombre": "Emilia",
+    "apellido": "Ceballos",
+    "ci": "87459662",
+    "fecha_nacimiento": null,
+    "telefono": "92989599",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 48,
+  "fields": {
+    "nombre": "Carina",
+    "apellido": "Corbo",
+    "ci": "55548924",
+    "fecha_nacimiento": null,
+    "telefono": "91610443",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 49,
+  "fields": {
+    "nombre": "Barbara",
+    "apellido": "Fuentes",
+    "ci": "51989322",
+    "fecha_nacimiento": null,
+    "telefono": "96126915",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 50,
+  "fields": {
+    "nombre": "Ezequiel",
+    "apellido": "Dominguez",
+    "ci": "58694956",
+    "fecha_nacimiento": null,
+    "telefono": "96126915",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 52,
+  "fields": {
+    "nombre": "Lucas",
+    "apellido": "Reyes",
+    "ci": "59194480",
+    "fecha_nacimiento": null,
+    "telefono": "95455524",
+    "email": "valentinareyes308@gmail.com",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 53,
+  "fields": {
+    "nombre": "Nicole",
+    "apellido": "Sánchez",
+    "ci": "59555292",
+    "fecha_nacimiento": null,
+    "telefono": "91088252",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 54,
+  "fields": {
+    "nombre": "Fabiana",
+    "apellido": "Carrasco",
+    "ci": "50547903",
+    "fecha_nacimiento": null,
+    "telefono": "93656497",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 55,
+  "fields": {
+    "nombre": "Leticia",
+    "apellido": "Goyeneche",
+    "ci": "30531201",
+    "fecha_nacimiento": null,
+    "telefono": "99127008",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 56,
+  "fields": {
+    "nombre": "Maria",
+    "apellido": "Rocha",
+    "ci": "57473503",
+    "fecha_nacimiento": null,
+    "telefono": "98071131",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 57,
+  "fields": {
+    "nombre": "Luciana",
+    "apellido": "Marfetan",
+    "ci": "44602818",
+    "fecha_nacimiento": null,
+    "telefono": "99187283",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 58,
+  "fields": {
+    "nombre": "Noelia",
+    "apellido": "Quintero",
+    "ci": "43449261",
+    "fecha_nacimiento": null,
+    "telefono": "95001270",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 59,
+  "fields": {
+    "nombre": "Abril",
+    "apellido": "Martinez",
+    "ci": "59553238",
+    "fecha_nacimiento": null,
+    "telefono": "95001270",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 60,
+  "fields": {
+    "nombre": "Jorge",
+    "apellido": "Martinez",
+    "ci": "42779425",
+    "fecha_nacimiento": null,
+    "telefono": "95001337",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 62,
+  "fields": {
+    "nombre": "Rodrigo",
+    "apellido": "Suma",
+    "ci": "43641136",
+    "fecha_nacimiento": "1989-10-24",
+    "telefono": "96958600",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 63,
+  "fields": {
+    "nombre": "Mauro",
+    "apellido": "Barreto",
+    "ci": "52514512",
+    "fecha_nacimiento": null,
+    "telefono": "92222383",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 65,
+  "fields": {
+    "nombre": "Mauricio",
+    "apellido": "Noria",
+    "ci": "4.878.740-4",
+    "fecha_nacimiento": null,
+    "telefono": "97402167",
+    "email": "",
+    "direccion": ""
+  }
+},
+{
+  "model": "core.patient",
+  "pk": 66,
+  "fields": {
+    "nombre": "Fabian",
+    "apellido": "Calabuig",
+    "ci": "4.992.160-1",
+    "fecha_nacimiento": null,
+    "telefono": "93539416",
+    "email": "",
+    "direccion": ""
+  }
+}
+]
