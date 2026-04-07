@@ -1307,10 +1307,8 @@ def agenda_day(request, day, month, year):
     for cita in citas:
         pacientes_unicos[cita.paciente.id] = cita.paciente
 
-    pacientes_pagados = obtener_pacientes_con_pago(
-        request,
-        list(pacientes_unicos.values())
-    )
+    # TEMPORAL: desactivar consulta a Sonrisar Cobros en Render
+    pacientes_pagados = set()
 
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
