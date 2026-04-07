@@ -1381,24 +1381,30 @@ def cobros_nuevo_desde_cita(request, appointment_id):
         id=appointment_id
     )
 
-    scheme = "https" if request.is_secure() else "http"
-    current_host = request.get_host()          # ej: 192.168.1.7:8000
-    host_only = current_host.split(":")[0]     # ej: 192.168.1.7
+    current_host = request.get_host()
 
-    cobros_port = getattr(settings, "SONRISAR_COBROS_PORT", "8001")
-    cobros_path = getattr(settings, "SONRISAR_COBROS_NUEVO_PATH", "/pagos/nuevo/")
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
+
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
 
     paciente_nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".strip(", ")
     next_path = request.GET.get("next", "").strip()
 
     if next_path:
-        next_url = f"{scheme}://{current_host}{next_path}"
+        next_url = f"https://{current_host}{next_path}"
     else:
         next_url = ""
 
-    # URL de retorno a Sonrisar Pro, que marcará la cita como Asistió
     confirmar_pago_url = (
-        f"{scheme}://{current_host}"
+        f"https://{current_host}"
         f"{reverse('confirmar_pago_desde_cobros')}?appointment_id={cita.id}"
     )
 
@@ -1418,7 +1424,7 @@ def cobros_nuevo_desde_cita(request, appointment_id):
     if ci:
         params["ci"] = ci
 
-    cobros_url = f"{scheme}://{host_only}:{cobros_port}{cobros_path}?{urlencode(params)}"
+    cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
     return redirect(cobros_url)
 
 
@@ -1447,18 +1453,25 @@ def confirmar_pago_desde_cobros(request):
 def cobros_nuevo_desde_paciente(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
-    scheme = "https" if request.is_secure() else "http"
     current_host = request.get_host()
-    host_only = current_host.split(":")[0]
 
-    cobros_port = getattr(settings, "SONRISAR_COBROS_PORT", "8001")
-    cobros_path = getattr(settings, "SONRISAR_COBROS_NUEVO_PATH", "/pagos/nuevo/")
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
+
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
 
     paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
     next_path = request.GET.get("next", "").strip()
 
     if next_path:
-        next_url = f"{scheme}://{current_host}{next_path}"
+        next_url = f"https://{current_host}{next_path}"
     else:
         next_url = ""
 
@@ -1475,16 +1488,17 @@ def cobros_nuevo_desde_paciente(request, patient_id):
     if next_url:
         params["next"] = next_url
 
-    cobros_url = f"{scheme}://{host_only}:{cobros_port}{cobros_path}?{urlencode(params)}"
+    cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
     return redirect(cobros_url)
 
 
 def obtener_pagos_cobros_paciente(request, paciente):
-    scheme = "https" if request.is_secure() else "http"
-    current_host = request.get_host()
-    host_only = current_host.split(":")[0]
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
 
-    cobros_port = getattr(settings, "SONRISAR_COBROS_PORT", "8001")
     cobros_api_path = getattr(
         settings,
         "SONRISAR_COBROS_API_PACIENTE_PATH",
@@ -1493,10 +1507,10 @@ def obtener_pagos_cobros_paciente(request, paciente):
 
     paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
 
-    api_url = f"{scheme}://{host_only}:{cobros_port}{cobros_api_path}?{urlencode({'paciente': paciente_nombre})}"
+    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'paciente': paciente_nombre})}"
 
     try:
-        with urlopen(api_url, timeout=4) as response:
+        with urlopen(api_url, timeout=6) as response:
             data = json.loads(response.read().decode("utf-8"))
 
         if data.get("ok"):
@@ -1506,7 +1520,6 @@ def obtener_pagos_cobros_paciente(request, paciente):
 
     except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
         return [], "No fue posible conectar con Sonrisar Cobros."
-
 
 
 def obtener_pacientes_con_pago(request, pacientes):
