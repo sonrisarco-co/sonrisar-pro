@@ -12,4 +12,6 @@ urlpatterns = [
 
     path("service-worker.js", core_views.service_worker, name="service-worker"),
 
+    
+
 ]
