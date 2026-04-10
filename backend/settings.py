@@ -174,3 +174,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     'https://*.tail7ab5ac.ts.net',
 ]
+
+
+
+if os.environ.get("RENDER"):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    if not User.objects.filter(username="admin").exists():
+        User.objects.create_superuser("admin", "admin@email.com", "admin123")
