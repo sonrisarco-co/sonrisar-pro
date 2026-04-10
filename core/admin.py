@@ -16,3 +16,6 @@ admin.site.register(Budget)
 admin.site.register(BudgetItem)
 admin.site.register(Prosthesis)
 admin.site.register(Inventory)
+
+admin.site.site_header = "SONRISAR ADMIN OK"
+admin.site.index_title = "MODELOS CARGADOS"
