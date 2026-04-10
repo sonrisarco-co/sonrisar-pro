@@ -1,10 +1,18 @@
 from django.contrib import admin
-from .models import Appointment, Patient
+from .models import (
+    Patient,
+    Appointment,
+    Payment,
+    Budget,
+    BudgetItem,
+    Prosthesis,
+    Inventory,
+)
 
-@admin.register(Appointment)
-class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ("paciente", "fecha", "hora", "monto_total")
-
-@admin.register(Patient)
-class PatientAdmin(admin.ModelAdmin):
-    list_display = ("apellido", "nombre")
+admin.site.register(Patient)
+admin.site.register(Appointment)
+admin.site.register(Payment)
+admin.site.register(Budget)
+admin.site.register(BudgetItem)
+admin.site.register(Prosthesis)
+admin.site.register(Inventory)
