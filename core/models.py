@@ -47,7 +47,17 @@ class Appointment(models.Model):
         verbose_name="Procedimientos"
     )
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
+    pagado = models.BooleanField(default=False)
     observaciones = models.TextField(blank=True)
+
+    monto_total = models.DecimalField(
+        "Monto total",
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=0
+    )
 
     class Meta:
         ordering = ["fecha", "hora"]

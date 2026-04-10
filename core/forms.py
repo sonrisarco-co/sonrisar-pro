@@ -9,6 +9,8 @@ from .models import (
     Inventory,   # ← ESTE ES EL MODELO CORRECTO DEL INVENTARIO
     RayosX,
     Procedure,
+
+
 )
 
 # -------------------------
@@ -68,7 +70,6 @@ class AppointmentForm(forms.ModelForm):
         })
     )
 
-    # --- MOTIVOS POR COLOR ---
     MOTIVOS = [
         ("Consulta / diagnóstico", "Consulta / diagnóstico"),
         ("Limpieza", "Limpieza"),
@@ -108,6 +109,7 @@ class AppointmentForm(forms.ModelForm):
             "procedimientos",
             "estado",
             "observaciones",
+            "monto_total",
         ]
         widgets = {
             "fecha": forms.DateInput(
@@ -129,6 +131,11 @@ class AppointmentForm(forms.ModelForm):
                 "class": "form-control",
                 "rows": 3,
             }),
+            "monto_total": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Monto total del tratamiento",
+                "step": "0.01",
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -143,7 +150,6 @@ class AppointmentForm(forms.ModelForm):
 
         self.fields["procedimientos"].queryset = Procedure.objects.all().order_by("nombre")
 
-        # 🔹 IMPORTANTE: formatos que el navegador entiende
         self.fields["fecha"].input_formats = ["%Y-%m-%d"]
         self.fields["hora"].input_formats = ["%H:%M", "%H:%M:%S"]
 

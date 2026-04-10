@@ -33,7 +33,7 @@ from calendar import monthrange
 
 from django.views.decorators.http import require_POST
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import json
 from urllib.request import urlopen
@@ -1303,13 +1303,6 @@ def agenda_day(request, day, month, year):
         .order_by("hora")
     )
 
-    pacientes_unicos = {}
-    for cita in citas:
-        pacientes_unicos[cita.paciente.id] = cita.paciente
-
-    # TEMPORAL: desactivar consulta a Sonrisar Cobros en Render
-    pacientes_pagados = set()
-
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
     citas_por_bloque = agrupar_citas_por_bloque(citas)
@@ -1330,39 +1323,77 @@ def agenda_day(request, day, month, year):
         citas_exactas = [c for c in citas_en_bloque if c.hora == h]
         citas_extra = [c for c in citas_en_bloque if c.hora != h]
 
+        citas_exactas_data = []
+
+        for cita in citas_exactas:
+            info_pago = obtener_pago_cobros_cita(cita.id)
+
+            try:
+                total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
+            except (InvalidOperation, TypeError, ValueError):
+                total_pagado_decimal = Decimal("0")
+
+            monto_total = cita.monto_total or Decimal("0")
+            debe = monto_total - total_pagado_decimal
+            if debe < 0:
+                debe = Decimal("0")
+
+            citas_exactas_data.append({
+                "id": cita.id,
+                "patient_id": cita.paciente.id,
+                "hora_real": cita.hora,
+                "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+                "motivo": cita.motivo,
+                "motivo_slug": slugify(cita.motivo or ""),
+                "procedimientos": [p.nombre for p in cita.procedimientos.all()],
+                "estado": cita.get_estado_display(),
+                "estado_slug": cita.estado,
+                "pagado": cita.pagado,
+                "tiene_pago_cobros": info_pago["tiene_pago"],
+                "total_pagado": info_pago["total_pagado"],
+                "tipo_pago": info_pago["tipo_pago"],
+                "monto_total": monto_total,
+                "debe": debe,
+            })
+
+        citas_extra_data = []
+
+        for cita in citas_extra:
+            info_pago = obtener_pago_cobros_cita(cita.id)
+
+            try:
+                total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
+            except (InvalidOperation, TypeError, ValueError):
+                total_pagado_decimal = Decimal("0")
+
+            monto_total = cita.monto_total or Decimal("0")
+            debe = monto_total - total_pagado_decimal
+            if debe < 0:
+                debe = Decimal("0")
+
+            citas_extra_data.append({
+                "id": cita.id,
+                "patient_id": cita.paciente.id,
+                "hora_real": cita.hora,
+                "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+                "motivo": cita.motivo,
+                "motivo_slug": slugify(cita.motivo or ""),
+                "procedimientos": [p.nombre for p in cita.procedimientos.all()],
+                "estado": cita.get_estado_display(),
+                "estado_slug": cita.estado,
+                "pagado": cita.pagado,
+                "tiene_pago_cobros": info_pago["tiene_pago"],
+                "total_pagado": info_pago["total_pagado"],
+                "tipo_pago": info_pago["tipo_pago"],
+                "monto_total": monto_total,
+                "debe": debe,
+            })
+
         horarios.append({
             "hora": h,
             "ocupado_exacto": len(citas_exactas) > 0,
-            "citas_exactas": [
-                {
-                    "id": cita.id,
-                    "patient_id": cita.paciente.id,
-                    "hora_real": cita.hora,
-                    "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                    "motivo": cita.motivo,
-                    "motivo_slug": slugify(cita.motivo or ""),
-                    "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-                    "estado": cita.get_estado_display(),
-                    "estado_slug": cita.estado,
-                    "pagado": cita.paciente.id in pacientes_pagados,
-                }
-                for cita in citas_exactas
-            ],
-            "citas_extra": [
-                {
-                    "id": cita.id,
-                    "patient_id": cita.paciente.id,
-                    "hora_real": cita.hora,
-                    "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                    "motivo": cita.motivo,
-                    "motivo_slug": slugify(cita.motivo or ""),
-                    "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-                    "estado": cita.get_estado_display(),
-                    "estado_slug": cita.estado,
-                    "pagado": cita.paciente.id in pacientes_pagados,
-                }
-                for cita in citas_extra
-            ],
+            "citas_exactas": citas_exactas_data,
+            "citas_extra": citas_extra_data,
         })
 
     return render(
@@ -1375,13 +1406,28 @@ def agenda_day(request, day, month, year):
     )
 
 
+
+def _absolute_url(request, path_or_url):
+    """
+    Convierte una ruta relativa (/agenda/...) en URL absoluta.
+    Si ya viene absoluta, la devuelve tal cual.
+    """
+    if not path_or_url:
+        return ""
+
+    path_or_url = path_or_url.strip()
+
+    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        return path_or_url
+
+    return request.build_absolute_uri(path_or_url)
+
+
 def cobros_nuevo_desde_cita(request, appointment_id):
     cita = get_object_or_404(
         Appointment.objects.select_related("paciente"),
         id=appointment_id
     )
-
-    current_host = request.get_host()
 
     cobros_base_url = getattr(
         settings,
@@ -1396,20 +1442,25 @@ def cobros_nuevo_desde_cita(request, appointment_id):
     )
 
     paciente_nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".strip(", ")
-    next_path = request.GET.get("next", "").strip()
 
-    if next_path:
-        next_url = f"https://{current_host}{next_path}"
-    else:
-        next_url = ""
+    # Puede venir relativo o absoluto
+    next_param = request.GET.get("next", "").strip()
+    next_url = _absolute_url(request, next_param) if next_param else ""
 
-    confirmar_pago_url = (
-        f"https://{current_host}"
-        f"{reverse('confirmar_pago_desde_cobros')}?appointment_id={cita.id}"
+    # URL intermedia en Sonrisar Pro:
+    # Cobros guarda -> vuelve aquí -> aquí marcamos Asistió -> redirigimos al destino final
+    confirmar_pago_url = request.build_absolute_uri(
+        reverse("confirmar_pago_desde_cobros")
     )
 
+    confirmar_params = {
+        "appointment_id": cita.id,
+    }
+
     if next_url:
-        confirmar_pago_url += f"&next={quote(next_url, safe='')}"
+        confirmar_params["next"] = next_url
+
+    confirmar_pago_url = f"{confirmar_pago_url}?{urlencode(confirmar_params)}"
 
     params = {
         "paciente": paciente_nombre,
@@ -1438,22 +1489,24 @@ def confirmar_pago_desde_cobros(request):
 
     cita = get_object_or_404(Appointment, id=appointment_id)
 
-    # No tocar citas canceladas
     if cita.estado != "cancelado":
-        # Solo actualiza si todavía no está en asistió
-        if cita.estado != "asistio":
-            cita.estado = "asistio"
-            cita.save(update_fields=["estado"])
+        cita.estado = "asistio"
 
-    messages.success(request, "Pago registrado y cita marcada como Asistió.")
+    cita.pagado = True
+    cita.save()
+
+    cita.refresh_from_db()
+
+    messages.success(
+        request,
+        f"Pago registrado. Estado: {cita.estado} | Pagado: {cita.pagado}"
+    )
     return redirect(next_url or reverse("agenda_pro"))
 
 
 
 def cobros_nuevo_desde_paciente(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
-
-    current_host = request.get_host()
 
     cobros_base_url = getattr(
         settings,
@@ -1468,12 +1521,9 @@ def cobros_nuevo_desde_paciente(request, patient_id):
     )
 
     paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
-    next_path = request.GET.get("next", "").strip()
 
-    if next_path:
-        next_url = f"https://{current_host}{next_path}"
-    else:
-        next_url = ""
+    next_param = request.GET.get("next", "").strip()
+    next_url = _absolute_url(request, next_param) if next_param else ""
 
     params = {
         "paciente": paciente_nombre,
@@ -1520,6 +1570,52 @@ def obtener_pagos_cobros_paciente(request, paciente):
 
     except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
         return [], "No fue posible conectar con Sonrisar Cobros."
+        
+
+def obtener_pago_cobros_cita(appointment_id):
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_CITA_PATH",
+        "/pagos/api/por-cita/"
+    )
+
+    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'appointment_id': appointment_id})}"
+
+    try:
+        with urlopen(api_url, timeout=6) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        if data.get("ok"):
+            return {
+                "tiene_pago": data.get("total", 0) > 0,
+                "total_pagado": data.get("total_pagado", "0"),
+                "tipo_pago": data.get("tipo_pago", "pagado"),
+                "pagos": data.get("pagos", []),
+                "error": None,
+            }
+
+        return {
+            "tiene_pago": False,
+            "total_pagado": "0",
+            "tipo_pago": "pagado",
+            "pagos": [],
+            "error": data.get("error", "No se pudo obtener el pago."),
+        }
+
+    except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+        return {
+            "tiene_pago": False,
+            "total_pagado": "0",
+            "tipo_pago": "pagado",
+            "pagos": [],
+            "error": "No fue posible conectar con Sonrisar Cobros.",
+        }
 
 
 def obtener_pacientes_con_pago(request, pacientes):

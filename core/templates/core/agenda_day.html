@@ -52,6 +52,12 @@
                                     {{ cita.paciente }}
                                 </div>
 
+                                {% if cita.monto_total %}
+                                    <div style="font-size:12px; color:#6c757d;">
+                                        Total: $ {{ cita.monto_total }}
+                                    </div>
+                                {% endif %}
+
                                 <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
 
                                     {% with motivo=cita.motivo|lower|slugify %}
@@ -119,7 +125,23 @@
                                         <span class="badge bg-secondary">Cancelado</span>
                                     {% endif %}
 
-                                    {% if cita.pagado %}
+                                    {% if cita.tiene_pago_cobros %}
+                                        {% if cita.tipo_pago == "sena" %}
+                                            <span class="badge badge-sena">
+                                                Seña $ {{ cita.total_pagado }}
+                                            </span>
+
+                                            {% if cita.debe > 0 %}
+                                                <span class="badge badge-debe">
+                                                    Debe $ {{ cita.debe|floatformat:0 }}
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-pagado">
+                                                Pagado $ {{ cita.total_pagado }}
+                                            </span>
+                                        {% endif %}
+                                    {% elif cita.pagado %}
                                         <span class="badge badge-pagado">Pagado</span>
                                     {% else %}
                                         <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
@@ -130,10 +152,16 @@
                                         Historia clínica
                                     </a>
 
-                                    <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-outline-primary">
-                                        Cobrar
-                                    </a>
+                                    {% if cita.pagado %}
+                                        <span class="btn btn-sm btn-success disabled">
+                                            Ya cobrado
+                                        </span>
+                                    {% else %}
+                                        <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Cobrar
+                                        </a>
+                                    {% endif %}
 
                                     <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-primary ms-2">
@@ -184,6 +212,12 @@
                                     {{ cita.paciente }}
                                 </div>
 
+                                {% if cita.monto_total %}
+                                    <div style="font-size:12px; color:#6c757d;">
+                                        Total: $ {{ cita.monto_total }}
+                                    </div>
+                                {% endif %}
+
                                 <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
 
                                     {% with motivo=cita.motivo|lower|slugify %}
@@ -251,7 +285,23 @@
                                         <span class="badge bg-secondary">Cancelado</span>
                                     {% endif %}
 
-                                    {% if cita.pagado %}
+                                    {% if cita.tiene_pago_cobros %}
+                                        {% if cita.tipo_pago == "sena" %}
+                                            <span class="badge badge-sena">
+                                                Seña $ {{ cita.total_pagado }}
+                                            </span>
+
+                                            {% if cita.debe > 0 %}
+                                                <span class="badge badge-debe">
+                                                    Debe $ {{ cita.debe|floatformat:0 }}
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-pagado">
+                                                Pagado $ {{ cita.total_pagado }}
+                                            </span>
+                                        {% endif %}
+                                    {% elif cita.pagado %}
                                         <span class="badge badge-pagado">Pagado</span>
                                     {% else %}
                                         <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
@@ -262,10 +312,16 @@
                                         Historia clínica
                                     </a>
 
-                                    <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-outline-primary">
-                                        Cobrar
-                                    </a>
+                                    {% if cita.pagado %}
+                                        <span class="btn btn-sm btn-success disabled">
+                                            Ya cobrado
+                                        </span>
+                                    {% else %}
+                                        <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Cobrar
+                                        </a>
+                                    {% endif %}
 
                                     <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
                                         class="btn btn-sm btn-primary ms-2">
@@ -327,6 +383,16 @@
 
 .badge-pagado {
     background: #198754 !important;
+    color: #fff !important;
+}
+
+.badge-sena {
+    background: #ffc107 !important;
+    color: #000 !important;
+}
+
+.badge-debe {
+    background: #dc3545 !important;
     color: #fff !important;
 }
 

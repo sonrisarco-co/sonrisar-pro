@@ -73,6 +73,16 @@
                 {% endif %}
             </div>
 
+            <div class="col-md-6 mb-3">
+                <label for="id_monto_total">Monto total</label>
+                {{ form.monto_total }}
+                {% if form.monto_total.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.monto_total.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
             <div class="col-md-12 mb-3">
                 <label for="id_motivo">Motivo principal</label>
                 {{ form.motivo }}
@@ -160,7 +170,8 @@ input, select, textarea {
 #id_hora,
 #id_estado,
 #id_motivo,
-#id_observaciones {
+#id_observaciones,
+#id_monto_total {
     width: 100%;
 }
 
