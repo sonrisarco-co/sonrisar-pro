@@ -2,7 +2,7 @@
 
 <div class="card shadow-sm p-4">
 
-    <form method="post" novalidate id="appointmentAjaxForm">
+    <form method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next|default:'' }}">
 
@@ -132,22 +132,22 @@
 </div>
 
 <div class="modal fade" id="quickPatientModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
 
-      <div class="modal-header">
-        <h5 class="modal-title">➕ Nuevo paciente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+            <div class="modal-header">
+                <h5 class="modal-title">➕ Nuevo paciente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-      <div class="modal-body">
-        <div id="quickPatientBody" class="text-center py-3">
-            Cargando...
+            <div class="modal-body">
+                <div id="quickPatientBody" class="text-center py-3">
+                    Cargando...
+                </div>
+            </div>
+
         </div>
-      </div>
-
     </div>
-  </div>
 </div>
 
 <style>
@@ -215,8 +215,10 @@ input, select, textarea {
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
     const select = document.getElementById("id_paciente");
+    const btnNuevo = document.getElementById("btnNuevoPacienteModal");
+    const modalEl = document.getElementById("quickPatientModal");
+    const body = document.getElementById("quickPatientBody");
 
     if (select && window.jQuery && $(select).data("select2") === undefined) {
         $(select).select2({
@@ -235,73 +237,76 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const modalEl = document.getElementById("quickPatientModal");
-    const body = document.getElementById("quickPatientBody");
-
-    if (!modalEl || !body) return;
+    if (!modalEl || !body || !btnNuevo) return;
 
     const modal = new bootstrap.Modal(modalEl);
 
     async function abrirModalNuevoPaciente() {
         body.innerHTML = "Cargando...";
 
-        const res = await fetch("{% url 'patient_quick_new' %}", {
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        });
-
-        const data = await res.json();
-
-        if (!data.success) {
-            body.innerHTML = "Error cargando formulario.";
-            modal.show();
-            return;
-        }
-
-        body.innerHTML = data.html;
-        modal.show();
-
-        const form = document.getElementById("quickPatientForm");
-        if (!form) return;
-
-        form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const fd = new FormData(form);
-
-            const postRes = await fetch("{% url 'patient_quick_new' %}", {
-                method: "POST",
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-                body: fd
+        try {
+            const res = await fetch("{% url 'patient_quick_new' %}", {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
             });
 
-            const postData = await postRes.json();
+            const data = await res.json();
 
-            if (!postData.success) {
-                alert("No se pudo guardar el paciente.");
+            if (!data.success) {
+                body.innerHTML = "Error cargando formulario.";
+                modal.show();
                 return;
             }
 
-            if (select) {
-                const option = new Option(postData.text, postData.id, true, true);
-                select.append(option);
-                $(select).trigger("change");
-            }
+            body.innerHTML = data.html;
+            modal.show();
 
-            modal.hide();
-        }, { once: true });
+            const form = document.getElementById("quickPatientForm");
+            if (!form) return;
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const fd = new FormData(form);
+
+                const postRes = await fetch("{% url 'patient_quick_new' %}", {
+                    method: "POST",
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                    body: fd
+                });
+
+                const postData = await postRes.json();
+
+                if (!postData.success) {
+                    alert("No se pudo guardar el paciente.");
+                    return;
+                }
+
+                if (select) {
+                    const option = new Option(postData.text, postData.id, true, true);
+                    select.append(option);
+
+                    if (window.jQuery && $(select).data("select2")) {
+                        $(select).trigger("change");
+                    } else {
+                        select.value = postData.id;
+                    }
+                }
+
+                modal.hide();
+            }, { once: true });
+
+        } catch (error) {
+            body.innerHTML = "Error cargando formulario.";
+            modal.show();
+        }
     }
 
-    const btnNuevo = document.getElementById("btnNuevoPacienteModal");
-
-    if (btnNuevo) {
-        btnNuevo.addEventListener("click", abrirModalNuevoPaciente);
-    }
+    btnNuevo.addEventListener("click", abrirModalNuevoPaciente);
 
     document.addEventListener("click", function (e) {
         if (e.target && e.target.id === "noResultsCreateBtn") {
             abrirModalNuevoPaciente();
         }
     });
-
 });
 </script>
