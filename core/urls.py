@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from core import views
 from core.views import budget_print
 from core.views import protesis_print
+from . import views
 
 
 
@@ -27,6 +28,7 @@ urlpatterns = [
     path("paciente/<int:patient_id>/citas/", views.patient_appointments, name="patient_appointments"),
     path("paciente/<int:patient_id>/presupuestos/", views.patient_budgets, name="patient_budgets"),
     path("pacientes/quick-new/", views.patient_quick_new, name="patient_quick_new"),
+    path("pacientes/inactivos/", views.pacientes_inactivos, name="pacientes_inactivos"),
 
 
     

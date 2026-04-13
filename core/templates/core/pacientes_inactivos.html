@@ -1,0 +1,61 @@
+{% extends "core/base.html" %}
+
+{% block title %}Pacientes inactivos | Sonrisar{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2 class="mb-0">{{ titulo }}</h2>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="dias" class="form-label">Sin agendar desde hace más de</label>
+                    <select name="dias" id="dias" class="form-select" onchange="this.form.submit()">
+                        <option value="30" {% if dias == 30 %}selected{% endif %}>30 días</option>
+                        <option value="60" {% if dias == 60 %}selected{% endif %}>60 días</option>
+                        <option value="90" {% if dias == 90 %}selected{% endif %}>90 días</option>
+                        <option value="180" {% if dias == 180 %}selected{% endif %}>6 meses</option>
+                        <option value="365" {% if dias == 365 %}selected{% endif %}>1 año</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if pacientes %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Teléfono</th>
+                                <th>Última cita</th>
+                                <th>Días sin venir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in pacientes %}
+                            <tr>
+                                <td>{{ p.apellido }}, {{ p.nombre }}</td>
+                                <td>{{ p.telefono|default:"-" }}</td>
+                                <td>{{ p.ultima_cita|date:"d/m/Y" }}</td>
+                                <td>{{ p.dias_sin_venir }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="mb-0">No hay pacientes inactivos para ese período.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

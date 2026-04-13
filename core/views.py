@@ -5,7 +5,7 @@ from django.utils.text import slugify
 
 import calendar
 #from core.models import Cita
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.contrib import messages
 
 from django.conf import settings
@@ -134,6 +134,7 @@ def home(request):
 # PACIENTES (COMPLETO)
 # =========================
 
+
 def patient_list(request):
 
     # 🔍 Buscar por nombre, apellido, CI o teléfono
@@ -154,10 +155,24 @@ def patient_list(request):
     page_number = request.GET.get("page")
     pacientes = paginator.get_page(page_number)
 
+    # 🕒 Contador de pacientes inactivos
+    fecha_limite = timezone.now().date() - timedelta(days=90)
+
+    cantidad_inactivos = Patient.objects.annotate(
+        ultima_cita=Max("appointment__fecha")
+    ).filter(
+        ultima_cita__isnull=False,
+        ultima_cita__lt=fecha_limite
+    ).count()
+
     return render(
         request,
         "core/patients_list.html",
-        {"pacientes": pacientes, "query": query}
+        {
+            "pacientes": pacientes,
+            "query": query,
+            "cantidad_inactivos": cantidad_inactivos,
+        }
     )
 
 
@@ -2878,7 +2893,37 @@ def agenda_pro(request):
     return render(request, "core/agenda_pro.html", contexto)
 
 
+def pacientes_inactivos(request):
+    dias = int(request.GET.get("dias", 90))
+    fecha_limite = timezone.now().date() - timedelta(days=dias)
 
+    pacientes = Patient.objects.annotate(
+        ultima_cita=Max("appointment__fecha")
+    ).filter(
+        ultima_cita__isnull=False,
+        ultima_cita__lt=fecha_limite
+    ).order_by("ultima_cita", "apellido", "nombre")
+
+    pacientes_con_dias = []
+    hoy = timezone.now().date()
+
+    for paciente in pacientes:
+        dias_sin_venir = (hoy - paciente.ultima_cita).days
+        pacientes_con_dias.append({
+            "id": paciente.id,
+            "apellido": paciente.apellido,
+            "nombre": paciente.nombre,
+            "telefono": getattr(paciente, "telefono", ""),
+            "ultima_cita": paciente.ultima_cita,
+            "dias_sin_venir": dias_sin_venir,
+        })
+
+    context = {
+        "pacientes": pacientes_con_dias,
+        "dias": dias,
+        "titulo": "Pacientes inactivos",
+    }
+    return render(request, "core/pacientes_inactivos.html", context)
 
 
 
