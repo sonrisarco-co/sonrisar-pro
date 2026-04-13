@@ -5,9 +5,9 @@ from django import forms
 class Patient(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
-    ci = models.CharField(max_length=20, unique=True)
+    ci = models.CharField(max_length=30)
     fecha_nacimiento = models.DateField(null=True, blank=True)
-    telefono = models.CharField(max_length=20, blank=True)
+    telefono = models.CharField(max_length=50)
     email = models.EmailField(blank=True)
     direccion = models.CharField(max_length=200, blank=True)
 
