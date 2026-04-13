@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 
 # ==========================================
 # BASE DIR
@@ -87,14 +88,24 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # ==========================================
 # BASE DE DATOS
 # ==========================================
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'CONN_MAX_AGE': 60,
-        'CONN_HEALTH_CHECKS': True,
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.parse(
+            os.getenv("DATABASE_URL"),
+            conn_max_age=60,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+            "CONN_MAX_AGE": 60,
+            "CONN_HEALTH_CHECKS": True,
+        }
+    }
 
 
 # ==========================================
