@@ -298,6 +298,7 @@ def citas_list(request):
 
 from django.urls import reverse
 
+
 def appointment_new(request):
     fecha = request.GET.get("fecha")
     hora = request.GET.get("hora")
@@ -306,8 +307,6 @@ def appointment_new(request):
     next_url = request.GET.get("next") or request.POST.get("next")
     if not next_url:
         next_url = reverse("agenda_calendar")
-
-    es_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     initial_data = {}
 
@@ -324,14 +323,7 @@ def appointment_new(request):
         form = AppointmentForm(request.POST)
 
         if form.is_valid():
-            cita = form.save()
-
-            if es_ajax:
-                return JsonResponse({
-                    "success": True,
-                    "redirect_url": next_url
-                })
-
+            form.save()
             return redirect(next_url)
 
     else:
@@ -344,7 +336,6 @@ def appointment_new(request):
             "form": form,
             "next": next_url,
             "titulo": "Nueva cita",
-            "es_ajax": es_ajax,
         }
     )
 
