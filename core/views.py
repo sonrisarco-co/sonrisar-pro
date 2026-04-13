@@ -1597,10 +1597,12 @@ def obtener_pago_cobros_cita(appointment_id):
         with urlopen(api_url, timeout=6) as response:
             data = json.loads(response.read().decode("utf-8"))
 
+        total_pagado = Decimal(str(data.get("total_pagado", 0)))
+
         if data.get("ok"):
             return {
-                "tiene_pago": data.get("total", 0) > 0,
-                "total_pagado": data.get("total_pagado", "0"),
+                "tiene_pago": total_pagado > 0,
+                "total_pagado": str(total_pagado),
                 "tipo_pago": data.get("tipo_pago", "pagado"),
                 "pagos": data.get("pagos", []),
                 "error": None,
