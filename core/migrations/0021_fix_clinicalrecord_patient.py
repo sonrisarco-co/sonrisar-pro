@@ -1,5 +1,4 @@
-from django.db import migrations, models
-import django.db.models.deletion
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -8,14 +7,4 @@ class Migration(migrations.Migration):
         ("core", "0020_remove_clinicalrecord_paciente_and_more"),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name="clinicalrecord",
-            name="patient",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="core.patient",
-            ),
-        ),
-    ]
+    operations = []
