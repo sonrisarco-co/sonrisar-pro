@@ -103,7 +103,7 @@
 
         /* ===== OFFCANVAS ===== */
         .offcanvas-sonrisar {
-            width: 280px !important;
+            width: 290px !important;
         }
 
         .offcanvas-sonrisar .offcanvas-header {
@@ -125,6 +125,7 @@
             font-weight: 600;
             background: #f7f7f7;
             transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
 
         .menu-sonrisar-link:hover {
@@ -132,8 +133,22 @@
             color: white;
         }
 
+        .menu-sonrisar-link.menu-alerta-deuda {
+            background: #fff5f5;
+            color: #b42318;
+            border-color: #f3c7c7;
+            font-weight: 700;
+        }
+
+        .menu-sonrisar-link.menu-alerta-deuda:hover {
+            background: #dc3545;
+            color: #ffffff;
+            border-color: #dc3545;
+        }
+
         /* para que el contenido no quede tan pegado */
-        main.container {
+        main.container,
+        main.container-fluid {
             margin-top: 15px !important;
         }
 
@@ -264,6 +279,7 @@
             <a class="menu-sonrisar-link" href="{% url 'agenda_week' %}">Agenda semanal</a>
             <a class="menu-sonrisar-link" href="{% url 'agenda_month' %}">Agenda mensual</a>
             <a class="menu-sonrisar-link" href="{% url 'patient_list' %}">Pacientes</a>
+            <a class="menu-sonrisar-link menu-alerta-deuda" href="{% url 'deudores_general' %}">💰 Pacientes deudores</a>
             <a class="menu-sonrisar-link" href="{% url 'whatsapp_reminders' %}">WhatsApp</a>
         </div>
     </div>

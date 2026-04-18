@@ -1,0 +1,154 @@
+{% extends "core/base.html" %}
+
+{% block title %}Pacientes deudores | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <a href="{% url 'agenda_pro' %}" class="btn btn-light mb-3">
+        ← Volver
+    </a>
+
+    <h3 class="mb-3">Pacientes deudores</h3>
+
+    <form method="get" class="mb-3">
+        <input type="text"
+               name="q"
+               value="{{ query }}"
+               placeholder="Buscar paciente..."
+               class="form-control buscador">
+    </form>
+
+    <div class="mb-3">
+        <span class="badge total-general">
+            Total adeudado: $ {{ total_general|floatformat:0 }}
+        </span>
+    </div>
+
+    {% if deudores %}
+
+        <div class="list-group">
+
+            {% for d in deudores %}
+                <div class="list-group-item deudor-row">
+
+                    <div class="info">
+                        <div class="nombre">
+                            {{ d.paciente }}
+                        </div>
+
+                        <div class="fecha">
+                            Última atención: {{ d.ultima_fecha|date:"d/m/Y" }}
+                        </div>
+
+                        {% if d.deuda_citas > 0 %}
+                            <div class="detalle-deuda">
+                                Citas: $ {{ d.deuda_citas|floatformat:0 }}
+                            </div>
+                        {% endif %}
+
+                        {% if d.deuda_presupuestos > 0 %}
+                            <div class="detalle-deuda">
+                                Presupuestos: $ {{ d.deuda_presupuestos|floatformat:0 }}
+                            </div>
+                        {% endif %}
+
+                        <div class="deuda-total">
+                            Total: $ {{ d.deuda_total|floatformat:0 }}
+                        </div>
+                    </div>
+
+                    <div class="acciones">
+                        <a href="{% url 'cobros_nuevo_desde_paciente' d.patient_id %}"
+                           class="btn btn-sm btn-outline-primary">
+                            Cobrar
+                        </a>
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+        <div class="alert alert-success">
+            No hay pacientes con deuda 🎉
+        </div>
+    {% endif %}
+
+</div>
+
+<style>
+.buscador {
+    border-radius: 10px;
+    border: 1px solid #dfe7ea;
+    padding: 10px;
+}
+
+.total-general {
+    background: #26ABA5 !important;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+}
+
+.deudor-row {
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #e6ecec;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+
+.nombre {
+    font-weight: 700;
+    font-size: 15px;
+    color: #212529;
+}
+
+.fecha {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+.detalle-deuda {
+    font-size: 13px;
+    color: #495057;
+    margin-top: 2px;
+}
+
+.deuda-total {
+    color: #dc3545;
+    font-weight: 800;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+.acciones {
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .deudor-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .acciones {
+        width: 100%;
+    }
+
+    .acciones .btn {
+        width: 100%;
+    }
+}
+</style>
+
+{% endblock %}

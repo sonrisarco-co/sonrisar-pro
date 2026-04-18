@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
     {% if request.GET.next %}
         <a href="{{ request.GET.next }}" class="btn btn-light mb-3">
@@ -20,341 +20,399 @@
         Agenda del {{ fecha|date:"d/m/Y" }}
     </h3>
 
-    <div class="list-group">
+    <div class="row">
+        <div class="col-lg-8">
 
-        {% for h in horarios %}
-            <div class="list-group-item d-flex align-items-start {% if not h.bloqueado %}drop-slot{% endif %}"
-                 {% if not h.bloqueado %}data-hora="{{ h.hora|time:'H:i' }}"{% endif %}>
+            <div class="list-group">
 
-                <div class="me-3" style="width:70px; font-weight:bold;">
-                    {{ h.hora|time:"H:i" }}
-                </div>
+                {% for h in horarios %}
+                    <div class="list-group-item d-flex align-items-start {% if not h.bloqueado %}drop-slot{% endif %}"
+                         {% if not h.bloqueado %}data-hora="{{ h.hora|time:'H:i' }}"{% endif %}>
 
-                <div class="flex-grow-1">
+                        <div class="me-3" style="width:70px; font-weight:bold;">
+                            {{ h.hora|time:"H:i" }}
+                        </div>
 
-                    {% if h.bloqueado %}
-                        <span class="badge" style="background:#fff3cd; color:#7a5b00; border:1px solid #f0ad4e;">
-                            {{ h.motivo|default:"Descanso" }}
-                        </span>
+                        <div class="flex-grow-1">
 
-                    {% else %}
+                            {% if h.bloqueado %}
+                                <span class="badge" style="background:#fff3cd; color:#7a5b00; border:1px solid #f0ad4e;">
+                                    {{ h.motivo|default:"Descanso" }}
+                                </span>
 
-                        {% for cita in h.citas_exactas %}
-                            <div class="draggable-cita {% if not forloop.last or h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}"
-                                 draggable="true"
-                                 data-id="{{ cita.id }}">
+                            {% else %}
 
-                                <div style="font-size: 13px; color:#146B6C; font-weight:700;">
-                                    {{ cita.hora_real|time:"H:i" }}
-                                </div>
+                                {% for cita in h.citas_exactas %}
+                                    <div class="draggable-cita {% if not forloop.last or h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}"
+                                         draggable="true"
+                                         data-id="{{ cita.id }}">
 
-                                <div style="font-weight:600;">
-                                    {{ cita.paciente }}
-                                </div>
+                                        <div style="font-size: 13px; color:#146B6C; font-weight:700;">
+                                            {{ cita.hora_real|time:"H:i" }}
+                                        </div>
 
-                                {% if cita.monto_total %}
-                                    <div style="font-size:12px; color:#6c757d;">
-                                        Total: $ {{ cita.monto_total }}
+                                        <div style="font-weight:600;">
+                                            {{ cita.paciente }}
+                                        </div>
+
+                                        {% if cita.deuda_total_paciente > 0 %}
+                                            <div style="font-size:11px; color:#dc3545; font-weight:600;">
+                                                Deuda total paciente: $ {{ cita.deuda_total_paciente|floatformat:0 }}
+                                            </div>
+                                        {% endif %}
+
+                                        {% if cita.monto_total %}
+                                            <div style="font-size:12px; color:#6c757d;">
+                                                Total: $ {{ cita.monto_total }}
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+
+                                            {% with motivo=cita.motivo|lower|slugify %}
+
+                                                {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+                                                    <span class="badge" style="background:#198754;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
+                                                    <span class="badge" style="background:#26ABA5;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "limpieza" in motivo %}
+                                                    <span class="badge" style="background:#0dcaf0;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "resina" in motivo %}
+                                                    <span class="badge" style="background:#ffc107; color:#000;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "nueva" in motivo %}
+                                                    <span class="badge" style="background:#0d6efd;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "endo" in motivo %}
+                                                    <span class="badge" style="background:#6f42c1;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "extra" in motivo %}
+                                                    <span class="badge" style="background:#dc3545;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "protes" in motivo %}
+                                                    <span class="badge" style="background:#f11985;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "urg" in motivo %}
+                                                    <span class="badge" style="background:#fd7e14;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ cita.motivo }}</span>
+                                                {% endif %}
+
+                                            {% endwith %}
+
+                                            {% if cita.estado_slug == "pendiente" %}
+                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                            {% elif cita.estado_slug == "confirmado" %}
+                                                <span class="badge bg-primary">Confirmado</span>
+                                            {% elif cita.estado_slug == "asistio" %}
+                                                <span class="badge bg-success">Asistió</span>
+                                            {% elif cita.estado_slug == "no_asistio" %}
+                                                <span class="badge bg-danger">No asistió</span>
+                                            {% elif cita.estado_slug == "cancelado" %}
+                                                <span class="badge bg-secondary">Cancelado</span>
+                                            {% endif %}
+
+                                            {% if cita.tiene_pago_cobros %}
+                                                {% if cita.tipo_pago == "sena" %}
+                                                    <span class="badge badge-sena">
+                                                        Seña $ {{ cita.total_pagado }}
+                                                    </span>
+
+                                                    {% if cita.debe > 0 %}
+                                                        <span class="badge badge-debe">
+                                                            Debe $ {{ cita.debe|floatformat:0 }}
+                                                        </span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge badge-pagado">
+                                                        Pagado $ {{ cita.total_pagado }}
+                                                    </span>
+                                                {% endif %}
+                                            {% elif cita.pagado %}
+                                                <span class="badge badge-pagado">Pagado</span>
+                                            {% else %}
+                                                <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
+                                            {% endif %}
+
+                                            <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-outline-success">
+                                                Historia clínica
+                                            </a>
+
+                                            {% if cita.pagado %}
+                                                <span class="btn btn-sm btn-success disabled">
+                                                    Ya cobrado
+                                                </span>
+                                            {% else %}
+                                                <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    Cobrar
+                                                </a>
+                                            {% endif %}
+
+                                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-primary ms-2">
+                                                Editar
+                                            </a>
+
+                                            <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
+                                                Eliminar
+                                            </a>
+
+                                            {% if cita.procedimientos %}
+                                                <div class="mt-2 w-100">
+                                                    <small style="color:#495057; font-weight:600;">Procedimientos:</small>
+                                                    <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
+                                                        {% for procedimiento in cita.procedimientos %}
+                                                            <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                    </div>
+                                {% endfor %}
+
+                                {% if not h.ocupado_exacto %}
+                                    <div class="{% if h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}">
+                                        <a href="{% url 'appointment_new' %}?fecha={{ fecha|date:'Y-m-d' }}&hora={{ h.hora|time:'H:i' }}&next={{ request.get_full_path|urlencode }}"
+                                           class="text-success"
+                                           style="font-weight:600; text-decoration:none;">
+                                            Disponible
+                                        </a>
                                     </div>
                                 {% endif %}
 
-                                <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+                                {% for cita in h.citas_extra %}
+                                    <div class="draggable-cita {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}"
+                                         draggable="true"
+                                         data-id="{{ cita.id }}">
 
-                                    {% with motivo=cita.motivo|lower|slugify %}
-
-                                        {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
-                                            <span class="badge" style="background:#198754;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
-                                            <span class="badge" style="background:#26ABA5;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "limpieza" in motivo %}
-                                            <span class="badge" style="background:#0dcaf0;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "resina" in motivo %}
-                                            <span class="badge" style="background:#ffc107; color:#000;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "nueva" in motivo %}
-                                            <span class="badge" style="background:#0d6efd;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "endo" in motivo %}
-                                            <span class="badge" style="background:#6f42c1;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "extra" in motivo %}
-                                            <span class="badge" style="background:#dc3545;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "protes" in motivo %}
-                                            <span class="badge" style="background:#f11985;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "urg" in motivo %}
-                                            <span class="badge" style="background:#fd7e14;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ cita.motivo }}</span>
-                                        {% endif %}
-
-                                    {% endwith %}
-
-                                    {% if cita.estado_slug == "pendiente" %}
-                                        <span class="badge bg-warning text-dark">Pendiente</span>
-                                    {% elif cita.estado_slug == "confirmado" %}
-                                        <span class="badge bg-primary">Confirmado</span>
-                                    {% elif cita.estado_slug == "asistio" %}
-                                        <span class="badge bg-success">Asistió</span>
-                                    {% elif cita.estado_slug == "no_asistio" %}
-                                        <span class="badge bg-danger">No asistió</span>
-                                    {% elif cita.estado_slug == "cancelado" %}
-                                        <span class="badge bg-secondary">Cancelado</span>
-                                    {% endif %}
-
-                                    {% if cita.tiene_pago_cobros %}
-                                        {% if cita.tipo_pago == "sena" %}
-                                            <span class="badge badge-sena">
-                                                Seña $ {{ cita.total_pagado }}
-                                            </span>
-
-                                            {% if cita.debe > 0 %}
-                                                <span class="badge badge-debe">
-                                                    Debe $ {{ cita.debe|floatformat:0 }}
-                                                </span>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="badge badge-pagado">
-                                                Pagado $ {{ cita.total_pagado }}
-                                            </span>
-                                        {% endif %}
-                                    {% elif cita.pagado %}
-                                        <span class="badge badge-pagado">Pagado</span>
-                                    {% else %}
-                                        <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
-                                    {% endif %}
-
-                                    <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-outline-success">
-                                        Historia clínica
-                                    </a>
-
-                                    {% if cita.pagado %}
-                                        <span class="btn btn-sm btn-success disabled">
-                                            Ya cobrado
-                                        </span>
-                                    {% else %}
-                                        <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                            class="btn btn-sm btn-outline-primary">
-                                            Cobrar
-                                        </a>
-                                    {% endif %}
-
-                                    <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-primary ms-2">
-                                        Editar
-                                    </a>
-
-                                    <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
-                                        Eliminar
-                                    </a>
-
-                                    {% if cita.procedimientos %}
-                                        <div class="mt-2 w-100">
-                                            <small style="color:#495057; font-weight:600;">Procedimientos:</small>
-                                            <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
-                                                {% for procedimiento in cita.procedimientos %}
-                                                    <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
-                                                {% endfor %}
-                                            </div>
+                                        <div style="font-size: 13px; color:#146B6C; font-weight:700;">
+                                            {{ cita.hora_real|time:"H:i" }}
                                         </div>
-                                    {% endif %}
-                                </div>
 
-                            </div>
-                        {% endfor %}
+                                        <div style="font-weight:600;">
+                                            {{ cita.paciente }}
+                                        </div>
 
-                        {% if not h.ocupado_exacto %}
-                            <div class="{% if h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}">
-                                <a href="{% url 'appointment_new' %}?fecha={{ fecha|date:'Y-m-d' }}&hora={{ h.hora|time:'H:i' }}&next={{ request.get_full_path|urlencode }}"
-                                   class="text-success"
-                                   style="font-weight:600; text-decoration:none;">
-                                    Disponible
-                                </a>
-                            </div>
-                        {% endif %}
+                                        {% if cita.deuda_total_paciente > 0 %}
+                                            <div style="font-size:11px; color:#dc3545; font-weight:600;">
+                                                Deuda total paciente: $ {{ cita.deuda_total_paciente|floatformat:0 }}
+                                            </div>
+                                        {% endif %}
 
-                        {% for cita in h.citas_extra %}
-                            <div class="draggable-cita {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}"
-                                 draggable="true"
-                                 data-id="{{ cita.id }}">
+                                        {% if cita.monto_total %}
+                                            <div style="font-size:12px; color:#6c757d;">
+                                                Total: $ {{ cita.monto_total }}
+                                            </div>
+                                        {% endif %}
 
-                                <div style="font-size: 13px; color:#146B6C; font-weight:700;">
-                                    {{ cita.hora_real|time:"H:i" }}
-                                </div>
+                                        <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
 
-                                <div style="font-weight:600;">
-                                    {{ cita.paciente }}
-                                </div>
+                                            {% with motivo=cita.motivo|lower|slugify %}
 
-                                {% if cita.monto_total %}
-                                    <div style="font-size:12px; color:#6c757d;">
-                                        Total: $ {{ cita.monto_total }}
+                                                {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+                                                    <span class="badge" style="background:#198754;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
+                                                    <span class="badge" style="background:#26ABA5;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "limpieza" in motivo %}
+                                                    <span class="badge" style="background:#0dcaf0;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "resina" in motivo %}
+                                                    <span class="badge" style="background:#ffc107; color:#000;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "nueva" in motivo %}
+                                                    <span class="badge" style="background:#0d6efd;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "endo" in motivo %}
+                                                    <span class="badge" style="background:#6f42c1;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "extra" in motivo %}
+                                                    <span class="badge" style="background:#dc3545;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "protes" in motivo %}
+                                                    <span class="badge" style="background:#f11985;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "urg" in motivo %}
+                                                    <span class="badge" style="background:#fd7e14;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ cita.motivo }}</span>
+                                                {% endif %}
+
+                                            {% endwith %}
+
+                                            {% if cita.estado_slug == "pendiente" %}
+                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                            {% elif cita.estado_slug == "confirmado" %}
+                                                <span class="badge bg-primary">Confirmado</span>
+                                            {% elif cita.estado_slug == "asistio" %}
+                                                <span class="badge bg-success">Asistió</span>
+                                            {% elif cita.estado_slug == "no_asistio" %}
+                                                <span class="badge bg-danger">No asistió</span>
+                                            {% elif cita.estado_slug == "cancelado" %}
+                                                <span class="badge bg-secondary">Cancelado</span>
+                                            {% endif %}
+
+                                            {% if cita.tiene_pago_cobros %}
+                                                {% if cita.tipo_pago == "sena" %}
+                                                    <span class="badge badge-sena">
+                                                        Seña $ {{ cita.total_pagado }}
+                                                    </span>
+
+                                                    {% if cita.debe > 0 %}
+                                                        <span class="badge badge-debe">
+                                                            Debe $ {{ cita.debe|floatformat:0 }}
+                                                        </span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge badge-pagado">
+                                                        Pagado $ {{ cita.total_pagado }}
+                                                    </span>
+                                                {% endif %}
+                                            {% elif cita.pagado %}
+                                                <span class="badge badge-pagado">Pagado</span>
+                                            {% else %}
+                                                <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
+                                            {% endif %}
+
+                                            <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-outline-success">
+                                                Historia clínica
+                                            </a>
+
+                                            {% if cita.pagado %}
+                                                <span class="btn btn-sm btn-success disabled">
+                                                    Ya cobrado
+                                                </span>
+                                            {% else %}
+                                                <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    Cobrar
+                                                </a>
+                                            {% endif %}
+
+                                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-primary ms-2">
+                                                Editar
+                                            </a>
+
+                                            <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
+                                                Eliminar
+                                            </a>
+
+                                            {% if cita.procedimientos %}
+                                                <div class="mt-2 w-100">
+                                                    <small style="color:#495057; font-weight:600;">Procedimientos:</small>
+                                                    <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
+                                                        {% for procedimiento in cita.procedimientos %}
+                                                            <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
                                     </div>
-                                {% endif %}
+                                {% endfor %}
 
-                                <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+                            {% endif %}
 
-                                    {% with motivo=cita.motivo|lower|slugify %}
+                        </div>
 
-                                        {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
-                                            <span class="badge" style="background:#198754;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
-                                            <span class="badge" style="background:#26ABA5;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "limpieza" in motivo %}
-                                            <span class="badge" style="background:#0dcaf0;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "resina" in motivo %}
-                                            <span class="badge" style="background:#ffc107; color:#000;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "nueva" in motivo %}
-                                            <span class="badge" style="background:#0d6efd;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "endo" in motivo %}
-                                            <span class="badge" style="background:#6f42c1;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "extra" in motivo %}
-                                            <span class="badge" style="background:#dc3545;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "protes" in motivo %}
-                                            <span class="badge" style="background:#f11985;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% elif "urg" in motivo %}
-                                            <span class="badge" style="background:#fd7e14;">
-                                                {{ cita.motivo }}
-                                            </span>
-
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ cita.motivo }}</span>
-                                        {% endif %}
-
-                                    {% endwith %}
-
-                                    {% if cita.estado_slug == "pendiente" %}
-                                        <span class="badge bg-warning text-dark">Pendiente</span>
-                                    {% elif cita.estado_slug == "confirmado" %}
-                                        <span class="badge bg-primary">Confirmado</span>
-                                    {% elif cita.estado_slug == "asistio" %}
-                                        <span class="badge bg-success">Asistió</span>
-                                    {% elif cita.estado_slug == "no_asistio" %}
-                                        <span class="badge bg-danger">No asistió</span>
-                                    {% elif cita.estado_slug == "cancelado" %}
-                                        <span class="badge bg-secondary">Cancelado</span>
-                                    {% endif %}
-
-                                    {% if cita.tiene_pago_cobros %}
-                                        {% if cita.tipo_pago == "sena" %}
-                                            <span class="badge badge-sena">
-                                                Seña $ {{ cita.total_pagado }}
-                                            </span>
-
-                                            {% if cita.debe > 0 %}
-                                                <span class="badge badge-debe">
-                                                    Debe $ {{ cita.debe|floatformat:0 }}
-                                                </span>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="badge badge-pagado">
-                                                Pagado $ {{ cita.total_pagado }}
-                                            </span>
-                                        {% endif %}
-                                    {% elif cita.pagado %}
-                                        <span class="badge badge-pagado">Pagado</span>
-                                    {% else %}
-                                        <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
-                                    {% endif %}
-
-                                    <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-outline-success">
-                                        Historia clínica
-                                    </a>
-
-                                    {% if cita.pagado %}
-                                        <span class="btn btn-sm btn-success disabled">
-                                            Ya cobrado
-                                        </span>
-                                    {% else %}
-                                        <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                            class="btn btn-sm btn-outline-primary">
-                                            Cobrar
-                                        </a>
-                                    {% endif %}
-
-                                    <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-primary ms-2">
-                                        Editar
-                                    </a>
-
-                                    <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
-                                        Eliminar
-                                    </a>
-
-                                    {% if cita.procedimientos %}
-                                        <div class="mt-2 w-100">
-                                            <small style="color:#495057; font-weight:600;">Procedimientos:</small>
-                                            <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
-                                                {% for procedimiento in cita.procedimientos %}
-                                                    <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                </div>
-
-                            </div>
-                        {% endfor %}
-
-                    {% endif %}
-
-                </div>
+                    </div>
+                {% endfor %}
 
             </div>
-        {% endfor %}
+
+        </div>
+
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="card shadow-sm panel-deudores-dia">
+                <div class="card-body">
+                    <h5 class="mb-2 panel-deudores-titulo">
+                        Pacientes deudores
+                    </h5>
+
+                    <div class="mb-3">
+                        <span class="badge panel-total-deuda">
+                            Total adeudado: $ {{ total_deuda_dia|floatformat:0 }}
+                        </span>
+                    </div>
+
+                    {% if deudores %}
+                        {% for d in deudores %}
+                            <div class="deudor-card mb-3">
+                                <div class="deudor-nombre">
+                                    {{ d.paciente }}
+                                </div>
+
+                                <div class="deudor-debe">
+                                    Debe: $ {{ d.debe|floatformat:0 }}
+                                </div>
+
+                                <a href="{% url 'cobros_nuevo_desde_cita' d.id %}?next={{ request.get_full_path|urlencode }}"
+                                class="btn btn-sm btn-outline-primary w-100 mt-2">
+                                    Cobrar saldo
+                                </a>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="sin-deudores">
+                            No hay pacientes con deuda este día 🎉
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -400,6 +458,89 @@
     background: #f8f9fa !important;
     color: #6c757d !important;
     border: 1px solid #ced4da;
+}
+
+.panel-deudores-dia {
+    position: sticky;
+    top: 130px;
+    border-radius: 14px;
+    border: 1px solid #dfe7ea;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.panel-deudores-dia .card-body {
+    padding: 10px;
+}
+
+.panel-deudores-titulo {
+    color: #146B6C;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.panel-total-deuda {
+    background: #26ABA5 !important;
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 7px 12px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.deudor-card {
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #26ABA5;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    box-shadow: none;
+}
+
+.deudor-nombre {
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.98rem;
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+
+.deudor-debe {
+    margin-top: 2px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: #dc3545;
+}
+
+.deudor-card .btn-outline-primary {
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+}
+
+.sin-deudores {
+    color: #6c757d;
+    font-size: 10px;
+    padding: 8px;
+    border: 1px dashed #d7dfdf;
+    border-radius: 12px;
+    background: #fafcfc;
+}
+
+@media (max-width: 991.98px) {
+    .panel-deudores-dia {
+        position: static;
+        top: auto;
+        margin-top: 18px;
+    }
+
+    .panel-deudores-titulo {
+        font-size: 1.05rem;
+    }
 }
 </style>
 

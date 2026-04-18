@@ -15,6 +15,7 @@ urlpatterns = [
     # HOME
     # =====================
     path("", views.home, name="home"),
+    path('descargar-backup/', views.descargar_backup),
 
 
     # =====================
@@ -47,8 +48,6 @@ urlpatterns = [
         views.agenda_day,
         name="agenda_day"
     ),
-    
-    # ✅ CALENDARIO GRILLA REAL
 
     path("agenda/calendario/", views.agenda_mensual_calendario, name="agenda_calendar"),
 
@@ -58,8 +57,6 @@ urlpatterns = [
         name="agenda_horarios_dia",
     ),
 
-
-    # CRUD de citas
     path("agenda/nueva/", views.appointment_new, name="appointment_new"),
     path("agenda/editar/<int:id>/", views.appointment_edit, name="appointment_edit"),
     path("agenda/eliminar/<int:id>/", views.appointment_delete, name="appointment_delete"),
@@ -75,6 +72,12 @@ urlpatterns = [
     ),
 
     path("agenda/mover/<int:id>/", views.appointment_move_time, name="appointment_move_time"),
+
+    # NUEVO: pacientes deudores
+    path("deudores/", views.deudores_general, name="deudores_general"),
+
+
+
     
     # =========================
     # HISTORIA CLÍNICA

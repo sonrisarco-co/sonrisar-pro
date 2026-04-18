@@ -1299,6 +1299,45 @@ def agrupar_citas_por_bloque(citas):
     return citas_por_bloque
 
 
+def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Calcula la deuda acumulada del paciente tomando las citas registradas
+    en Sonrisar Pro y restando lo pagado en Sonrisar Cobros por cada cita.
+
+    - No cuenta citas canceladas.
+    - Si se pasa fecha_hasta, solo toma citas hasta esa fecha inclusive.
+    """
+    citas_qs = (
+        Appointment.objects
+        .filter(paciente=paciente)
+        .exclude(estado="cancelado")
+        .order_by("fecha", "hora")
+    )
+
+    if fecha_hasta:
+        citas_qs = citas_qs.filter(fecha__lte=fecha_hasta)
+
+    deuda_total = Decimal("0")
+
+    for cita in citas_qs:
+        info_pago = obtener_pago_cobros_cita(cita.id)
+
+        try:
+            total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
+        except (InvalidOperation, TypeError, ValueError):
+            total_pagado_decimal = Decimal("0")
+
+        monto_total = cita.monto_total or Decimal("0")
+        debe = monto_total - total_pagado_decimal
+
+        if debe < 0:
+            debe = Decimal("0")
+
+        deuda_total += debe
+
+    return deuda_total
+
+
 def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
 
@@ -1312,6 +1351,9 @@ def agenda_day(request, day, month, year):
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
     citas_por_bloque = agrupar_citas_por_bloque(citas)
+
+    # Cache para no recalcular varias veces el mismo paciente en el mismo día
+    deudas_totales_cache = {}
 
     horarios = []
     for h in generar_horarios():
@@ -1344,9 +1386,17 @@ def agenda_day(request, day, month, year):
             if debe < 0:
                 debe = Decimal("0")
 
+            patient_id = cita.paciente.id
+
+            if patient_id not in deudas_totales_cache:
+                deudas_totales_cache[patient_id] = obtener_deuda_total_paciente_desde_pro(
+                    cita.paciente,
+                    fecha_hasta=fecha
+                )
+
             citas_exactas_data.append({
                 "id": cita.id,
-                "patient_id": cita.paciente.id,
+                "patient_id": patient_id,
                 "hora_real": cita.hora,
                 "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
                 "motivo": cita.motivo,
@@ -1360,6 +1410,7 @@ def agenda_day(request, day, month, year):
                 "tipo_pago": info_pago["tipo_pago"],
                 "monto_total": monto_total,
                 "debe": debe,
+                "deuda_total_paciente": deudas_totales_cache[patient_id],
             })
 
         citas_extra_data = []
@@ -1377,9 +1428,17 @@ def agenda_day(request, day, month, year):
             if debe < 0:
                 debe = Decimal("0")
 
+            patient_id = cita.paciente.id
+
+            if patient_id not in deudas_totales_cache:
+                deudas_totales_cache[patient_id] = obtener_deuda_total_paciente_desde_pro(
+                    cita.paciente,
+                    fecha_hasta=fecha
+                )
+
             citas_extra_data.append({
                 "id": cita.id,
-                "patient_id": cita.paciente.id,
+                "patient_id": patient_id,
                 "hora_real": cita.hora,
                 "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
                 "motivo": cita.motivo,
@@ -1393,6 +1452,7 @@ def agenda_day(request, day, month, year):
                 "tipo_pago": info_pago["tipo_pago"],
                 "monto_total": monto_total,
                 "debe": debe,
+                "deuda_total_paciente": deudas_totales_cache[patient_id],
             })
 
         horarios.append({
@@ -1402,12 +1462,35 @@ def agenda_day(request, day, month, year):
             "citas_extra": citas_extra_data,
         })
 
+    # Panel lateral de deudores del día
+    deudores = []
+
+    for h in horarios:
+        if h.get("bloqueado"):
+            continue
+
+        for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
+            try:
+                debe = Decimal(str(cita.get("debe", 0)))
+            except (InvalidOperation, TypeError, ValueError):
+                debe = Decimal("0")
+
+            if debe > 0:
+                deudores.append(cita)
+
+    total_deuda_dia = sum(
+        (Decimal(str(d.get("debe", 0))) for d in deudores),
+        Decimal("0")
+    )
+
     return render(
         request,
         "core/agenda_day.html",
         {
             "fecha": fecha,
             "horarios": horarios,
+            "deudores": deudores,
+            "total_deuda_dia": total_deuda_dia,
         }
     )
 
@@ -2919,4 +3002,130 @@ def pacientes_inactivos(request):
     return render(request, "core/pacientes_inactivos.html", context)
 
 
+from django.http import FileResponse
+import os
 
+def descargar_backup(request):
+    ruta = "/opt/render/project/src/db_respaldo_cierre.sqlite3"
+    return FileResponse(open(ruta, 'rb'), as_attachment=True, filename='backup.sqlite3')
+
+
+def obtener_deuda_presupuestos_paciente(paciente):
+    presupuestos = Budget.objects.filter(paciente=paciente)
+
+    total = Decimal("0")
+
+    for p in presupuestos:
+        try:
+            saldo = p.saldo_pendiente or Decimal("0")
+        except:
+            saldo = Decimal("0")
+
+        if saldo > 0:
+            total += saldo
+
+    return total
+
+
+
+def deudores_general(request):
+    query = request.GET.get("q", "").strip().lower()
+
+    citas = (
+        Appointment.objects
+        .exclude(estado="cancelado")
+        .filter(monto_total__gt=0)
+        .select_related("paciente")
+        .order_by("-fecha", "-hora")[:150]
+    )
+
+    deudores_map = {}
+    deuda_presupuestos_cache = {}
+
+    for cita in citas:
+        nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".lower()
+
+        # filtro por buscador
+        if query and query not in nombre:
+            continue
+
+        info_pago = obtener_pago_cobros_cita(cita.id)
+
+        try:
+            total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
+        except (InvalidOperation, TypeError, ValueError):
+            total_pagado_decimal = Decimal("0")
+
+        monto_total = cita.monto_total or Decimal("0")
+        debe_cita = monto_total - total_pagado_decimal
+
+        if debe_cita < 0:
+            debe_cita = Decimal("0")
+
+        patient_id = cita.paciente.id
+
+        # calcular deuda de presupuestos una sola vez por paciente
+        if patient_id not in deuda_presupuestos_cache:
+            presupuestos = Budget.objects.filter(
+                paciente=cita.paciente
+            ).exclude(estado="cancelado")
+
+            total_presupuestos = Decimal("0")
+
+            for presupuesto in presupuestos:
+                try:
+                    saldo = presupuesto.saldo_pendiente or Decimal("0")
+                except (InvalidOperation, TypeError, ValueError):
+                    saldo = Decimal("0")
+
+                if saldo > 0:
+                    total_presupuestos += saldo
+
+            deuda_presupuestos_cache[patient_id] = total_presupuestos
+
+        deuda_presupuestos = deuda_presupuestos_cache[patient_id]
+
+        # si el paciente no existe aún en el mapa, lo creamos
+        if patient_id not in deudores_map:
+            deudores_map[patient_id] = {
+                "patient_id": patient_id,
+                "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+                "deuda_citas": Decimal("0"),
+                "deuda_presupuestos": deuda_presupuestos,
+                "deuda_total": Decimal("0"),
+                "ultima_fecha": cita.fecha,
+            }
+
+        # acumular solo deuda de citas
+        if debe_cita > 0:
+            deudores_map[patient_id]["deuda_citas"] += debe_cita
+
+        # actualizar última fecha vista
+        if cita.fecha > deudores_map[patient_id]["ultima_fecha"]:
+            deudores_map[patient_id]["ultima_fecha"] = cita.fecha
+
+    # calcular deuda total final y dejar solo pacientes con deuda
+    deudores = []
+
+    for data in deudores_map.values():
+        data["deuda_total"] = data["deuda_citas"] + data["deuda_presupuestos"]
+
+        if data["deuda_total"] > 0:
+            deudores.append(data)
+
+    deudores.sort(key=lambda x: x["deuda_total"], reverse=True)
+
+    total_general = sum(
+        (d["deuda_total"] for d in deudores),
+        Decimal("0")
+    )
+
+    return render(
+        request,
+        "core/deudores_general.html",
+        {
+            "deudores": deudores,
+            "total_general": total_general,
+            "query": query,
+        }
+    )
