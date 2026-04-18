@@ -1304,10 +1304,11 @@ def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
     Calcula la deuda acumulada del paciente tomando las citas registradas
     en Sonrisar Pro y restando lo pagado en Sonrisar Cobros por cada cita.
 
+    Reglas:
+    - Si hay pago en Cobros, la deuda real es monto_total - total_pagado.
+    - Si NO hay pago en Cobros y la cita está marcada como pagada, la deuda es 0.
+    - Si NO hay pago en Cobros y la cita NO está marcada como pagada, la deuda es monto_total.
     - No cuenta citas canceladas.
-    - Si se pasa fecha_hasta, solo toma citas hasta esa fecha inclusive.
-    - Si la cita ya está marcada como pagada en Sonrisar Pro, no suma deuda,
-      aunque Cobros no devuelva total_pagado para esa cita.
     """
     citas_qs = (
         Appointment.objects
@@ -1330,19 +1331,20 @@ def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
             total_pagado_decimal = Decimal("0")
 
         monto_total = cita.monto_total or Decimal("0")
+        tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
 
-        # Si la cita ya figura como pagada en Sonrisar Pro, no cuenta como deuda
-        if cita.pagado:
-            debe = Decimal("0")
-        else:
+        if tiene_pago_cobros:
             debe = monto_total - total_pagado_decimal
             if debe < 0:
                 debe = Decimal("0")
+        elif cita.pagado:
+            debe = Decimal("0")
+        else:
+            debe = monto_total
 
         deuda_total += debe
 
     return deuda_total
-
 
 def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
@@ -1383,18 +1385,20 @@ def agenda_day(request, day, month, year):
 
             try:
                 total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
-            except:
+            except (InvalidOperation, TypeError, ValueError):
                 total_pagado_decimal = Decimal("0")
 
             monto_total = cita.monto_total or Decimal("0")
+            tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
 
-            # 🔴 FIX CLAVE
-            if cita.pagado:
-                debe = Decimal("0")
-            else:
+            if tiene_pago_cobros:
                 debe = monto_total - total_pagado_decimal
                 if debe < 0:
                     debe = Decimal("0")
+            elif cita.pagado:
+                debe = Decimal("0")
+            else:
+                debe = monto_total
 
             patient_id = cita.paciente.id
 
@@ -1430,18 +1434,20 @@ def agenda_day(request, day, month, year):
 
             try:
                 total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
-            except:
+            except (InvalidOperation, TypeError, ValueError):
                 total_pagado_decimal = Decimal("0")
 
             monto_total = cita.monto_total or Decimal("0")
+            tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
 
-            # 🔴 FIX CLAVE
-            if cita.pagado:
-                debe = Decimal("0")
-            else:
+            if tiene_pago_cobros:
                 debe = monto_total - total_pagado_decimal
                 if debe < 0:
                     debe = Decimal("0")
+            elif cita.pagado:
+                debe = Decimal("0")
+            else:
+                debe = monto_total
 
             patient_id = cita.paciente.id
 
@@ -1484,7 +1490,12 @@ def agenda_day(request, day, month, year):
             continue
 
         for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
-            if Decimal(str(cita.get("debe", 0))) > 0:
+            try:
+                debe = Decimal(str(cita.get("debe", 0)))
+            except (InvalidOperation, TypeError, ValueError):
+                debe = Decimal("0")
+
+            if debe > 0:
                 deudores.append(cita)
 
     total_deuda_dia = sum(
@@ -3065,18 +3076,19 @@ def deudores_general(request):
             total_pagado_decimal = Decimal("0")
 
         monto_total = cita.monto_total or Decimal("0")
+        tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
 
-        # Si la cita ya está marcada como pagada en Sonrisar Pro, no cuenta deuda
-        if cita.pagado:
-            debe_cita = Decimal("0")
-        else:
+        if tiene_pago_cobros:
             debe_cita = monto_total - total_pagado_decimal
             if debe_cita < 0:
                 debe_cita = Decimal("0")
+        elif cita.pagado:
+            debe_cita = Decimal("0")
+        else:
+            debe_cita = monto_total
 
         patient_id = cita.paciente.id
 
-        # calcular deuda de presupuestos una sola vez por paciente
         if patient_id not in deuda_presupuestos_cache:
             presupuestos = Budget.objects.filter(
                 paciente=cita.paciente
