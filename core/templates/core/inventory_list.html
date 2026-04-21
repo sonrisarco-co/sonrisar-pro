@@ -5,152 +5,278 @@
 
 {% block content %}
 
-<div class="card shadow-sm">
+<div class="container mt-4 mb-5">
 
-    <!-- CABECERA -->
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Inventario</h5>
+    <div class="card shadow-sm border-0 inventario-card">
 
-        <a href="{% url 'inventory_new' %}"
-           class="btn btn-sm text-white"
-           style="background-color:#26ABA5;">
-            + Nuevo producto
-        </a>
-    </div>
+        <!-- CABECERA -->
+        <div class="card-body pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-    <!-- BUSCADOR -->
-    <div class="card-body pb-0">
-        <form method="get" class="row g-2 mb-3">
-            <div class="col-md-9">
-                <input type="text"
-                       name="q"
-                       value="{{ request.GET.q }}"
-                       class="form-control"
-                       placeholder="Buscar por nombre, código, proveedor o categoría">
+            <div>
+                <h4 class="mb-1 titulo-sonrisar">📦 Inventario</h4>
+                <p class="text-muted mb-0 subtitulo-sonrisar">
+                    Gestión de productos, stock y precios.
+                </p>
             </div>
-            <div class="col-md-3 d-grid">
-                <button class="btn btn-outline-secondary" type="submit">
-                    Buscar
-                </button>
-            </div>
-        </form>
-    </div>
 
-    <!-- TABLA -->
-    <div class="card-body pt-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <thead class="table-sonrisar">
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Proveedor</th>
-                        <th class="text-end">Stock</th>
-                        <th class="text-end">Stock mín.</th>
-                        <th class="text-end">Precio</th>
-                        <th class="text-end">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <a href="{% url 'inventory_new' %}" class="btn btn-sonrisar">
+                ➕ Nuevo producto
+            </a>
 
-                {% for p in productos %}
-                    <tr>
-                        <td>{{ p.codigo }}</td>
-                        <td><strong>{{ p.nombre }}</strong></td>
-                        <td>{{ p.categoria }}</td>
-                        <td>{{ p.proveedor }}</td>
-
-                        <!-- STOCK CON SEMÁFORO VISUAL -->
-                        <td class="text-end">
-                            {% if p.stock <= p.stock_minimo %}
-                                <span class="badge bg-danger">{{ p.stock }}</span>
-                            {% elif p.stock <= p.stock_minimo|add:2 %}
-                                <span class="badge bg-warning text-dark">{{ p.stock }}</span>
-                            {% else %}
-                                <span class="badge bg-success">{{ p.stock }}</span>
-                            {% endif %}
-                        </td>
-
-                        <td class="text-end">{{ p.stock_minimo }}</td>
-                        <td class="text-end">{{ p.precio }}</td>
-
-                        <td class="text-end">
-                            <a href="{% url 'inventory_edit' p.id %}" class="btn btn-outline-edit btn-sm">
-                                Editar
-                            </a>
-
-                            <a href="{% url 'inventory_delete' p.id %}" class="btn btn-outline-delete btn-sm">
-                                Eliminar
-                            </a>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
-                            No hay productos cargados.
-                        </td>
-                    </tr>
-                {% endfor %}
-
-                </tbody>
-            </table>
         </div>
-    </div>
 
-    <!-- PAGINACIÓN -->
-    {% if productos.has_other_pages %}
-    <div class="card-footer bg-light">
-        <nav>
-            <ul class="pagination justify-content-center mb-0">
+        <!-- BUSCADOR -->
+        <div class="card-body pb-0">
+            <form method="get" class="row g-2 mb-3">
 
-                {% if productos.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link"
-                           href="?page={{ productos.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
-                            Anterior
-                        </a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link">Anterior</span>
-                    </li>
-                {% endif %}
+                <div class="col-md-9">
+                    <input type="text"
+                           name="q"
+                           value="{{ request.GET.q }}"
+                           class="form-control buscador-sonrisar"
+                           placeholder="Buscar por nombre, código, proveedor o categoría">
+                </div>
 
-                {% for num in productos.paginator.page_range %}
-                    {% if productos.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ num }}</span>
-                        </li>
-                    {% else %}
+                <div class="col-md-3 d-grid">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        Buscar
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- TABLA -->
+        <div class="card-body pt-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle tabla-sonrisar">
+
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Proveedor</th>
+                            <th class="text-end">Stock</th>
+                            <th class="text-end">Stock mín.</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for p in productos %}
+                        <tr>
+
+                            <td class="text-muted small">{{ p.codigo }}</td>
+
+                            <td><strong>{{ p.nombre }}</strong></td>
+
+                            <td>{{ p.categoria }}</td>
+
+                            <td>{{ p.proveedor }}</td>
+
+                            <!-- STOCK -->
+                            <td class="text-end">
+                                {% if p.stock <= p.stock_minimo %}
+                                    <span class="badge badge-stock-danger">{{ p.stock }}</span>
+                                {% elif p.stock <= p.stock_minimo|add:2 %}
+                                    <span class="badge badge-stock-warning">{{ p.stock }}</span>
+                                {% else %}
+                                    <span class="badge badge-stock-ok">{{ p.stock }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">{{ p.stock_minimo }}</td>
+
+                            <td class="text-end">
+                                <span class="precio-sonrisar">
+                                    $ {{ p.precio|floatformat:2 }}
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+
+                                <!-- 🔥 EDITAR CON NEXT -->
+                                <a href="{% url 'inventory_edit' p.id %}?next={{ request.get_full_path|urlencode }}"
+                                   class="btn btn-outline-edit btn-sm">
+                                    Editar
+                                </a>
+
+                                <a href="{% url 'inventory_delete' p.id %}"
+                                   class="btn btn-outline-delete btn-sm">
+                                    Eliminar
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                No hay productos cargados.
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        {% if productos.has_other_pages %}
+        <div class="card-footer bg-light border-0">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+
+                    {% if productos.has_previous %}
                         <li class="page-item">
                             <a class="page-link"
-                               href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
-                                {{ num }}
+                               href="?page={{ productos.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                Anterior
                             </a>
                         </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Anterior</span>
+                        </li>
                     {% endif %}
-                {% endfor %}
 
-                {% if productos.has_next %}
-                    <li class="page-item">
-                        <a class="page-link"
-                           href="?page={{ productos.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
-                            Siguiente
-                        </a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link">Siguiente</span>
-                    </li>
-                {% endif %}
+                    {% for num in productos.paginator.page_range %}
+                        {% if productos.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
 
-            </ul>
-        </nav>
+                    {% if productos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ productos.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                Siguiente
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente</span>
+                        </li>
+                    {% endif %}
+
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
     </div>
-    {% endif %}
-
 </div>
+
+<style>
+.inventario-card {
+    border-radius: 18px;
+    border: 1px solid #e7efef !important;
+}
+
+.titulo-sonrisar {
+    color: #146B6C;
+    font-weight: 700;
+}
+
+.subtitulo-sonrisar {
+    font-size: 0.95rem;
+}
+
+.buscador-sonrisar {
+    border-radius: 12px;
+    border: 1px solid #d9e4e4;
+    padding: 10px;
+}
+
+.buscador-sonrisar:focus {
+    border-color: #26ABA5;
+    box-shadow: 0 0 0 0.2rem rgba(38, 171, 165, 0.15);
+}
+
+.btn-sonrisar {
+    background: #26ABA5;
+    border-color: #26ABA5;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.btn-sonrisar:hover {
+    background: #1f8e8a;
+    border-color: #1f8e8a;
+}
+
+.tabla-sonrisar thead {
+    background: #f5fbfb;
+    color: #146B6C;
+    font-weight: 600;
+}
+
+.tabla-sonrisar tbody tr:hover {
+    background: #f8fdfd;
+}
+
+.badge-stock-danger {
+    background: #dc3545;
+    color: #fff;
+}
+
+.badge-stock-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge-stock-ok {
+    background: #198754;
+    color: #fff;
+}
+
+.btn-outline-edit {
+    border: 1px solid #26ABA5;
+    color: #26ABA5;
+    border-radius: 8px;
+}
+
+.btn-outline-edit:hover {
+    background: #26ABA5;
+    color: #fff;
+}
+
+.btn-outline-delete {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    border-radius: 8px;
+}
+
+.btn-outline-delete:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+.precio-sonrisar {
+    white-space: nowrap;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+</style>
 
 {% endblock %}

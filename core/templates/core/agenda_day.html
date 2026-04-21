@@ -135,16 +135,14 @@
                                             {% endif %}
 
                                             {% if cita.tiene_pago_cobros %}
-                                                {% if cita.tipo_pago == "sena" %}
+                                                {% if cita.tipo_pago == "sena" and cita.debe > 0 %}
                                                     <span class="badge badge-sena">
                                                         Seña $ {{ cita.total_pagado }}
                                                     </span>
 
-                                                    {% if cita.debe > 0 %}
-                                                        <span class="badge badge-debe">
-                                                            Debe $ {{ cita.debe|floatformat:0 }}
-                                                        </span>
-                                                    {% endif %}
+                                                    <span class="badge badge-debe">
+                                                        Debe $ {{ cita.debe|floatformat:0 }}
+                                                    </span>
                                                 {% else %}
                                                     <span class="badge badge-pagado">
                                                         Pagado $ {{ cita.total_pagado }}
@@ -157,7 +155,7 @@
                                             {% endif %}
 
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
-                                                class="btn btn-sm btn-outline-success">
+                                               class="btn btn-sm btn-outline-success">
                                                 Historia clínica
                                             </a>
 
@@ -167,19 +165,19 @@
                                                 </span>
                                             {% else %}
                                                 <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                    class="btn btn-sm btn-outline-primary">
+                                                   class="btn btn-sm btn-outline-primary">
                                                     Cobrar
                                                 </a>
                                             {% endif %}
 
                                             <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                class="btn btn-sm btn-primary ms-2">
+                                               class="btn btn-sm btn-primary ms-2">
                                                 Editar
                                             </a>
 
                                             <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                class="btn btn-sm btn-danger"
-                                                onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
                                                 Eliminar
                                             </a>
 
@@ -301,16 +299,14 @@
                                             {% endif %}
 
                                             {% if cita.tiene_pago_cobros %}
-                                                {% if cita.tipo_pago == "sena" %}
+                                                {% if cita.tipo_pago == "sena" and cita.debe > 0 %}
                                                     <span class="badge badge-sena">
                                                         Seña $ {{ cita.total_pagado }}
                                                     </span>
 
-                                                    {% if cita.debe > 0 %}
-                                                        <span class="badge badge-debe">
-                                                            Debe $ {{ cita.debe|floatformat:0 }}
-                                                        </span>
-                                                    {% endif %}
+                                                    <span class="badge badge-debe">
+                                                        Debe $ {{ cita.debe|floatformat:0 }}
+                                                    </span>
                                                 {% else %}
                                                     <span class="badge badge-pagado">
                                                         Pagado $ {{ cita.total_pagado }}
@@ -323,7 +319,7 @@
                                             {% endif %}
 
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
-                                                class="btn btn-sm btn-outline-success">
+                                               class="btn btn-sm btn-outline-success">
                                                 Historia clínica
                                             </a>
 
@@ -333,19 +329,19 @@
                                                 </span>
                                             {% else %}
                                                 <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                    class="btn btn-sm btn-outline-primary">
+                                                   class="btn btn-sm btn-outline-primary">
                                                     Cobrar
                                                 </a>
                                             {% endif %}
 
                                             <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                class="btn btn-sm btn-primary ms-2">
+                                               class="btn btn-sm btn-primary ms-2">
                                                 Editar
                                             </a>
 
                                             <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                class="btn btn-sm btn-danger"
-                                                onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('¿Seguro que deseas eliminar esta cita?');">
                                                 Eliminar
                                             </a>
 
@@ -400,7 +396,7 @@
                                 </div>
 
                                 <a href="{% url 'cobros_nuevo_desde_cita' d.id %}?next={{ request.get_full_path|urlencode }}"
-                                class="btn btn-sm btn-outline-primary w-100 mt-2">
+                                   class="btn btn-sm btn-outline-primary w-100 mt-2">
                                     Cobrar saldo
                                 </a>
                             </div>

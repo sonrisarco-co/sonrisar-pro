@@ -1144,16 +1144,23 @@ def inventory_new(request):
 
 def inventory_edit(request, pk):
     producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
         form = InventoryForm(request.POST, instance=producto)
         if form.is_valid():
             form.save()
+            if next_url:
+                return redirect(next_url)
             return redirect("inventory_list")
     else:
         form = InventoryForm(instance=producto)
 
-    return render(request, "core/inventory_edit.html", {"form": form, "producto": producto})
+    return render(request, "core/inventory_edit.html", {
+        "form": form,
+        "producto": producto,
+        "next": next_url,
+    })
 
 
 def inventory_delete(request, pk):
@@ -2463,7 +2470,7 @@ def inventory_list(request):
             Q(proveedor__icontains=query)
         )
 
-    paginator = Paginator(productos, 10)  # 👈 10 productos por página
+    paginator = Paginator(productos, 20)  # 👈 20 productos por página
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -2497,19 +2504,22 @@ def inventory_new(request):
 
 def inventory_edit(request, pk):
     producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
         form = InventoryForm(request.POST, instance=producto)
         if form.is_valid():
             form.save()
+            if next_url:
+                return redirect(next_url)
             return redirect("inventory_list")
     else:
         form = InventoryForm(instance=producto)
 
-    return render(request, "core/inventory_form.html", {
+    return render(request, "core/inventory_edit.html", {
         "form": form,
-        "modo": "editar",
-        "producto": producto
+        "producto": producto,
+        "next": next_url,
     })
 
 
@@ -3056,7 +3066,7 @@ def deudores_general(request):
         .exclude(estado="cancelado")
         .filter(monto_total__gt=0)
         .select_related("paciente")
-        .order_by("-fecha", "-hora")[:150]
+        .order_by("fecha", "hora")[:300]
     )
 
     deudores_map = {}
@@ -3078,6 +3088,7 @@ def deudores_general(request):
         monto_total = cita.monto_total or Decimal("0")
         tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
 
+        # 🔹 cálculo de deuda por cita (tu lógica intacta)
         if tiene_pago_cobros:
             debe_cita = monto_total - total_pagado_decimal
             if debe_cita < 0:
@@ -3089,6 +3100,7 @@ def deudores_general(request):
 
         patient_id = cita.paciente.id
 
+        # 🔹 cache presupuestos
         if patient_id not in deuda_presupuestos_cache:
             presupuestos = Budget.objects.filter(
                 paciente=cita.paciente
@@ -3099,7 +3111,7 @@ def deudores_general(request):
             for presupuesto in presupuestos:
                 try:
                     saldo = presupuesto.saldo_pendiente or Decimal("0")
-                except (InvalidOperation, TypeError, ValueError):
+                except:
                     saldo = Decimal("0")
 
                 if saldo > 0:
@@ -3109,6 +3121,7 @@ def deudores_general(request):
 
         deuda_presupuestos = deuda_presupuestos_cache[patient_id]
 
+        # 🔹 crear deudor
         if patient_id not in deudores_map:
             deudores_map[patient_id] = {
                 "patient_id": patient_id,
@@ -3117,11 +3130,22 @@ def deudores_general(request):
                 "deuda_presupuestos": deuda_presupuestos,
                 "deuda_total": Decimal("0"),
                 "ultima_fecha": cita.fecha,
+                "cita_pendiente_id": None,
+                "cita_pendiente_fecha": None,
             }
 
+        # 🔹 sumar deuda
         if debe_cita > 0:
             deudores_map[patient_id]["deuda_citas"] += debe_cita
 
+            # ✅ CLAVE: elegir cita pendiente (la más vieja con deuda)
+            actual_fecha = deudores_map[patient_id]["cita_pendiente_fecha"]
+
+            if actual_fecha is None or cita.fecha < actual_fecha:
+                deudores_map[patient_id]["cita_pendiente_id"] = cita.id
+                deudores_map[patient_id]["cita_pendiente_fecha"] = cita.fecha
+
+        # 🔹 actualizar última fecha
         if cita.fecha > deudores_map[patient_id]["ultima_fecha"]:
             deudores_map[patient_id]["ultima_fecha"] = cita.fecha
 
@@ -3129,6 +3153,9 @@ def deudores_general(request):
 
     for data in deudores_map.values():
         data["deuda_total"] = data["deuda_citas"] + data["deuda_presupuestos"]
+
+        # limpieza
+        data.pop("cita_pendiente_fecha", None)
 
         if data["deuda_total"] > 0:
             deudores.append(data)

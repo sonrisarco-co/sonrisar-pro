@@ -60,10 +60,16 @@
                     </div>
 
                     <div class="acciones">
-                        <a href="{% url 'cobros_nuevo_desde_paciente' d.patient_id %}"
-                           class="btn btn-sm btn-outline-primary">
-                            Cobrar
-                        </a>
+                        {% if d.cita_pendiente_id %}
+                            <a href="{% url 'cobros_nuevo_desde_cita' d.cita_pendiente_id %}?next={{ request.get_full_path|urlencode }}"
+                            class="btn btn-sm btn-outline-primary">
+                                Cobrar
+                            </a>
+                        {% else %}
+                            <span class="btn btn-sm btn-secondary disabled">
+                                Sin cita pendiente
+                            </span>
+                        {% endif %}
                     </div>
 
                 </div>
