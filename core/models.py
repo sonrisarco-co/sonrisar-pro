@@ -135,6 +135,8 @@ class BudgetItem(models.Model):
         return f"{self.concepto} ({self.cantidad} x {self.valor})"
 
 
+from django.utils import timezone
+
 class BudgetPayment(models.Model):
     METODO_CHOICES = [
         ("efectivo", "Efectivo"),
@@ -154,8 +156,8 @@ class BudgetPayment(models.Model):
         on_delete=models.CASCADE,
         related_name="pagos"
     )
-    fecha = models.DateField(auto_now_add=True)
-    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha = models.DateField(default=timezone.now)
+    monto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     metodo_pago = models.CharField(
         max_length=30,
         choices=METODO_CHOICES,
