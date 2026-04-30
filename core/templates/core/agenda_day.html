@@ -53,6 +53,11 @@
 
                                         <div style="font-weight:600;">
                                             {{ cita.paciente }}
+                                            {% if cita.edad %}
+                                                <span style="font-size:11px; color:#6c757d;">
+                                                    ({{ cita.edad }} años)
+                                                </span>
+                                            {% endif %}
                                         </div>
 
                                         {% if cita.deuda_total_paciente > 0 %}
@@ -217,6 +222,11 @@
 
                                         <div style="font-weight:600;">
                                             {{ cita.paciente }}
+                                            {% if cita.edad %}
+                                                <span style="font-size:11px; color:#6c757d;">
+                                                    ({{ cita.edad }} años)
+                                                </span>
+                                            {% endif %}
                                         </div>
 
                                         {% if cita.deuda_total_paciente > 0 %}

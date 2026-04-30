@@ -1353,6 +1353,21 @@ def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
 
     return deuda_total
 
+    
+
+def calcular_edad(fecha_nacimiento):
+    if not fecha_nacimiento:
+        return None
+
+    hoy = date.today()
+    edad = hoy.year - fecha_nacimiento.year
+
+    if (hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
+        edad -= 1
+
+    return edad
+
+
 def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
 
@@ -1415,11 +1430,14 @@ def agenda_day(request, day, month, year):
                     fecha_hasta=fecha
                 )
 
+            edad = calcular_edad(cita.paciente.fecha_nacimiento)
+
             citas_exactas_data.append({
                 "id": cita.id,
                 "patient_id": patient_id,
                 "hora_real": cita.hora,
                 "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+                "edad": edad,  # 👈 NUEVO
                 "motivo": cita.motivo,
                 "motivo_slug": slugify(cita.motivo or ""),
                 "procedimientos": [p.nombre for p in cita.procedimientos.all()],
@@ -1464,11 +1482,14 @@ def agenda_day(request, day, month, year):
                     fecha_hasta=fecha
                 )
 
+            edad = calcular_edad(cita.paciente.fecha_nacimiento)
+
             citas_extra_data.append({
                 "id": cita.id,
                 "patient_id": patient_id,
                 "hora_real": cita.hora,
                 "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+                "edad": edad,  # 👈 NUEVO
                 "motivo": cita.motivo,
                 "motivo_slug": slugify(cita.motivo or ""),
                 "procedimientos": [p.nombre for p in cita.procedimientos.all()],
