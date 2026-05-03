@@ -53,6 +53,7 @@ from .models import (
     ClinicalRecord,
     RayosX,
     BudgetPayment,
+    OdontogramTooth,
 )
 
 from .forms import (
@@ -440,6 +441,8 @@ def appointment_move_time(request, id):
 # 📋 LISTA DE HISTORIAS
 # =========================
 
+import json
+
 def clinical_records_list(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
@@ -460,10 +463,61 @@ def clinical_records_list(request, patient_id):
         }
     )
 
-  
-# =========================
-# ➕ NUEVA HISTORIA
-# =========================
+
+def calcular_edad(fecha_nacimiento):
+    if not fecha_nacimiento:
+        return None
+
+    hoy = date.today()
+    edad = hoy.year - fecha_nacimiento.year
+
+    if (hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
+        edad -= 1
+
+    return edad
+
+
+def obtener_marcas_odontograma(paciente):
+    return [
+        {
+            "id": str(d.id),
+            "estado": d.estado,
+            "x": d.pos_x,
+            "y": d.pos_y,
+        }
+        for d in OdontogramTooth.objects.filter(paciente=paciente)
+    ]
+
+
+def guardar_odontograma_desde_post(request, paciente):
+    data = request.POST.get("odontograma_data", "")
+
+    if not data:
+        return
+
+    try:
+        marcas = json.loads(data)
+    except Exception:
+        return
+
+    OdontogramTooth.objects.filter(paciente=paciente).delete()
+
+    for marca in marcas:
+        estado = marca.get("estado")
+        x = marca.get("x")
+        y = marca.get("y")
+
+        if not estado or x is None or y is None:
+            continue
+
+        OdontogramTooth.objects.create(
+            paciente=paciente,
+            numero="marca",
+            estado=estado,
+            pos_x=float(x),
+            pos_y=float(y),
+        )
+
 
 def clinical_record_new(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
@@ -479,11 +533,16 @@ def clinical_record_new(request, patient_id):
 
     if request.method == "POST":
         form = ClinicalRecordForm(request.POST)
+
         if form.is_valid():
             registro = form.save(commit=False)
             registro.paciente = paciente
             registro.save()
+
+            guardar_odontograma_desde_post(request, paciente)
+
             return redirect("clinical_record_detail", registro_id=registro.id)
+
     else:
         form = ClinicalRecordForm()
 
@@ -503,6 +562,7 @@ def clinical_record_new(request, patient_id):
             form.initial["tratamiento"] = texto_tratamiento
 
     volver_url = request.GET.get("next") or request.POST.get("next")
+
     if not volver_url:
         volver_url = reverse("clinical_records_list", args=[paciente.id])
 
@@ -515,17 +575,13 @@ def clinical_record_new(request, patient_id):
             "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
         },
     )
-    
 
 
-# =========================
-# 👁️ DETALLE
-# =========================
 def clinical_record_detail(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
-
     paciente = registro.paciente
 
     historias = ClinicalRecord.objects.filter(
@@ -536,24 +592,23 @@ def clinical_record_detail(request, registro_id):
 
     pagos_cobros, pagos_error = obtener_pagos_cobros_paciente(request, paciente)
 
+    edad = calcular_edad(paciente.fecha_nacimiento)
+
     return render(
         request,
         "core/clinical_record_detail.html",
         {
             "registro": registro,
             "paciente": paciente,
+            "edad": edad,
             "historias": historias,
             "rayos": rayos,
             "pagos_cobros": pagos_cobros,
             "pagos_error": pagos_error,
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
         }
     )
-    
 
-
-# =========================
-# ✏️ EDITAR
-# =========================
 
 def clinical_record_edit(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
@@ -570,9 +625,12 @@ def clinical_record_edit(request, registro_id):
 
     if request.method == "POST":
         form = ClinicalRecordForm(request.POST, instance=registro)
+
         if form.is_valid():
             form.save()
+            guardar_odontograma_desde_post(request, paciente)
             return redirect("clinical_record_detail", registro_id=registro.id)
+
     else:
         form = ClinicalRecordForm(instance=registro)
 
@@ -603,6 +661,7 @@ def clinical_record_edit(request, registro_id):
                 form.initial["tratamiento"] = f"{hoy} "
 
     volver_url = request.GET.get("next") or request.POST.get("next")
+
     if not volver_url:
         volver_url = reverse("clinical_record_detail", args=[registro.id])
 
@@ -616,6 +675,7 @@ def clinical_record_edit(request, registro_id):
             "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
         },
     )
 
@@ -661,7 +721,6 @@ def abrir_historia_desde_cita(request, patient_id):
     return redirect(url)
 
 
-
 def clinical_record_open_from_appointment(request, patient_id, appointment_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
@@ -697,11 +756,6 @@ def clinical_record_open_from_appointment(request, patient_id, appointment_id):
     return redirect(f"{url}?{urlencode(params)}")
 
 
-
-# =========================
-# 🗑️ BORRAR
-# =========================
-
 def clinical_record_delete(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
     paciente_id = registro.paciente.id
@@ -710,12 +764,6 @@ def clinical_record_delete(request, registro_id):
 
     return redirect("clinical_records_list", patient_id=paciente_id)
 
-
-
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.shortcuts import render
-from .models import Patient
 
 def clinical_record_search(request):
     query = request.GET.get("q", "").strip()
@@ -730,11 +778,9 @@ def clinical_record_search(request):
             Q(telefono__icontains=query)
         )
 
-    # 🔹 ORDEN ALFABÉTICO SIEMPRE
     pacientes_qs = pacientes_qs.order_by("apellido", "nombre")
 
-    # ✅ PAGINACIÓN (ACÁ ES DONDE VA)
-    paginator = Paginator(pacientes_qs, 20)  # 20 por página
+    paginator = Paginator(pacientes_qs, 20)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -1353,7 +1399,7 @@ def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
 
     return deuda_total
 
-    
+
 
 def calcular_edad(fecha_nacimiento):
     if not fecha_nacimiento:

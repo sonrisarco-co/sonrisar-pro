@@ -233,16 +233,97 @@ class InventoryForm(forms.ModelForm):
 # -------------------------
 # HISTORIA CLÍNICA
 # -------------------------
+
 class ClinicalRecordForm(forms.ModelForm):
     class Meta:
         model = ClinicalRecord
-        # ⛔ NO incluir patient
+
         fields = [
+            # 1 🩺 ANTECEDENTES
+            "diabetes",
+            "hta",
+            "cardiopatia",
+            "ninguno",
+            "otros_antecedentes",
+            "medicacion_actual",
+            "alergias",
+            "cirugias_previas",
+
+            # 2 📝 MOTIVO
             "motivo",
+
+            # 3 🔍 DIAGNÓSTICO
             "diagnostico",
+
+            # 4 📈 PRONÓSTICO
+            "pronostico",
+
+            # 5 🛠️ PLAN / EVOLUCIÓN
             "tratamiento",
-            "observaciones",
+
+            # 6 ✍️ CONSENTIMIENTO
+            "consentimiento_explicado",
+            "consentimiento_aceptado",
+            "consentimiento_firma",
         ]
+
+        widgets = {
+            # 🔹 TEXTOS
+            "motivo": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Motivo de consulta"
+            }),
+
+            "diagnostico": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Diagnóstico clínico"
+            }),
+
+            "tratamiento": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 5,
+                "placeholder": "Plan de tratamiento y evolución"
+            }),
+
+            "otros_antecedentes": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Otros antecedentes"
+            }),
+
+            "medicacion_actual": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "Medicación actual"
+            }),
+
+            "alergias": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "Alergias"
+            }),
+
+            "cirugias_previas": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "Cirugías previas"
+            }),
+
+            # 🔹 PRONÓSTICO
+            "pronostico": forms.Select(attrs={
+                "class": "form-select"
+            }),
+
+            # 🔹 CHECKBOXES
+            "diabetes": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "hta": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "cardiopatia": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "ninguno": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+
+            "consentimiento_explicado": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "consentimiento_aceptado": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "consentimiento_firma": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
         
 
 class RayosXForm(forms.ModelForm):

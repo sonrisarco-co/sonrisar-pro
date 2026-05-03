@@ -1,36 +1,78 @@
 {% extends "core/base.html" %}
+{% load static %}
+
 {% block title %}Historia Clínica{% endblock %}
 
 {% block content %}
 
 <style>
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .header-print,
+    .footer-print {
+        display: none;
+    }
+
+    .header-print {
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #26ABA5;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+
+    .header-print-logo {
+        height: 92px;
+        max-width: 280px;
+        object-fit: contain;
+    }
+
+    .header-print-right {
+        text-align: right;
+        font-size: 14px;
+        line-height: 1.45;
+        color: #111827;
+        font-weight: 700;
+    }
+
     .hc-box {
         background: white;
         padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
         margin-bottom: 25px;
     }
 
     .hc-title {
         font-size: 28px;
-        font-weight: bold;
-        color: #1f6f6b;
+        font-weight: 800;
+        color: #146B6C;
         margin-bottom: 10px;
     }
 
     .hc-section-title {
         font-size: 20px;
-        color: #1f6f6b;
-        font-weight: 600;
-        margin-top: 20px;
-        margin-bottom: 12px;
+        color: #146B6C;
+        font-weight: 800;
+        margin-bottom: 16px;
     }
 
     .hc-item-label {
-        font-weight: 600;
+        font-weight: 700;
         color: #333;
         margin-top: 15px;
+    }
+
+    .hc-text-block {
+        background: #f8fafa;
+        border: 1px solid #dceaea;
+        border-radius: 10px;
+        padding: 12px;
+        white-space: pre-wrap;
+        margin-bottom: 12px;
     }
 
     .evolucion-card {
@@ -44,25 +86,16 @@
 
     .evolucion-fecha {
         font-weight: bold;
-        color: #1f6f6b;
+        color: #146B6C;
         margin-bottom: 5px;
         font-size: 15px;
-    }
-
-    .hc-text-block {
-        background: #f8f9fa;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 12px;
-        white-space: pre-wrap;
-        margin-bottom: 12px;
     }
 
     .hc-actions {
         display: flex;
         gap: 12px;
         margin-top: 20px;
-        margin-bottom: 40px;
+        margin-bottom: 10px;
         flex-wrap: wrap;
     }
 
@@ -70,18 +103,163 @@
         background-color: #26ABA5 !important;
         color: #fff !important;
         border: 1px solid #26ABA5 !important;
-        border-radius: 8px;
-        padding: 8px 18px;
-        font-weight: 600;
+        border-radius: 10px;
+        padding: 9px 18px;
+        font-weight: 700;
+        text-decoration: none;
     }
 
     .btn-sonrisar-outline {
         background-color: transparent !important;
         color: #26ABA5 !important;
         border: 2px solid #26ABA5 !important;
-        border-radius: 8px;
-        padding: 8px 18px;
-        font-weight: 600;
+        border-radius: 10px;
+        padding: 9px 18px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .btn-print {
+        background-color: #26ABA5 !important;
+        color: white !important;
+        border: 1px solid #26ABA5 !important;
+        border-radius: 10px;
+        padding: 9px 18px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .hc-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .hc-badge {
+        background: #f8fbfb;
+        border: 1px solid #dbeaea;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-weight: 700;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .hc-badge.ok {
+        background: #eafaf9;
+        color: #146B6C;
+        border-color: #bce9e6;
+    }
+
+    .hc-grid-info {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .odontograma-scroll {
+        width: 100%;
+        overflow-x: auto;
+        background: white;
+        border: 1px solid #d9e7e7;
+        border-radius: 16px;
+        padding: 12px;
+    }
+
+    .odontograma-view {
+        position: relative;
+        width: 1100px;
+        max-width: none;
+    }
+
+    .odontograma-img {
+        width: 1100px;
+        display: block;
+        border-radius: 10px;
+    }
+
+    .marca-odontograma {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+        border-radius: 50%;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .marca-odontograma::before {
+        content: attr(data-label);
+        position: absolute;
+        bottom: 130%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s;
+    }
+
+    .marca-odontograma:hover::before {
+        opacity: 1;
+    }
+
+    .marca-odontograma.caries {
+        background-color: #ef233c !important;
+        border: 2px solid #ef233c !important;
+        box-shadow: inset 0 0 0 20px #ef233c !important;
+    }
+
+    .marca-odontograma.obturado {
+        background-color: #1687c9 !important;
+        border: 2px solid #1687c9 !important;
+        box-shadow: inset 0 0 0 20px #1687c9 !important;
+    }
+
+    .marca-odontograma.corona {
+        background-color: #ffd21f !important;
+        border: 2px solid #ffd21f !important;
+        box-shadow: inset 0 0 0 20px #ffd21f !important;
+    }
+
+    .marca-odontograma.movilidad {
+        background-color: #5a5a5a !important;
+        border: 2px solid #5a5a5a !important;
+        box-shadow: inset 0 0 0 20px #5a5a5a !important;
+    }
+
+    .marca-odontograma.sano {
+        background: #ffffff;
+        border: 2px solid #111827;
+    }
+
+    .marca-odontograma.ausente {
+        background: transparent;
+    }
+
+    .marca-odontograma.ausente::after {
+        content: "✕";
+        font-size: 28px;
+        font-weight: 900;
+        color: #111;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -55%);
+    }
+
+    .marca-odontograma.extraccion {
+        background: transparent;
+        border: 4px solid #d90429;
+        width: 30px;
+        height: 30px;
     }
 
     .pagos-table {
@@ -98,7 +276,7 @@
 
     .pagos-table th {
         background: #f6fbfb;
-        color: #1f6f6b;
+        color: #146B6C;
         font-weight: 700;
     }
 
@@ -119,34 +297,251 @@
         color: #7a5b00;
         border: 1px solid #f0ad4e;
     }
+
+    .rayos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 16px;
+    }
+
+    .rayos-card {
+        border: 1px solid #e2e8e8;
+        border-radius: 12px;
+        padding: 10px;
+        background: #fbfefe;
+    }
+
+    .rayos-thumb {
+        width: 100%;
+        border-radius: 10px;
+        max-height: 160px;
+        object-fit: cover;
+    }
+
+    @media (max-width: 768px) {
+        .hc-grid-info {
+            grid-template-columns: 1fr;
+        }
+
+        .hc-title {
+            font-size: 22px;
+        }
+    }
+
+    @media print {
+        body {
+            background: white !important;
+        }
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        .hc-print-root,
+        .hc-print-root * {
+            visibility: visible !important;
+        }
+
+        .hc-print-root {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+        }
+
+        .header-print {
+            display: flex !important;
+        }
+
+        .footer-print {
+            display: none !important;
+        }
+
+        .hc-actions,
+        .btn-print,
+        .btn-sonrisar,
+        .btn-sonrisar-outline {
+            display: none !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .hc-box {
+            box-shadow: none !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 10px !important;
+            padding: 10px 12px !important;
+            margin-bottom: 9px !important;
+            page-break-inside: avoid;
+        }
+
+        .hc-box:first-of-type {
+            padding: 10px 12px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .hc-box:nth-of-type(2) {
+            padding: 8px 12px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .hc-box:nth-of-type(2) .hc-section-title {
+            margin-bottom: 6px !important;
+        }
+
+        .hc-box:nth-of-type(2) p {
+            margin: 2px 0 !important;
+        }
+
+        .hc-grid-info {
+            gap: 4px 18px !important;
+        }
+
+        .hc-title {
+            font-size: 22px !important;
+            color: #111827 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .hc-section-title {
+            color: #111827 !important;
+            font-size: 16px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .hc-item-label {
+            margin-top: 6px !important;
+        }
+
+        .hc-text-block {
+            border: 1px solid #ddd !important;
+            background: white !important;
+            padding: 8px !important;
+            margin-bottom: 7px !important;
+        }
+
+        .hc-badges {
+            gap: 6px !important;
+            margin-bottom: 7px !important;
+        }
+
+        .hc-badge {
+            padding: 5px 9px !important;
+            font-size: 12px !important;
+        }
+
+        .odontograma-scroll {
+            overflow: visible !important;
+            border: 1px solid #ddd !important;
+        }
+
+        .odontograma-view,
+        .odontograma-img {
+            width: 1000px !important;
+            max-width: 1000px !important;
+        }
+
+        .marca-odontograma::before {
+            display: none !important;
+        }
+
+        .rayos-card {
+            page-break-inside: avoid;
+        }
+    }
 </style>
 
-<div class="container mt-4">
+<div class="container mt-4 hc-print-root">
+
+    <div class="header-print">
+        <img src="{% static 'img/logo.png' %}" alt="Sonrisar" class="header-print-logo">
+
+        <div class="header-print-right">
+            📍 Román Guerra 752<br>
+            📞 092 706 293<br>
+            📷 @sonrisar_<br>
+            📅 {{ registro.fecha|date:"d/m/Y" }}
+        </div>
+    </div>
 
     <div class="hc-box">
-        <h2 class="hc-title">Historia Clínica – {{ paciente.apellido }} {{ paciente.nombre }}</h2>
+        <h2 class="hc-title">
+            Historia Clínica – {{ paciente.apellido }} {{ paciente.nombre }}
+            {% if edad %}
+                <span style="font-size:13px; color:#6c757d;">({{ edad }} años)</span>
+            {% endif %}
+        </h2>
         <p style="color:#555;">Registro del día {{ registro.fecha|date:"d/m/Y" }}</p>
+
+        <div class="hc-actions">
+            <button type="button" onclick="window.print()" class="btn-print">🖨 Imprimir</button>
+
+            <a href="{% url 'clinical_record_edit' registro.id %}" class="btn-sonrisar">Editar</a>
+
+            <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="btn-sonrisar-outline">
+                Cobrar
+            </a>
+
+            <a href="{% url 'clinical_records_list' paciente.id %}" class="btn-sonrisar-outline">Volver</a>
+        </div>
     </div>
 
     <div class="hc-box">
         <h3 class="hc-section-title">Datos del paciente</h3>
 
-        <p><span class="hc-item-label">Nombre:</span> {{ paciente.apellido }}, {{ paciente.nombre }}</p>
-        <p><span class="hc-item-label">CI:</span> {{ paciente.ci }}</p>
-        <p><span class="hc-item-label">Teléfono:</span> {{ paciente.telefono }}</p>
-        <p><span class="hc-item-label">Email:</span> {{ paciente.email }}</p>
+        <div class="hc-grid-info">
+            <p><span class="hc-item-label">Nombre:</span> {{ paciente.apellido }}, {{ paciente.nombre }}</p>
+            <p><span class="hc-item-label">CI:</span> {{ paciente.ci|default:"—" }}</p>
+            <p><span class="hc-item-label">Teléfono:</span> {{ paciente.telefono|default:"—" }}</p>
+            <p><span class="hc-item-label">Email:</span> {{ paciente.email|default:"—" }}</p>
+        </div>
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">Antecedentes médicos</h3>
+
+        <div class="hc-badges">
+            {% if registro.diabetes %}<span class="hc-badge ok">Diabetes</span>{% endif %}
+            {% if registro.hta %}<span class="hc-badge ok">HTA</span>{% endif %}
+            {% if registro.cardiopatia %}<span class="hc-badge ok">Cardiopatía</span>{% endif %}
+            {% if registro.ninguno %}<span class="hc-badge ok">Ninguno</span>{% endif %}
+
+            {% if not registro.diabetes and not registro.hta and not registro.cardiopatia and not registro.ninguno %}
+                <span class="hc-badge">Sin antecedentes marcados</span>
+            {% endif %}
+        </div>
+
+        <p class="hc-item-label">Otros antecedentes:</p>
+        <div class="hc-text-block">{{ registro.otros_antecedentes|default:"—" }}</div>
+
+        <p class="hc-item-label">Medicación actual:</p>
+        <div class="hc-text-block">{{ registro.medicacion_actual|default:"—"|linebreaks }}</div>
+
+        <p class="hc-item-label">Alergias:</p>
+        <div class="hc-text-block">{{ registro.alergias|default:"—"|linebreaks }}</div>
+
+        <p class="hc-item-label">Cirugías previas:</p>
+        <div class="hc-text-block">{{ registro.cirugias_previas|default:"—"|linebreaks }}</div>
     </div>
 
     <div class="hc-box">
         <h3 class="hc-section-title">Registro clínico</h3>
 
         <p class="hc-item-label">Motivo:</p>
-        <div class="hc-text-block">{{ registro.motivo }}</div>
+        <div class="hc-text-block">{{ registro.motivo|default:"—" }}</div>
 
         <p class="hc-item-label">Diagnóstico:</p>
         <div class="hc-text-block">{{ registro.diagnostico|default:"—"|linebreaks }}</div>
 
-        <p class="hc-item-label">Evolución:</p>
+        <p class="hc-item-label">Pronóstico:</p>
+        <div class="hc-text-block">{{ registro.get_pronostico_display|default:"—" }}</div>
+
+        <p class="hc-item-label">Plan de tratamiento / Evolución:</p>
 
         {% if registro.tratamiento %}
             {% for linea in registro.tratamiento.splitlines %}
@@ -164,14 +559,39 @@
             <div class="hc-text-block">—</div>
         {% endif %}
 
-        <div class="hc-actions">
-            <a href="{% url 'clinical_record_edit' registro.id %}" class="btn-sonrisar">Editar</a>
+        <p class="hc-item-label">Consentimiento informado:</p>
+        <div class="hc-badges">
+            {% if registro.consentimiento_explicado %}
+                <span class="hc-badge ok">Explicado al paciente</span>
+            {% else %}
+                <span class="hc-badge">No explicado</span>
+            {% endif %}
 
-            <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="btn-sonrisar-outline">
-                Cobrar
-            </a>
+            {% if registro.consentimiento_aceptado %}
+                <span class="hc-badge ok">Aceptado</span>
+            {% else %}
+                <span class="hc-badge">No aceptado</span>
+            {% endif %}
 
-            <a href="{% url 'clinical_records_list' paciente.id %}" class="btn-sonrisar-outline">Volver</a>
+            {% if registro.consentimiento_firma %}
+                <span class="hc-badge ok">Firma en papel adjunta</span>
+            {% else %}
+                <span class="hc-badge">Sin firma adjunta</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">Odontograma</h3>
+
+        <div class="odontograma-scroll">
+            <div class="odontograma-view" id="odontograma-view">
+                <img
+                    src="{% static 'core/img/odontograma_base.png' %}"
+                    alt="Odontograma"
+                    class="odontograma-img"
+                >
+            </div>
         </div>
     </div>
 
@@ -179,9 +599,7 @@
         <h3 class="hc-section-title">Pagos registrados</h3>
 
         {% if pagos_error %}
-            <div class="pago-error">
-                {{ pagos_error }}
-            </div>
+            <div class="pago-error">{{ pagos_error }}</div>
         {% elif pagos_cobros %}
             <table class="pagos-table">
                 <thead>
@@ -231,5 +649,40 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("odontograma-view");
+    const marcasJson = "{{ odontograma_marcas|default:'[]'|escapejs }}";
+
+    const labelsEstado = {
+        sano: "Diente sano",
+        caries: "Caries",
+        obturado: "Obturado",
+        ausente: "Ausente",
+        corona: "Corona",
+        movilidad: "Movilidad",
+        extraccion: "Extracción"
+    };
+
+    let marcas = [];
+
+    try {
+        marcas = JSON.parse(marcasJson);
+    } catch (error) {
+        marcas = [];
+    }
+
+    marcas.forEach(function(marca) {
+        const punto = document.createElement("div");
+        punto.className = "marca-odontograma " + marca.estado;
+        punto.style.left = marca.x + "%";
+        punto.style.top = marca.y + "%";
+        punto.dataset.label = labelsEstado[marca.estado] || marca.estado;
+
+        container.appendChild(punto);
+    });
+});
+</script>
 
 {% endblock %}

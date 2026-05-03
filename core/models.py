@@ -77,15 +77,81 @@ class ClinicalRecord(models.Model):
         related_name="clinical_records"
     )
     fecha = models.DateField(auto_now_add=True)
+
+    # -------------------------
+    # 📝 CLÍNICO BÁSICO
+    # -------------------------
     motivo = models.CharField(max_length=200)
     diagnostico = models.TextField(blank=True)
-    tratamiento = models.TextField(blank=True)
+    tratamiento = models.TextField(blank=True)  # 👉 se usa como Plan + Evolución
+
+    # ❌ Se mantiene en DB pero ya no se usa
     observaciones = models.TextField(blank=True)
+
+    # -------------------------
+    # 🩺 ANTECEDENTES MÉDICOS
+    # -------------------------
+    diabetes = models.BooleanField(default=False)
+    hta = models.BooleanField(default=False)
+    cardiopatia = models.BooleanField(default=False)
+    ninguno = models.BooleanField(default=False)
+    otros_antecedentes = models.CharField(max_length=200, blank=True)
+
+    medicacion_actual = models.TextField(blank=True)
+    alergias = models.TextField(blank=True)
+    cirugias_previas = models.TextField(blank=True)
+
+    # -------------------------
+    # 📈 PRONÓSTICO
+    # -------------------------
+    PRONOSTICO_CHOICES = [
+        ("bueno", "Bueno"),
+        ("reservado", "Reservado"),
+        ("malo", "Malo"),
+    ]
+    pronostico = models.CharField(
+        max_length=10,
+        choices=PRONOSTICO_CHOICES,
+        blank=True
+    )
+
+    # -------------------------
+    # ✍️ CONSENTIMIENTO
+    # -------------------------
+    consentimiento_explicado = models.BooleanField(default=False)
+    consentimiento_aceptado = models.BooleanField(default=False)
+    consentimiento_firma = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Historia {self.paciente} ({self.fecha})"
+        
 
+class OdontogramTooth(models.Model):
 
+    ESTADOS = [
+        ("sano", "Sano"),
+        ("caries", "Caries"),
+        ("obturado", "Obturado"),
+        ("ausente", "Ausente"),
+        ("corona", "Corona"),
+        ("movilidad", "Movilidad"),
+        ("extraccion", "Extracción"),
+    ]
+
+    paciente = models.ForeignKey(
+        Patient,
+        on_delete=models.CASCADE,
+        related_name="odontograma"
+    )
+
+    numero = models.CharField(max_length=5)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="sano")
+
+    pos_x = models.FloatField(default=0)
+    pos_y = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.numero} - {self.estado}"
 
 
 # 💰 PRESUPUESTOS

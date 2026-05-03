@@ -1,110 +1,251 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block content %}
 
-<div class="hc-wrapper">
+<div class="hc-page">
 
-    <h2 class="hc-title">
-        {% if registro %}
-            Editar Historia Clínica
-        {% else %}
-            Nueva Historia Clínica
-        {% endif %}
-    </h2>
+    <div class="hc-header">
+        <div>
+            <h2 class="hc-title-main">
+                {% if registro %}Editar historia clínica{% else %}Nueva historia clínica{% endif %}
+            </h2>
+            <p class="hc-paciente">
+                {{ paciente.apellido }}, {{ paciente.nombre }}
+                {% if paciente.fecha_nacimiento %}
+                    <span>({{ paciente.fecha_nacimiento|timesince|slice:":2" }} años)</span>
+                {% endif %}
+            </p>
+        </div>
 
-    <p class="hc-paciente">
-        Paciente: 
-        <strong>
-            {{ paciente.apellido }}, {{ paciente.nombre }}
-            {% if paciente.fecha_nacimiento %}
-                <span style="font-size:12px; color:#6c757d;">
-                    ({{ paciente.fecha_nacimiento|timesince|slice:":2" }} años)
-                </span>
-            {% endif %}
-        </strong>
-    </p>
+        <div class="hc-date">
+            <small>Fecha</small>
+            <strong>{{ fecha_hoy }}</strong>
+        </div>
+    </div>
 
-    <form method="post" class="hc-form">
+    <form method="post" class="hc-form" id="historia-form">
         {% csrf_token %}
 
         <input type="hidden" name="appointment_id" value="{{ appointment_id|default:'' }}">
         <input type="hidden" name="next" value="{{ volver_url|default:'' }}">
 
-        <div class="hc-field hc-inline">
-            <label for="id_motivo">Motivo</label>
-            {{ form.motivo }}
-            {% if form.motivo.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.motivo.errors }}
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>🩺</span>
+                <div>
+                    <h3>1. Antecedentes médicos</h3>
+                    <p>Datos generales de salud del paciente.</p>
                 </div>
-            {% endif %}
-        </div>
+            </div>
 
-        <div class="hc-field">
-            <label for="id_diagnostico">Diagnóstico</label>
-            {{ form.diagnostico }}
-            {% if form.diagnostico.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.diagnostico.errors }}
-                </div>
-            {% endif %}
-        </div>
+            <div class="hc-check-grid">
+                <label>{{ form.diabetes }} Diabetes</label>
+                <label>{{ form.hta }} HTA</label>
+                <label>{{ form.cardiopatia }} Cardiopatía</label>
+                <label>{{ form.ninguno }} Ninguno</label>
+            </div>
 
-        <div class="hc-field">
-            <label for="id_tratamiento">Evolución</label>
-            {{ form.tratamiento }}
-            {% if form.tratamiento.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.tratamiento.errors }}
+            <div class="hc-grid mt">
+                <div class="hc-field">
+                    <label>Otros antecedentes</label>
+                    {{ form.otros_antecedentes }}
                 </div>
-            {% endif %}
-        </div>
+                <div class="hc-field">
+                    <label>Medicación actual</label>
+                    {{ form.medicacion_actual }}
+                </div>
+                <div class="hc-field">
+                    <label>Alergias ⚠️</label>
+                    {{ form.alergias }}
+                </div>
+                <div class="hc-field">
+                    <label>Cirugías previas</label>
+                    {{ form.cirugias_previas }}
+                </div>
+            </div>
+        </section>
 
-        <div class="hc-field">
-            <label for="id_observaciones">Observaciones</label>
-            {{ form.observaciones }}
-            {% if form.observaciones.errors %}
-                <div class="text-danger small mt-1">
-                    {{ form.observaciones.errors }}
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>📝</span>
+                <div>
+                    <h3>2. Motivo de consulta</h3>
+                    <p>Razón principal por la que consulta el paciente.</p>
                 </div>
-            {% endif %}
-        </div>
+            </div>
+            <div class="hc-field">{{ form.motivo }}</div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>🔍</span>
+                <div>
+                    <h3>3. Diagnóstico</h3>
+                    <p>Evaluación clínica realizada por el profesional.</p>
+                </div>
+            </div>
+            <div class="hc-field">{{ form.diagnostico }}</div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>🛠️</span>
+                <div>
+                    <h3>4. Plan de tratamiento / Evolución</h3>
+                    <p>Tratamiento indicado y seguimiento clínico.</p>
+                </div>
+            </div>
+            <div class="hc-field">{{ form.tratamiento }}</div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>📈</span>
+                <div>
+                    <h3>5. Pronóstico</h3>
+                    <p>Estado esperado de evolución del caso.</p>
+                </div>
+            </div>
+            <div class="hc-field hc-small">{{ form.pronostico }}</div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>✍️</span>
+                <div>
+                    <h3>6. Consentimiento informado</h3>
+                    <p>Confirmación del consentimiento del paciente.</p>
+                </div>
+            </div>
+
+            <div class="hc-check-grid">
+                <label>{{ form.consentimiento_explicado }} Explicado al paciente</label>
+                <label>{{ form.consentimiento_aceptado }} Aceptado</label>
+                <label>{{ form.consentimiento_firma }} Firma en papel adjunta</label>
+            </div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>🦷</span>
+                <div>
+                    <h3>7. Odontograma</h3>
+                    <p>Seleccioná pieza, estado y hacé clic exactamente donde querés marcar.</p>
+                </div>
+            </div>
+
+            <div class="odontograma-selector-grid">
+                <div class="hc-field">
+                    <label>Pieza dental</label>
+                    <select id="pieza-dental-select">
+                        <option value="">Sin especificar</option>
+                        <option value="18">18</option><option value="17">17</option><option value="16">16</option><option value="15">15</option>
+                        <option value="14">14</option><option value="13">13</option><option value="12">12</option><option value="11">11</option>
+                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
+                        <option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option>
+                        <option value="55">55</option><option value="54">54</option><option value="53">53</option><option value="52">52</option><option value="51">51</option>
+                        <option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="65">65</option>
+                        <option value="85">85</option><option value="84">84</option><option value="83">83</option><option value="82">82</option><option value="81">81</option>
+                        <option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option>
+                        <option value="48">48</option><option value="47">47</option><option value="46">46</option><option value="45">45</option>
+                        <option value="44">44</option><option value="43">43</option><option value="42">42</option><option value="41">41</option>
+                        <option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option>
+                        <option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="estado-selector">
+                <button type="button" data-estado="sano">Diente sano</button>
+                <button type="button" data-estado="caries" class="estado-activo">Caries</button>
+                <button type="button" data-estado="obturado">Obturado</button>
+                <button type="button" data-estado="ausente">Ausente</button>
+                <button type="button" data-estado="corona">Corona</button>
+                <button type="button" data-estado="movilidad">Movilidad</button>
+                <button type="button" data-estado="extraccion">Extracción</button>
+            </div>
+
+            <div class="odontograma-tools">
+                <button type="button" id="btn-limpiar-odontograma" class="btn-mini-danger">
+                    Limpiar odontograma
+                </button>
+            </div>
+
+            <div class="odontograma-scroll">
+                <div class="odontograma-edit" id="odontograma-container">
+                    <img
+                        src="{% static 'core/img/odontograma_base.png' %}"
+                        class="odontograma-img"
+                        alt="Odontograma"
+                    >
+                </div>
+            </div>
+
+            <input type="hidden" name="odontograma_data" id="odontograma_data">
+        </section>
 
         <div class="hc-actions">
-            <button type="submit" class="btn-sonrisar">
-                Guardar
-            </button>
-
-            <a href="{{ volver_url }}" class="btn-sonrisar-outline">
-                Cancelar
-            </a>
+            <button type="submit" class="btn-sonrisar">Guardar Historia Clínica</button>
+            <a href="{{ volver_url }}" class="btn-sonrisar-outline">Cancelar</a>
         </div>
-
     </form>
-
 </div>
 
 <style>
-.hc-wrapper {
-    max-width: 980px;
-    margin: 30px auto;
-    background: #fff;
-    padding: 28px;
-    border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+.hc-page {
+    max-width: 1100px;
+    margin: 28px auto;
+    padding: 0 14px 40px;
 }
 
-.hc-title {
+.hc-header {
+    background: linear-gradient(135deg, #e9fbfa, #ffffff);
+    border: 1px solid #d9eeee;
     color: #146B6C;
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
+    border-radius: 22px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.hc-title-main {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2f7e80;
 }
 
 .hc-paciente {
-    font-size: 1rem;
-    margin-bottom: 24px;
-    color: #333;
+    margin: 6px 0 0;
+    color: #374151;
+}
+
+.hc-paciente span {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.hc-date {
+    background: #f3fffe;
+    border: 1px solid #d9eeee;
+    border-radius: 14px;
+    padding: 10px 14px;
+    min-width: 110px;
+    text-align: center;
+}
+
+.hc-date small {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.hc-date strong {
+    font-size: 15px;
+    color: #146B6C;
 }
 
 .hc-form {
@@ -113,48 +254,276 @@
     gap: 18px;
 }
 
+.hc-card {
+    background: #fff;
+    border: 1px solid #e6eeee;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+}
+
+.hc-card-title {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.hc-card-title span {
+    width: 42px;
+    height: 42px;
+    background: #e9fbfa;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.hc-card-title h3 {
+    margin: 0;
+    color: #146B6C;
+    font-size: 1.18rem;
+    font-weight: 800;
+}
+
+.hc-card-title p {
+    margin: 3px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.hc-grid,
+.odontograma-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.mt {
+    margin-top: 16px;
+}
+
 .hc-field {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
 }
 
 .hc-field label {
     font-weight: 700;
-    color: #1f2937;
+    color: #374151;
+    font-size: 14px;
 }
 
 .hc-field input,
 .hc-field textarea,
 .hc-field select {
     width: 100%;
-    border: 1px solid #cfd8dc;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 1rem;
-    background: #fff;
+    border: 1px solid #d5e1e1;
+    border-radius: 13px;
+    padding: 11px 13px;
+    font-size: 15px;
+    background: #fbfefe;
+    outline: none;
+}
+
+.hc-field input:focus,
+.hc-field textarea:focus,
+.hc-field select:focus {
+    border-color: #26ABA5;
+    box-shadow: 0 0 0 3px rgba(38,171,165,.12);
+    background: white;
 }
 
 .hc-field textarea {
-    min-height: 120px;
+    min-height: 110px;
     resize: vertical;
+}
+
+.hc-small {
+    max-width: 320px;
+}
+
+.hc-check-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.hc-check-grid label {
+    background: #f8fbfb;
+    border: 1px solid #dbeaea;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+    color: #374151;
+}
+
+.hc-check-grid input {
+    width: 18px;
+    height: 18px;
+    accent-color: #26ABA5;
+}
+
+.estado-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.estado-selector button {
+    border: 1px solid #d5e1e1;
+    background: #fff;
+    color: #374151;
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.estado-selector button.estado-activo {
+    background: #26ABA5;
+    color: white;
+    border-color: #26ABA5;
+}
+
+.odontograma-tools {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.btn-mini-danger {
+    background: #fff5f5;
+    color: #b42318;
+    border: 1px solid #f5c2c0;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.odontograma-scroll {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #d9e7e7;
+    border-radius: 16px;
+    background: white;
+    padding: 12px;
+}
+
+.odontograma-edit {
+    position: relative;
+    width: 1100px;
+    max-width: none;
+}
+
+.odontograma-img {
+    width: 1100px;
+    display: block;
+    border-radius: 10px;
+    user-select: none;
+}
+
+.marca-odontograma {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.marca-odontograma::before {
+    content: attr(data-label);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+}
+
+.marca-odontograma:hover::before {
+    opacity: 1;
+}
+
+.marca-odontograma.caries {
+    background: #ef233c;
+    box-shadow: 0 0 0 3px rgba(239,35,60,0.25);
+}
+
+.marca-odontograma.obturado {
+    background: #1687c9;
+    box-shadow: 0 0 0 3px rgba(22,135,201,0.25);
+}
+
+.marca-odontograma.corona {
+    background: #ffd21f;
+    box-shadow: 0 0 0 3px rgba(255,210,31,0.35);
+}
+
+.marca-odontograma.movilidad {
+    background: #5a5a5a;
+    box-shadow: 0 0 0 3px rgba(90,90,90,0.25);
+}
+
+.marca-odontograma.sano {
+    background: #ffffff;
+    border: 2px solid #111827;
+}
+
+.marca-odontograma.ausente {
+    background: transparent;
+}
+
+.marca-odontograma.ausente::after {
+    content: "✕";
+    font-size: 28px;
+    font-weight: 900;
+    color: #111;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -55%);
+}
+
+.marca-odontograma.extraccion {
+    background: transparent;
+    border: 4px solid #d90429;
+    width: 30px;
+    height: 30px;
 }
 
 .hc-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
 .btn-sonrisar {
     background: #26ABA5;
     color: white;
     border: none;
-    border-radius: 10px;
-    padding: 10px 18px;
-    font-weight: 600;
+    border-radius: 13px;
+    padding: 12px 20px;
+    font-weight: 800;
     text-decoration: none;
+    box-shadow: 0 8px 18px rgba(38,171,165,.22);
 }
 
 .btn-sonrisar:hover {
@@ -166,15 +535,30 @@
     background: white;
     color: #26ABA5;
     border: 1px solid #26ABA5;
-    border-radius: 10px;
-    padding: 10px 18px;
-    font-weight: 600;
+    border-radius: 13px;
+    padding: 12px 20px;
+    font-weight: 800;
     text-decoration: none;
 }
 
 .btn-sonrisar-outline:hover {
     background: #f3fffe;
     color: #1f8f89;
+}
+
+@media (max-width: 768px) {
+    .hc-header {
+        flex-direction: column;
+    }
+
+    .hc-grid,
+    .odontograma-selector-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hc-check-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
@@ -187,6 +571,117 @@ document.querySelectorAll("textarea").forEach(function(textarea) {
     textarea.addEventListener("input", autoResize);
     autoResize();
 });
+
+let estadoActual = "caries";
+let marcasOdontograma = [];
+
+const formHistoria = document.getElementById("historia-form");
+const containerOdonto = document.getElementById("odontograma-container");
+const inputOdonto = document.getElementById("odontograma_data");
+const btnLimpiar = document.getElementById("btn-limpiar-odontograma");
+const piezaSelect = document.getElementById("pieza-dental-select");
+const marcasInicialesJson = "{{ odontograma_marcas|default:'[]'|escapejs }}";
+
+const labelsEstado = {
+    sano: "Diente sano",
+    caries: "Caries",
+    obturado: "Obturado",
+    ausente: "Ausente",
+    corona: "Corona",
+    movilidad: "Movilidad",
+    extraccion: "Extracción"
+};
+
+try {
+    marcasOdontograma = JSON.parse(marcasInicialesJson);
+} catch (error) {
+    marcasOdontograma = [];
+}
+
+function actualizarInputOdontograma() {
+    inputOdonto.value = JSON.stringify(marcasOdontograma);
+}
+
+function etiquetaMarca(marca) {
+    const labelEstado = labelsEstado[marca.estado] || marca.estado;
+    return marca.diente ? (marca.diente + " — " + labelEstado) : labelEstado;
+}
+
+function dibujarMarca(marca) {
+    const punto = document.createElement("button");
+    punto.type = "button";
+    punto.className = "marca-odontograma " + marca.estado;
+    punto.style.left = marca.x + "%";
+    punto.style.top = marca.y + "%";
+    punto.dataset.label = etiquetaMarca(marca);
+
+    punto.addEventListener("click", function(event) {
+        event.stopPropagation();
+
+        marcasOdontograma = marcasOdontograma.filter(function(item) {
+            return item.id !== marca.id;
+        });
+
+        punto.remove();
+        actualizarInputOdontograma();
+    });
+
+    containerOdonto.appendChild(punto);
+}
+
+marcasOdontograma.forEach(function(marca) {
+    dibujarMarca(marca);
+});
+
+document.querySelectorAll(".estado-selector button").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+        document.querySelectorAll(".estado-selector button").forEach(function(b) {
+            b.classList.remove("estado-activo");
+        });
+
+        btn.classList.add("estado-activo");
+        estadoActual = btn.dataset.estado;
+    });
+});
+
+containerOdonto.addEventListener("click", function(event) {
+    if (event.target.classList.contains("marca-odontograma")) {
+        return;
+    }
+
+    const rect = containerOdonto.getBoundingClientRect();
+
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    const marca = {
+        id: Date.now().toString() + Math.random().toString(16).slice(2),
+        estado: estadoActual,
+        diente: piezaSelect.value,
+        x: x,
+        y: y
+    };
+
+    marcasOdontograma.push(marca);
+    dibujarMarca(marca);
+    actualizarInputOdontograma();
+});
+
+btnLimpiar.addEventListener("click", function() {
+    marcasOdontograma = [];
+
+    containerOdonto.querySelectorAll(".marca-odontograma").forEach(function(marca) {
+        marca.remove();
+    });
+
+    actualizarInputOdontograma();
+});
+
+formHistoria.addEventListener("submit", function() {
+    actualizarInputOdontograma();
+});
+
+actualizarInputOdontograma();
 </script>
 
 {% endblock %}
