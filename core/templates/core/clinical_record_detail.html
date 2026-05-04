@@ -190,27 +190,6 @@
         print-color-adjust: exact !important;
     }
 
-    .marca-odontograma::before {
-        content: attr(data-label);
-        position: absolute;
-        bottom: 130%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #111827;
-        color: #fff;
-        font-size: 12px;
-        padding: 4px 8px;
-        border-radius: 6px;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: 0.2s;
-    }
-
-    .marca-odontograma:hover::before {
-        opacity: 1;
-    }
-
     .marca-odontograma.caries {
         background-color: #ef233c !important;
         border: 2px solid #ef233c !important;
@@ -380,28 +359,6 @@
             page-break-inside: avoid;
         }
 
-        .hc-box:first-of-type {
-            padding: 10px 12px !important;
-            margin-bottom: 8px !important;
-        }
-
-        .hc-box:nth-of-type(2) {
-            padding: 8px 12px !important;
-            margin-bottom: 8px !important;
-        }
-
-        .hc-box:nth-of-type(2) .hc-section-title {
-            margin-bottom: 6px !important;
-        }
-
-        .hc-box:nth-of-type(2) p {
-            margin: 2px 0 !important;
-        }
-
-        .hc-grid-info {
-            gap: 4px 18px !important;
-        }
-
         .hc-title {
             font-size: 22px !important;
             color: #111827 !important;
@@ -444,10 +401,6 @@
         .odontograma-img {
             width: 1000px !important;
             max-width: 1000px !important;
-        }
-
-        .marca-odontograma::before {
-            display: none !important;
         }
 
         .rayos-card {
@@ -503,7 +456,7 @@
     </div>
 
     <div class="hc-box">
-        <h3 class="hc-section-title">Antecedentes médicos</h3>
+        <h3 class="hc-section-title">1. Antecedentes médicos</h3>
 
         <div class="hc-badges">
             {% if registro.diabetes %}<span class="hc-badge ok">Diabetes</span>{% endif %}
@@ -530,36 +483,28 @@
     </div>
 
     <div class="hc-box">
-        <h3 class="hc-section-title">Registro clínico</h3>
-
-        <p class="hc-item-label">Motivo:</p>
+        <h3 class="hc-section-title">2. Motivo de consulta</h3>
         <div class="hc-text-block">{{ registro.motivo|default:"—" }}</div>
+    </div>
 
-        <p class="hc-item-label">Diagnóstico:</p>
+    <div class="hc-box">
+        <h3 class="hc-section-title">3. Diagnóstico</h3>
         <div class="hc-text-block">{{ registro.diagnostico|default:"—"|linebreaks }}</div>
+    </div>
 
-        <p class="hc-item-label">Pronóstico:</p>
+    <div class="hc-box">
+        <h3 class="hc-section-title">4. Pronóstico</h3>
         <div class="hc-text-block">{{ registro.get_pronostico_display|default:"—" }}</div>
+    </div>
 
-        <p class="hc-item-label">Plan de tratamiento / Evolución:</p>
+    <div class="hc-box">
+        <h3 class="hc-section-title">5. Plan de tratamiento</h3>
+        <div class="hc-text-block">{{ registro.tratamiento|default:"—"|linebreaks }}</div>
+    </div>
 
-        {% if registro.tratamiento %}
-            {% for linea in registro.tratamiento.splitlines %}
-                {% if linea|length > 5 and linea|slice:":2" in "0123456789" %}
-                    <div class="evolucion-card">
-                        <div class="evolucion-fecha">{{ linea }}</div>
-                    </div>
-                {% else %}
-                    <div style="margin-left:10px; margin-bottom:8px;">
-                        {{ linea }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <div class="hc-text-block">—</div>
-        {% endif %}
+    <div class="hc-box">
+        <h3 class="hc-section-title">6. Consentimiento informado</h3>
 
-        <p class="hc-item-label">Consentimiento informado:</p>
         <div class="hc-badges">
             {% if registro.consentimiento_explicado %}
                 <span class="hc-badge ok">Explicado al paciente</span>
@@ -582,7 +527,7 @@
     </div>
 
     <div class="hc-box">
-        <h3 class="hc-section-title">Odontograma</h3>
+        <h3 class="hc-section-title">7. Odontograma</h3>
 
         <div class="odontograma-scroll">
             <div class="odontograma-view" id="odontograma-view">
@@ -593,6 +538,16 @@
                 >
             </div>
         </div>
+    </div>
+
+    <div class="hc-box">
+        <h3 class="hc-section-title">8. Evolución</h3>
+
+        {% if registro.evolucion %}
+            <div class="hc-text-block">{{ registro.evolucion|linebreaks }}</div>
+        {% else %}
+            <div class="hc-text-block">—</div>
+        {% endif %}
     </div>
 
     <div class="hc-box">

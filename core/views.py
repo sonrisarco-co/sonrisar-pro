@@ -554,12 +554,12 @@ def clinical_record_new(request, patient_id):
 
             fecha_hoy = timezone.localdate().strftime("%d/%m/%Y")
 
-            texto_tratamiento = f"{fecha_hoy} – Motivo de cita: {cita.motivo}"
+            texto_evolucion = f"{fecha_hoy} – Motivo de cita: {cita.motivo}"
             if procedimientos_txt:
-                texto_tratamiento += f". Procedimientos: {procedimientos_txt}"
-            texto_tratamiento += "."
+                texto_evolucion += f". Procedimientos: {procedimientos_txt}"
+            texto_evolucion += "."
 
-            form.initial["tratamiento"] = texto_tratamiento
+            form.initial["evolucion"] = texto_evolucion
 
     volver_url = request.GET.get("next") or request.POST.get("next")
 
@@ -635,7 +635,7 @@ def clinical_record_edit(request, registro_id):
         form = ClinicalRecordForm(instance=registro)
 
         hoy = timezone.localdate().strftime("%d/%m/%Y")
-        texto_actual = (registro.tratamiento or "").strip()
+        texto_actual = (registro.evolucion or "").strip()
 
         if cita:
             procedimientos = [p.nombre for p in cita.procedimientos.all()]
@@ -647,18 +647,18 @@ def clinical_record_edit(request, registro_id):
             nuevo_bloque += "."
 
             if texto_actual:
-                form.initial["tratamiento"] = f"{texto_actual}\n\n{nuevo_bloque}"
+                form.initial["evolucion"] = f"{texto_actual}\n\n{nuevo_bloque}"
             else:
-                form.initial["tratamiento"] = nuevo_bloque
+                form.initial["evolucion"] = nuevo_bloque
 
             if not registro.motivo:
                 form.initial["motivo"] = cita.motivo
 
         else:
             if texto_actual:
-                form.initial["tratamiento"] = f"{texto_actual}\n{hoy} "
+                form.initial["evolucion"] = f"{texto_actual}\n{hoy} "
             else:
-                form.initial["tratamiento"] = f"{hoy} "
+                form.initial["evolucion"] = f"{hoy} "
 
     volver_url = request.GET.get("next") or request.POST.get("next")
 

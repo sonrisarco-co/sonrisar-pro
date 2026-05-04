@@ -258,17 +258,19 @@ class ClinicalRecordForm(forms.ModelForm):
             # 4 📈 PRONÓSTICO
             "pronostico",
 
-            # 5 🛠️ PLAN / EVOLUCIÓN
+            # 5 🛠️ PLAN DE TRATAMIENTO
             "tratamiento",
 
             # 6 ✍️ CONSENTIMIENTO
             "consentimiento_explicado",
             "consentimiento_aceptado",
             "consentimiento_firma",
+
+            # 8 📋 EVOLUCIÓN
+            "evolucion",
         ]
 
         widgets = {
-            # 🔹 TEXTOS
             "motivo": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "Motivo de consulta"
@@ -283,7 +285,13 @@ class ClinicalRecordForm(forms.ModelForm):
             "tratamiento": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 5,
-                "placeholder": "Plan de tratamiento y evolución"
+                "placeholder": "Plan de tratamiento"
+            }),
+
+            "evolucion": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 5,
+                "placeholder": "Evolución clínica"
             }),
 
             "otros_antecedentes": forms.TextInput(attrs={
@@ -309,12 +317,10 @@ class ClinicalRecordForm(forms.ModelForm):
                 "placeholder": "Cirugías previas"
             }),
 
-            # 🔹 PRONÓSTICO
             "pronostico": forms.Select(attrs={
                 "class": "form-select"
             }),
 
-            # 🔹 CHECKBOXES
             "diabetes": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "hta": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "cardiopatia": forms.CheckboxInput(attrs={"class": "form-check-input"}),

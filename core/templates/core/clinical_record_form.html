@@ -90,24 +90,24 @@
 
         <section class="hc-card">
             <div class="hc-card-title">
-                <span>🛠️</span>
-                <div>
-                    <h3>4. Plan de tratamiento / Evolución</h3>
-                    <p>Tratamiento indicado y seguimiento clínico.</p>
-                </div>
-            </div>
-            <div class="hc-field">{{ form.tratamiento }}</div>
-        </section>
-
-        <section class="hc-card">
-            <div class="hc-card-title">
                 <span>📈</span>
                 <div>
-                    <h3>5. Pronóstico</h3>
+                    <h3>4. Pronóstico</h3>
                     <p>Estado esperado de evolución del caso.</p>
                 </div>
             </div>
             <div class="hc-field hc-small">{{ form.pronostico }}</div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>🛠️</span>
+                <div>
+                    <h3>5. Plan de tratamiento</h3>
+                    <p>Tratamiento indicado para el paciente.</p>
+                </div>
+            </div>
+            <div class="hc-field">{{ form.tratamiento }}</div>
         </section>
 
         <section class="hc-card">
@@ -183,6 +183,17 @@
             </div>
 
             <input type="hidden" name="odontograma_data" id="odontograma_data">
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
+                <span>📋</span>
+                <div>
+                    <h3>8. Evolución</h3>
+                    <p>Seguimiento clínico del paciente.</p>
+                </div>
+            </div>
+            <div class="hc-field">{{ form.evolucion }}</div>
         </section>
 
         <div class="hc-actions">

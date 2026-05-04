@@ -83,13 +83,17 @@ class ClinicalRecord(models.Model):
     # -------------------------
     motivo = models.CharField(max_length=200)
     diagnostico = models.TextField(blank=True)
-    tratamiento = models.TextField(blank=True)  # 👉 se usa como Plan + Evolución
 
-    # ❌ Se mantiene en DB pero ya no se usa
+    # 👉 AHORA SOLO PLAN
+    tratamiento = models.TextField(blank=True)
+
+    # 👉 NUEVO CAMPO
+    evolucion = models.TextField(blank=True)
+
     observaciones = models.TextField(blank=True)
 
     # -------------------------
-    # 🩺 ANTECEDENTES MÉDICOS
+    # 🩺 ANTECEDENTES
     # -------------------------
     diabetes = models.BooleanField(default=False)
     hta = models.BooleanField(default=False)
