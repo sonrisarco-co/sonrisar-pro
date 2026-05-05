@@ -3107,8 +3107,12 @@ def descargar_backup(request):
     return FileResponse(open(ruta, 'rb'), as_attachment=True, filename='backup.sqlite3')
 
 
+
 def obtener_deuda_presupuestos_paciente(paciente):
-    presupuestos = Budget.objects.filter(paciente=paciente)
+    presupuestos = Budget.objects.filter(
+        paciente=paciente,
+        estado="confirmado"
+    )
 
     total = Decimal("0")
 
@@ -3170,8 +3174,9 @@ def deudores_general(request):
         # 🔹 cache presupuestos
         if patient_id not in deuda_presupuestos_cache:
             presupuestos = Budget.objects.filter(
-                paciente=cita.paciente
-            ).exclude(estado="cancelado")
+                paciente=cita.paciente,
+                estado="confirmado"
+            )
 
             total_presupuestos = Decimal("0")
 
