@@ -3128,7 +3128,6 @@ def obtener_deuda_presupuestos_paciente(paciente):
     return total
 
 
-
 def deudores_general(request):
     query = request.GET.get("q", "").strip().lower()
 
@@ -3143,6 +3142,9 @@ def deudores_general(request):
     deudores_map = {}
     deuda_presupuestos_cache = {}
 
+    # ================================
+    # 🔹 1. DEUDAS POR CITAS
+    # ================================
     for cita in citas:
         nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".lower()
 
@@ -3159,7 +3161,6 @@ def deudores_general(request):
         monto_total = cita.monto_total or Decimal("0")
         tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
 
-        # 🔹 cálculo de deuda por cita (tu lógica intacta)
         if tiene_pago_cobros:
             debe_cita = monto_total - total_pagado_decimal
             if debe_cita < 0:
@@ -3171,7 +3172,7 @@ def deudores_general(request):
 
         patient_id = cita.paciente.id
 
-        # 🔹 cache presupuestos
+        # 🔹 cache presupuestos (SOLO confirmados)
         if patient_id not in deuda_presupuestos_cache:
             presupuestos = Budget.objects.filter(
                 paciente=cita.paciente,
@@ -3193,7 +3194,6 @@ def deudores_general(request):
 
         deuda_presupuestos = deuda_presupuestos_cache[patient_id]
 
-        # 🔹 crear deudor
         if patient_id not in deudores_map:
             deudores_map[patient_id] = {
                 "patient_id": patient_id,
@@ -3206,27 +3206,64 @@ def deudores_general(request):
                 "cita_pendiente_fecha": None,
             }
 
-        # 🔹 sumar deuda
         if debe_cita > 0:
             deudores_map[patient_id]["deuda_citas"] += debe_cita
 
-            # ✅ CLAVE: elegir cita pendiente (la más vieja con deuda)
             actual_fecha = deudores_map[patient_id]["cita_pendiente_fecha"]
 
             if actual_fecha is None or cita.fecha < actual_fecha:
                 deudores_map[patient_id]["cita_pendiente_id"] = cita.id
                 deudores_map[patient_id]["cita_pendiente_fecha"] = cita.fecha
 
-        # 🔹 actualizar última fecha
         if cita.fecha > deudores_map[patient_id]["ultima_fecha"]:
             deudores_map[patient_id]["ultima_fecha"] = cita.fecha
 
+    # ================================
+    # 🔹 2. PRESUPUESTOS SIN CITAS
+    # ================================
+    presupuestos_confirmados = Budget.objects.filter(
+        estado="confirmado"
+    ).select_related("paciente")
+
+    for presupuesto in presupuestos_confirmados:
+        paciente = presupuesto.paciente
+        patient_id = paciente.id
+
+        nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
+
+        if query and query not in nombre:
+            continue
+
+        # evitar duplicados
+        if patient_id in deudores_map:
+            continue
+
+        try:
+            saldo = presupuesto.saldo_pendiente or Decimal("0")
+        except:
+            saldo = Decimal("0")
+
+        if saldo <= 0:
+            continue
+
+        deudores_map[patient_id] = {
+            "patient_id": patient_id,
+            "paciente": f"{paciente.apellido}, {paciente.nombre}",
+            "deuda_citas": Decimal("0"),
+            "deuda_presupuestos": saldo,
+            "deuda_total": saldo,
+            "ultima_fecha": presupuesto.fecha,
+            "cita_pendiente_id": None,
+        }
+
+    # ================================
+    # 🔹 3. FINAL
+    # ================================
     deudores = []
 
     for data in deudores_map.values():
         data["deuda_total"] = data["deuda_citas"] + data["deuda_presupuestos"]
 
-        # limpieza
         data.pop("cita_pendiente_fecha", None)
 
         if data["deuda_total"] > 0:
