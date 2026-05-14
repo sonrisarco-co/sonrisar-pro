@@ -138,6 +138,16 @@ textarea {
     background-color: #0047BB !important;
 }
 
+/* Retiro de brackets – marrón */
+.motivo-retiro-brackets {
+    background-color: #795548 !important;
+}
+
+/* Ajuste + limpieza – verde agua */
+.motivo-ajuste-limpieza {
+    background-color: #00BFA5 !important;
+}
+
 /* Endodoncia – lila */
 .motivo-endodoncia {
     background-color: #7A1FA2 !important;

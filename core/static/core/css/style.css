@@ -742,6 +742,8 @@ select option {
 .motivo-Ajuste\ \(ortodoncia\) { background-color: #9B59B6; }          /* Violeta */
 .motivo-Segunda\ colocación\ \+\ ajuste { background-color: #D35400; } /* Naranja oscuro */
 .motivo-Colocación\ nueva { background-color: #16A085; }               /* Verde petróleo */
+.motivo-Retiro\ de\ brackets { background-color: #ac8a4b9f; }     /* Marrón */
+.motivo-Ajuste\ \+\ limpieza { background-color: #00BFA5; }     /* Verde agua */
 .motivo-Endodoncia { background-color: #C0392B; }                      /* Rojo */
 .motivo-Extracción { background-color: #8E44AD; }                      /* Violeta oscuro */
 .motivo-Prótesis { background-color: #2980B9; }                        /* Azul fuerte */

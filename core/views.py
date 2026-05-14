@@ -2846,6 +2846,12 @@ def color_cita_por_motivo(motivo):
     if "colocación nueva" in m or "colocacion nueva" in m:
         return "#2563eb"  # azul
 
+    if "retiro" in m and "bracket" in m:
+        return "#795548"  # marrón
+
+    if "ajuste" in m and "limpieza" in m:
+        return "#00bfa5"  # verde agua
+
     if "endodoncia" in m:
         return "#8e24aa"  # lila
 

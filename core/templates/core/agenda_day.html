@@ -81,6 +81,16 @@
                                                         {{ cita.motivo }}
                                                     </span>
 
+                                                {% elif "ajuste" in motivo and "limpieza" in motivo %}
+                                                    <span class="badge" style="background:#00BFA5;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "retiro" in motivo and "bracket" in motivo %}
+                                                    <span class="badge" style="background:#795548;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
                                                 {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
                                                     <span class="badge" style="background:#26ABA5;">
                                                         {{ cita.motivo }}
