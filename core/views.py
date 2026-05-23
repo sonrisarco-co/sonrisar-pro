@@ -1405,11 +1405,7 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
     if not patient_ids_limpios:
         return {}
 
-    cobros_base_url = getattr(
-        settings,
-        "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros-1.onrender.com"
-    ).rstrip("/")
+    cobros_base_url = "https://sonrisar-cobros-1.onrender.com"
 
     cobros_api_path = getattr(
         settings,
