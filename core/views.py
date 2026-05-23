@@ -1714,7 +1714,7 @@ def cobros_nuevo_desde_cita(request, appointment_id):
     cobros_base_url = getattr(
         settings,
         "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros.onrender.com"
+        "https://sonrisar-cobros-1.onrender.com"
     ).rstrip("/")
 
     cobros_path = getattr(
@@ -1792,7 +1792,7 @@ def cobros_nuevo_desde_paciente(request, patient_id):
     cobros_base_url = getattr(
         settings,
         "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros.onrender.com"
+        "https://sonrisar-cobros-1.onrender.com"
     ).rstrip("/")
 
     cobros_path = getattr(
@@ -1827,7 +1827,7 @@ def obtener_pagos_cobros_paciente(request, paciente):
     cobros_base_url = getattr(
         settings,
         "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros.onrender.com"
+        "https://sonrisar-cobros-1.onrender.com"
     ).rstrip("/")
 
     cobros_api_path = getattr(
@@ -1861,7 +1861,7 @@ def obtener_pago_cobros_cita(
     cobros_base_url = getattr(
         settings,
         "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros.onrender.com"
+        "https://sonrisar-cobros-1.onrender.com"
     ).rstrip("/")
 
     cobros_api_path = getattr(
