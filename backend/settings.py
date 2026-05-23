@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
+load_dotenv()
 
 # ==========================================
 # BASE DIR
@@ -168,7 +170,7 @@ CRONJOBS = [
 # ==========================================
 # SONRISAR COBROS
 # ==========================================
-SONRISAR_COBROS_BASE_URL = "https://sonrisar-cobros-1.onrender.com"
+SONRISAR_COBROS_BASE_URL = "http://127.0.0.1:8001"
 SONRISAR_COBROS_NUEVO_PATH = "/pagos/nuevo/"
 SONRISAR_COBROS_API_PACIENTE_PATH = "/pagos/api/por-paciente/"
 SONRISAR_COBROS_API_CITA_PATH = "/pagos/api/por-cita/"

@@ -1,0 +1,320 @@
+{% extends "core/base.html" %}
+
+{% block title %}Finanzas del paciente - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<style>
+.finanzas-container {
+    max-width: 1180px;
+    margin: 28px auto;
+    padding: 0 12px;
+}
+
+.finanzas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.finanzas-header h2 {
+    color: #107361;
+    font-weight: 750;
+    margin: 0;
+}
+
+.finanzas-header .subtitulo {
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.btn-sonrisar-outline {
+    border: 1px solid #26ABA5;
+    color: #107361;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 9px 14px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-sonrisar-outline:hover {
+    background: #eafaf8;
+    color: #107361;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.kpi-card {
+    background: rgba(255,255,255,0.92);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border: 1px solid rgba(38,171,165,0.14);
+}
+
+.kpi-card span {
+    display: block;
+    color: #6c757d;
+    font-size: 0.86rem;
+    margin-bottom: 6px;
+}
+
+.kpi-card strong {
+    display: block;
+    color: #173f3a;
+    font-size: 1.55rem;
+    line-height: 1.1;
+}
+
+.kpi-card.saldo strong {
+    color: #b42318;
+}
+
+.panel-finanzas {
+    background: rgba(255,255,255,0.94);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border: 1px solid rgba(38,171,165,0.12);
+    margin-top: 18px;
+}
+
+.panel-finanzas h4 {
+    color: #107361;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.tabla-finanzas {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-finanzas th {
+    background: rgba(38,171,165,0.10);
+    color: #107361;
+    font-weight: 700;
+    padding: 11px 10px;
+    font-size: 0.9rem;
+}
+
+.tabla-finanzas td {
+    padding: 11px 10px;
+    border-bottom: 1px solid #eef2f2;
+    vertical-align: top;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.badge-finanzas {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.badge-ok {
+    background: #e7f7ef;
+    color: #087443;
+}
+
+.badge-pendiente {
+    background: #fff4df;
+    color: #9a5b00;
+}
+
+.badge-cancelado {
+    background: #f1f3f5;
+    color: #59636e;
+}
+
+.alerta-cobros {
+    background: #fff7e6;
+    border: 1px solid #ffd899;
+    color: #7a4b00;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.vacio {
+    color: #6c757d;
+    padding: 14px 0;
+}
+
+@media (max-width: 900px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .finanzas-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .tabla-finanzas {
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<div class="finanzas-container">
+
+    <div class="finanzas-header">
+        <div>
+            <h2>💳 Finanzas del paciente</h2>
+            <div class="subtitulo">
+                {{ paciente.apellido }}, {{ paciente.nombre }}{% if paciente.ci %} · C.I. {{ paciente.ci }}{% endif %}
+            </div>
+        </div>
+
+        <div>
+            <a href="{% url 'patient_detail' paciente.id %}" class="btn-sonrisar-outline">← Volver a ficha</a>
+            <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.path }}" class="btn btn-sonrisar">+ Registrar pago</a>
+        </div>
+    </div>
+
+    {% if cobros_error %}
+        <div class="alerta-cobros">
+            No se pudo confirmar el total pagado desde Sonrisar Cobros. La pantalla carga igual, pero revisá Cobros si el saldo no coincide.
+        </div>
+    {% endif %}
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <span>Total cargado en citas</span>
+            <strong>${{ total_citas|floatformat:0 }}</strong>
+        </div>
+
+        <div class="kpi-card">
+            <span>Total pagado / señado en Cobros</span>
+            <strong>${{ total_pagado_cobros|floatformat:0 }}</strong>
+        </div>
+
+        <div class="kpi-card saldo">
+            <span>Saldo actual del paciente</span>
+            <strong>${{ saldo_actual|floatformat:0 }}</strong>
+        </div>
+    </div>
+
+    <div class="panel-finanzas">
+        <h4>Tratamientos / presupuestos</h4>
+
+        {% if presupuestos %}
+            <table class="tabla-finanzas">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Diagnóstico / tratamiento</th>
+                        <th>Estado</th>
+                        <th class="text-right">Total</th>
+                        <th class="text-right">Pagado</th>
+                        <th class="text-right">Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in presupuestos %}
+                        <tr>
+                            <td>{{ p.fecha|date:"d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'budget_detail' p.id %}">Presupuesto #{{ p.id }}</a><br>
+                                <small>{{ p.diagnostico|truncatechars:90 }}</small>
+                            </td>
+                            <td>
+                                {% if p.estado == "cancelado" %}
+                                    <span class="badge-finanzas badge-cancelado">{{ p.estado_display }}</span>
+                                {% elif p.aceptado %}
+                                    <span class="badge-finanzas badge-ok">{{ p.estado_display }}</span>
+                                {% else %}
+                                    <span class="badge-finanzas badge-pendiente">{{ p.estado_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">${{ p.total|floatformat:0 }}</td>
+                            <td class="text-right">${{ p.total_pagado|floatformat:0 }}</td>
+                            <td class="text-right"><strong>${{ p.saldo|floatformat:0 }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="vacio">Este paciente todavía no tiene presupuestos cargados.</div>
+        {% endif %}
+    </div>
+
+    <div class="panel-finanzas">
+        <h4>Movimientos de presupuestos</h4>
+
+        {% if movimientos_presupuesto %}
+            <table class="tabla-finanzas">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Concepto</th>
+                        <th>Método</th>
+                        <th class="text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movimientos_presupuesto %}
+                        <tr>
+                            <td>{{ m.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ m.tipo }}</td>
+                            <td>{{ m.concepto }}</td>
+                            <td>{{ m.metodo }}</td>
+                            <td class="text-right"><strong>${{ m.monto|floatformat:0 }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="vacio">Todavía no hay pagos asociados a presupuestos.</div>
+        {% endif %}
+    </div>
+
+    <div class="panel-finanzas">
+        <h4>Cargos registrados desde agenda</h4>
+
+        {% if citas %}
+            <table class="tabla-finanzas">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cita / tratamiento</th>
+                        <th>Estado</th>
+                        <th class="text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in citas %}
+                        <tr>
+                            <td>{{ c.fecha|date:"d/m/Y" }} {{ c.hora|time:"H:i" }}</td>
+                            <td>
+                                {{ c.motivo }}
+                                {% if c.procedimientos %}<br><small>{{ c.procedimientos }}</small>{% endif %}
+                            </td>
+                            <td>{{ c.estado_display }}</td>
+                            <td class="text-right">${{ c.monto_total|floatformat:0 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="vacio">Este paciente todavía no tiene cargos desde agenda.</div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

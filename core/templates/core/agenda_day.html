@@ -150,23 +150,37 @@
                                             {% endif %}
 
                                             {% if cita.tiene_pago_cobros %}
-                                                {% if cita.tipo_pago == "sena" and cita.debe > 0 %}
-                                                    <span class="badge badge-sena">
-                                                        Seña $ {{ cita.total_pagado }}
-                                                    </span>
+
+                                                {% if cita.debe > 0 %}
+
+                                                    {% if cita.tipo_pago == "sena" %}
+                                                        <span class="badge badge-sena">
+                                                            Seña $ {{ cita.total_pagado }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge badge-pagado">
+                                                            Pagado $ {{ cita.total_pagado }}
+                                                        </span>
+                                                    {% endif %}
 
                                                     <span class="badge badge-debe">
                                                         Debe $ {{ cita.debe|floatformat:0 }}
                                                     </span>
+
                                                 {% else %}
+
                                                     <span class="badge badge-pagado">
-                                                        Pagado $ {{ cita.total_pagado }}
+                                                        Pagado
                                                     </span>
+
                                                 {% endif %}
-                                            {% elif cita.pagado %}
-                                                <span class="badge badge-pagado">Pagado</span>
+
                                             {% else %}
-                                                <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
+
+                                                <span class="badge badge-pendiente-cobro">
+                                                    Pendiente de cobro
+                                                </span>
+
                                             {% endif %}
 
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
@@ -174,7 +188,7 @@
                                                 Historia clínica
                                             </a>
 
-                                            {% if cita.pagado %}
+                                            {% if cita.tiene_pago_cobros and cita.debe <= 0 %}
                                                 <span class="btn btn-sm btn-success disabled">
                                                     Ya cobrado
                                                 </span>
@@ -319,23 +333,37 @@
                                             {% endif %}
 
                                             {% if cita.tiene_pago_cobros %}
-                                                {% if cita.tipo_pago == "sena" and cita.debe > 0 %}
-                                                    <span class="badge badge-sena">
-                                                        Seña $ {{ cita.total_pagado }}
-                                                    </span>
+
+                                                {% if cita.debe > 0 %}
+
+                                                    {% if cita.tipo_pago == "sena" %}
+                                                        <span class="badge badge-sena">
+                                                            Seña $ {{ cita.total_pagado }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge badge-pagado">
+                                                            Pagado $ {{ cita.total_pagado }}
+                                                        </span>
+                                                    {% endif %}
 
                                                     <span class="badge badge-debe">
                                                         Debe $ {{ cita.debe|floatformat:0 }}
                                                     </span>
+
                                                 {% else %}
+
                                                     <span class="badge badge-pagado">
-                                                        Pagado $ {{ cita.total_pagado }}
+                                                        Pagado
                                                     </span>
+
                                                 {% endif %}
-                                            {% elif cita.pagado %}
-                                                <span class="badge badge-pagado">Pagado</span>
+
                                             {% else %}
-                                                <span class="badge badge-pendiente-cobro">Pendiente de cobro</span>
+
+                                                <span class="badge badge-pendiente-cobro">
+                                                    Pendiente de cobro
+                                                </span>
+
                                             {% endif %}
 
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
@@ -343,7 +371,7 @@
                                                 Historia clínica
                                             </a>
 
-                                            {% if cita.pagado %}
+                                            {% if cita.tiene_pago_cobros and cita.debe <= 0 %}
                                                 <span class="btn btn-sm btn-success disabled">
                                                     Ya cobrado
                                                 </span>

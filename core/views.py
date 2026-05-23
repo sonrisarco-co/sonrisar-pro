@@ -40,6 +40,8 @@ from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 
 
+
+
 from .models import (
     Patient,
     Appointment,
@@ -1352,72 +1354,222 @@ def agrupar_citas_por_bloque(citas):
     return citas_por_bloque
 
 
-def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
-    """
-    Calcula la deuda acumulada del paciente tomando las citas registradas
-    en Sonrisar Pro y restando lo pagado en Sonrisar Cobros por cada cita.
 
-    Reglas:
-    - Si hay pago en Cobros, la deuda real es monto_total - total_pagado.
-    - Si NO hay pago en Cobros y la cita está marcada como pagada, la deuda es 0.
-    - Si NO hay pago en Cobros y la cita NO está marcada como pagada, la deuda es monto_total.
-    - No cuenta citas canceladas.
+def _decimal_seguro(valor, defecto="0"):
+    try:
+        if valor is None or valor == "":
+            return Decimal(str(defecto))
+        return Decimal(str(valor))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(str(defecto))
+
+
+def obtener_total_cobrable_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Total de cargos del paciente en Sonrisar Pro.
+    Esto NO descuenta pagos. Los pagos se descuentan desde Sonrisar Cobros.
     """
     citas_qs = (
         Appointment.objects
         .filter(paciente=paciente)
         .exclude(estado="cancelado")
-        .order_by("fecha", "hora")
     )
 
     if fecha_hasta:
         citas_qs = citas_qs.filter(fecha__lte=fecha_hasta)
 
-    deuda_total = Decimal("0")
+    total = Decimal("0")
 
-    for cita in citas_qs:
-        info_pago = obtener_pago_cobros_cita(cita.id)
+    for monto in citas_qs.values_list("monto_total", flat=True):
+        total += _decimal_seguro(monto)
 
+    return total
+
+
+def obtener_resumen_cobros_pacientes_bulk(patient_ids):
+    """
+    Consulta Sonrisar Cobros UNA sola vez para varios pacientes.
+    Esto evita que Agenda del día quede lenta por hacer una consulta HTTP por cada cita.
+    """
+    patient_ids_limpios = []
+
+    for patient_id in patient_ids:
         try:
-            total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
-        except (InvalidOperation, TypeError, ValueError):
-            total_pagado_decimal = Decimal("0")
+            patient_id_int = int(patient_id)
+        except (TypeError, ValueError):
+            continue
 
-        monto_total = cita.monto_total or Decimal("0")
-        tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
+        if patient_id_int not in patient_ids_limpios:
+            patient_ids_limpios.append(patient_id_int)
 
-        if tiene_pago_cobros:
-            debe = monto_total - total_pagado_decimal
-            if debe < 0:
-                debe = Decimal("0")
-        elif cita.pagado:
-            debe = Decimal("0")
-        else:
-            debe = monto_total
+    if not patient_ids_limpios:
+        return {}
 
-        deuda_total += debe
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
 
-    return deuda_total
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_RESUMEN_PACIENTES_PATH",
+        "/pagos/api/resumen-pacientes/"
+    )
+
+    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'patient_ids': ','.join(str(x) for x in patient_ids_limpios)})}"
+
+    try:
+        with urlopen(api_url, timeout=6) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        if not data.get("ok"):
+            raise ValueError(data.get("error", "Respuesta inválida de Cobros"))
+
+        resumenes = {}
+
+        for item in data.get("pacientes", []):
+            patient_id = item.get("patient_id")
+            if patient_id is None:
+                continue
+
+            try:
+                patient_id = int(patient_id)
+            except (TypeError, ValueError):
+                continue
+
+            resumenes[patient_id] = {
+                "ok": True,
+                "total_pagado": _decimal_seguro(item.get("total_pagado", 0)),
+                "tipo_pago": item.get("tipo_pago", "pagado"),
+                "cantidad_pagos": item.get("cantidad_pagos", 0),
+                "error": None,
+            }
+
+        return resumenes
+
+    except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+        # Si Cobros no responde, devolvemos saldo 0 pagado para no trabar la agenda.
+        # La agenda igual carga, pero mostrará la deuda sin descuento de Cobros.
+        return {
+            patient_id: {
+                "ok": False,
+                "total_pagado": Decimal("0"),
+                "tipo_pago": "pagado",
+                "cantidad_pagos": 0,
+                "error": "No fue posible conectar con Sonrisar Cobros.",
+            }
+            for patient_id in patient_ids_limpios
+        }
 
 
+def obtener_resumen_cobros_paciente(paciente):
+    """
+    Compatibilidad para pantallas que consultan un solo paciente.
+    Internamente usa la consulta rápida agrupada.
+    """
+    resumenes = obtener_resumen_cobros_pacientes_bulk([paciente.id])
+    return resumenes.get(paciente.id, {
+        "ok": False,
+        "total_pagado": Decimal("0"),
+        "tipo_pago": "pagado",
+        "cantidad_pagos": 0,
+        "error": "No fue posible obtener pagos de Cobros.",
+    })
 
-def calcular_edad(fecha_nacimiento):
-    if not fecha_nacimiento:
-        return None
 
-    hoy = date.today()
-    edad = hoy.year - fecha_nacimiento.year
+def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Deuda real del paciente:
+    total cobrable en Sonrisar Pro - total pagado/señado en Sonrisar Cobros.
+    """
+    total_cobrable = obtener_total_cobrable_paciente_desde_pro(
+        paciente,
+        fecha_hasta=fecha_hasta,
+    )
 
-    if (hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
-        edad -= 1
+    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
+    total_pagado = resumen_cobros.get("total_pagado", Decimal("0"))
 
-    return edad
+    saldo = total_cobrable - total_pagado
+
+    if saldo < 0:
+        saldo = Decimal("0")
+
+    return saldo
+
+
+def obtener_saldo_tratamiento(cita_actual):
+    """
+    Compatibilidad con código viejo.
+    Ya no se heredan saldos por motivo/cita porque eso duplicaba deuda.
+    """
+    if not cita_actual or not cita_actual.paciente_id:
+        return Decimal("0")
+
+    return obtener_deuda_total_paciente_desde_pro(
+        cita_actual.paciente,
+        fecha_hasta=cita_actual.fecha,
+    )
+
+
+def _armar_cita_agenda_rapida(cita, saldos_por_paciente):
+    patient_id = cita.paciente.id
+    resumen = saldos_por_paciente.get(patient_id, {})
+
+    edad = calcular_edad(cita.paciente.fecha_nacimiento)
+
+    total_pagado_paciente = _decimal_seguro(resumen.get("total_pagado", 0))
+    total_cobrable_paciente = _decimal_seguro(resumen.get("total_cobrable", 0))
+    saldo_paciente = _decimal_seguro(resumen.get("saldo", 0))
+
+    # IMPORTANTE:
+    # La deuda se calcula por paciente, pero los carteles de pago de la cita
+    # deben ser visualmente correctos:
+    # - Si NO asistió / está pendiente / cancelada: nunca mostrar "Pagado".
+    # - Si tiene entregas parciales y aún debe: mostrar "Seña".
+    # - Si asistió y el saldo real del paciente quedó en 0: mostrar "Pagado".
+    cita_atendida = cita.estado == "asistio"
+    tiene_entrega_parcial = total_pagado_paciente > 0 and saldo_paciente > 0
+    cita_pagada_visual = cita_atendida and saldo_paciente <= 0
+
+    mostrar_pago_cobros = tiene_entrega_parcial or cita_pagada_visual
+
+    if tiene_entrega_parcial:
+        tipo_pago_visual = "sena"
+    elif cita_pagada_visual:
+        tipo_pago_visual = "pagado"
+    else:
+        tipo_pago_visual = "pendiente"
+
+    return {
+        "id": cita.id,
+        "patient_id": patient_id,
+        "hora_real": cita.hora,
+        "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+        "edad": edad,
+        "motivo": cita.motivo,
+        "motivo_slug": slugify(cita.motivo or ""),
+        "procedimientos": [p.nombre for p in cita.procedimientos.all()],
+        "estado": cita.get_estado_display(),
+        "estado_slug": cita.estado,
+        "pagado": cita_pagada_visual,
+        "tiene_pago_cobros": mostrar_pago_cobros,
+        "total_pagado": str(total_pagado_paciente),
+        "total_pagado_paciente": str(total_pagado_paciente),
+        "tipo_pago": tipo_pago_visual,
+        "monto_total": _decimal_seguro(cita.monto_total),
+        "total_cobrable_paciente": total_cobrable_paciente,
+        "debe": saldo_paciente,
+        "deuda_total_paciente": saldo_paciente,
+        "cobros_error": resumen.get("error"),
+    }
 
 
 def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
 
-    citas = (
+    citas = list(
         Appointment.objects.filter(fecha=fecha)
         .select_related("paciente")
         .prefetch_related("procedimientos")
@@ -1426,13 +1578,41 @@ def agenda_day(request, day, month, year):
 
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
+    patient_ids = []
+    pacientes_por_id = {}
+
+    for cita in citas:
+        patient_id = cita.paciente.id
+        pacientes_por_id[patient_id] = cita.paciente
+        if patient_id not in patient_ids:
+            patient_ids.append(patient_id)
+
+    resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
+
+    saldos_por_paciente = {}
+
+    for patient_id, paciente in pacientes_por_id.items():
+        total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
+        resumen_cobros = resumenes_cobros.get(patient_id, {})
+        total_pagado = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
+
+        saldo = total_cobrable - total_pagado
+        if saldo < 0:
+            saldo = Decimal("0")
+
+        saldos_por_paciente[patient_id] = {
+            "total_cobrable": total_cobrable,
+            "total_pagado": total_pagado,
+            "saldo": saldo,
+            "tipo_pago": resumen_cobros.get("tipo_pago", "pagado"),
+            "cantidad_pagos": resumen_cobros.get("cantidad_pagos", 0),
+            "error": resumen_cobros.get("error"),
+        }
+
     citas_por_bloque = agrupar_citas_por_bloque(citas)
-
-    deudas_totales_cache = {}
-
     horarios = []
-    for h in generar_horarios():
 
+    for h in generar_horarios():
         if h.strftime("%H:%M") in HORARIOS_BLOQUEADOS:
             horarios.append({
                 "hora": h,
@@ -1446,109 +1626,15 @@ def agenda_day(request, day, month, year):
         citas_exactas = [c for c in citas_en_bloque if c.hora == h]
         citas_extra = [c for c in citas_en_bloque if c.hora != h]
 
-        citas_exactas_data = []
+        citas_exactas_data = [
+            _armar_cita_agenda_rapida(cita, saldos_por_paciente)
+            for cita in citas_exactas
+        ]
 
-        for cita in citas_exactas:
-            info_pago = obtener_pago_cobros_cita(cita.id)
-
-            try:
-                total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
-            except (InvalidOperation, TypeError, ValueError):
-                total_pagado_decimal = Decimal("0")
-
-            monto_total = cita.monto_total or Decimal("0")
-            tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
-
-            if tiene_pago_cobros:
-                debe = monto_total - total_pagado_decimal
-                if debe < 0:
-                    debe = Decimal("0")
-            elif cita.pagado:
-                debe = Decimal("0")
-            else:
-                debe = monto_total
-
-            patient_id = cita.paciente.id
-
-            if patient_id not in deudas_totales_cache:
-                deudas_totales_cache[patient_id] = obtener_deuda_total_paciente_desde_pro(
-                    cita.paciente,
-                    fecha_hasta=fecha
-                )
-
-            edad = calcular_edad(cita.paciente.fecha_nacimiento)
-
-            citas_exactas_data.append({
-                "id": cita.id,
-                "patient_id": patient_id,
-                "hora_real": cita.hora,
-                "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                "edad": edad,  # 👈 NUEVO
-                "motivo": cita.motivo,
-                "motivo_slug": slugify(cita.motivo or ""),
-                "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-                "estado": cita.get_estado_display(),
-                "estado_slug": cita.estado,
-                "pagado": cita.pagado,
-                "tiene_pago_cobros": info_pago["tiene_pago"],
-                "total_pagado": info_pago["total_pagado"],
-                "tipo_pago": info_pago["tipo_pago"],
-                "monto_total": monto_total,
-                "debe": debe,
-                "deuda_total_paciente": deudas_totales_cache[patient_id],
-            })
-
-        citas_extra_data = []
-
-        for cita in citas_extra:
-            info_pago = obtener_pago_cobros_cita(cita.id)
-
-            try:
-                total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
-            except (InvalidOperation, TypeError, ValueError):
-                total_pagado_decimal = Decimal("0")
-
-            monto_total = cita.monto_total or Decimal("0")
-            tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
-
-            if tiene_pago_cobros:
-                debe = monto_total - total_pagado_decimal
-                if debe < 0:
-                    debe = Decimal("0")
-            elif cita.pagado:
-                debe = Decimal("0")
-            else:
-                debe = monto_total
-
-            patient_id = cita.paciente.id
-
-            if patient_id not in deudas_totales_cache:
-                deudas_totales_cache[patient_id] = obtener_deuda_total_paciente_desde_pro(
-                    cita.paciente,
-                    fecha_hasta=fecha
-                )
-
-            edad = calcular_edad(cita.paciente.fecha_nacimiento)
-
-            citas_extra_data.append({
-                "id": cita.id,
-                "patient_id": patient_id,
-                "hora_real": cita.hora,
-                "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                "edad": edad,  # 👈 NUEVO
-                "motivo": cita.motivo,
-                "motivo_slug": slugify(cita.motivo or ""),
-                "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-                "estado": cita.get_estado_display(),
-                "estado_slug": cita.estado,
-                "pagado": cita.pagado,
-                "tiene_pago_cobros": info_pago["tiene_pago"],
-                "total_pagado": info_pago["total_pagado"],
-                "tipo_pago": info_pago["tipo_pago"],
-                "monto_total": monto_total,
-                "debe": debe,
-                "deuda_total_paciente": deudas_totales_cache[patient_id],
-            })
+        citas_extra_data = [
+            _armar_cita_agenda_rapida(cita, saldos_por_paciente)
+            for cita in citas_extra
+        ]
 
         horarios.append({
             "hora": h,
@@ -1558,22 +1644,22 @@ def agenda_day(request, day, month, year):
         })
 
     deudores = []
+    pacientes_ya_agregados = set()
 
     for h in horarios:
         if h.get("bloqueado"):
             continue
 
         for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
-            try:
-                debe = Decimal(str(cita.get("debe", 0)))
-            except (InvalidOperation, TypeError, ValueError):
-                debe = Decimal("0")
+            debe = _decimal_seguro(cita.get("debe", 0))
+            patient_id = cita.get("patient_id")
 
-            if debe > 0:
+            if debe > 0 and patient_id not in pacientes_ya_agregados:
                 deudores.append(cita)
+                pacientes_ya_agregados.add(patient_id)
 
     total_deuda_dia = sum(
-        (Decimal(str(d.get("debe", 0))) for d in deudores),
+        (_decimal_seguro(d.get("debe", 0)) for d in deudores),
         Decimal("0")
     )
 
@@ -1587,7 +1673,6 @@ def agenda_day(request, day, month, year):
             "total_deuda_dia": total_deuda_dia,
         }
     )
-
 
 
 def _absolute_url(request, path_or_url):
@@ -1675,7 +1760,6 @@ def confirmar_pago_desde_cobros(request):
     if cita.estado != "cancelado":
         cita.estado = "asistio"
 
-    cita.pagado = True
     cita.save()
 
     cita.refresh_from_db()
@@ -1755,7 +1839,11 @@ def obtener_pagos_cobros_paciente(request, paciente):
         return [], "No fue posible conectar con Sonrisar Cobros."
         
 
-def obtener_pago_cobros_cita(appointment_id):
+def obtener_pago_cobros_cita(
+    appointment_id,
+    patient_id=None
+):
+
     cobros_base_url = getattr(
         settings,
         "SONRISAR_COBROS_BASE_URL",
@@ -1768,20 +1856,47 @@ def obtener_pago_cobros_cita(appointment_id):
         "/pagos/api/por-cita/"
     )
 
-    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'appointment_id': appointment_id})}"
+    params = {
+        "appointment_id": appointment_id,
+    }
+
+    # =====================================
+    # NUEVO
+    # =====================================
+    if patient_id:
+        params["patient_id"] = patient_id
+
+    api_url = (
+        f"{cobros_base_url}"
+        f"{cobros_api_path}"
+        f"?{urlencode(params)}"
+    )
 
     try:
-        with urlopen(api_url, timeout=6) as response:
-            data = json.loads(response.read().decode("utf-8"))
 
-        total_pagado = Decimal(str(data.get("total_pagado", 0)))
+        with urlopen(api_url, timeout=6) as response:
+
+            data = json.loads(
+                response.read().decode("utf-8")
+            )
+
+        total_pagado = Decimal(
+            str(data.get("total_pagado", 0))
+        )
 
         if data.get("ok"):
+
             return {
                 "tiene_pago": total_pagado > 0,
                 "total_pagado": str(total_pagado),
-                "tipo_pago": data.get("tipo_pago", "pagado"),
-                "pagos": data.get("pagos", []),
+                "tipo_pago": data.get(
+                    "tipo_pago",
+                    "pagado"
+                ),
+                "pagos": data.get(
+                    "pagos",
+                    []
+                ),
                 "error": None,
             }
 
@@ -1790,18 +1905,30 @@ def obtener_pago_cobros_cita(appointment_id):
             "total_pagado": "0",
             "tipo_pago": "pagado",
             "pagos": [],
-            "error": data.get("error", "No se pudo obtener el pago."),
+            "error": data.get(
+                "error",
+                "No se pudo obtener el pago."
+            ),
         }
 
-    except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+    except (
+        URLError,
+        HTTPError,
+        TimeoutError,
+        ValueError,
+        json.JSONDecodeError
+    ):
+
         return {
             "tiene_pago": False,
             "total_pagado": "0",
             "tipo_pago": "pagado",
             "pagos": [],
-            "error": "No fue posible conectar con Sonrisar Cobros.",
+            "error": (
+                "No fue posible conectar "
+                "con Sonrisar Cobros."
+            ),
         }
-
 
 def obtener_pacientes_con_pago(request, pacientes):
     """
@@ -3135,9 +3262,19 @@ def obtener_deuda_presupuestos_paciente(paciente):
 
 
 def deudores_general(request):
+    """
+    Pacientes deudores optimizado.
+    Antes esta pantalla consultaba Cobros una vez por cada cita (/pagos/api/por-cita/),
+    por eso la consola de Cobros no dejaba de cargar.
+
+    Ahora:
+    - Junta pacientes.
+    - Consulta Cobros una sola vez por patient_id.
+    - Calcula deuda real por paciente: total citas cobrables - total pagado.
+    """
     query = request.GET.get("q", "").strip().lower()
 
-    citas = (
+    citas = list(
         Appointment.objects
         .exclude(estado="cancelado")
         .filter(monto_total__gt=0)
@@ -3145,135 +3282,89 @@ def deudores_general(request):
         .order_by("fecha", "hora")[:300]
     )
 
-    deudores_map = {}
-    deuda_presupuestos_cache = {}
+    pacientes_por_id = {}
+    primera_cita_pendiente_por_id = {}
+    ultima_fecha_por_id = {}
 
-    # ================================
-    # 🔹 1. DEUDAS POR CITAS
-    # ================================
     for cita in citas:
-        nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".lower()
-
-        if query and query not in nombre:
-            continue
-
-        info_pago = obtener_pago_cobros_cita(cita.id)
-
-        try:
-            total_pagado_decimal = Decimal(str(info_pago["total_pagado"]))
-        except (InvalidOperation, TypeError, ValueError):
-            total_pagado_decimal = Decimal("0")
-
-        monto_total = cita.monto_total or Decimal("0")
-        tiene_pago_cobros = bool(info_pago.get("tiene_pago"))
-
-        if tiene_pago_cobros:
-            debe_cita = monto_total - total_pagado_decimal
-            if debe_cita < 0:
-                debe_cita = Decimal("0")
-        elif cita.pagado:
-            debe_cita = Decimal("0")
-        else:
-            debe_cita = monto_total
-
-        patient_id = cita.paciente.id
-
-        # 🔹 cache presupuestos (SOLO confirmados)
-        if patient_id not in deuda_presupuestos_cache:
-            presupuestos = Budget.objects.filter(
-                paciente=cita.paciente,
-                estado="confirmado"
-            )
-
-            total_presupuestos = Decimal("0")
-
-            for presupuesto in presupuestos:
-                try:
-                    saldo = presupuesto.saldo_pendiente or Decimal("0")
-                except:
-                    saldo = Decimal("0")
-
-                if saldo > 0:
-                    total_presupuestos += saldo
-
-            deuda_presupuestos_cache[patient_id] = total_presupuestos
-
-        deuda_presupuestos = deuda_presupuestos_cache[patient_id]
-
-        if patient_id not in deudores_map:
-            deudores_map[patient_id] = {
-                "patient_id": patient_id,
-                "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                "deuda_citas": Decimal("0"),
-                "deuda_presupuestos": deuda_presupuestos,
-                "deuda_total": Decimal("0"),
-                "ultima_fecha": cita.fecha,
-                "cita_pendiente_id": None,
-                "cita_pendiente_fecha": None,
-            }
-
-        if debe_cita > 0:
-            deudores_map[patient_id]["deuda_citas"] += debe_cita
-
-            actual_fecha = deudores_map[patient_id]["cita_pendiente_fecha"]
-
-            if actual_fecha is None or cita.fecha < actual_fecha:
-                deudores_map[patient_id]["cita_pendiente_id"] = cita.id
-                deudores_map[patient_id]["cita_pendiente_fecha"] = cita.fecha
-
-        if cita.fecha > deudores_map[patient_id]["ultima_fecha"]:
-            deudores_map[patient_id]["ultima_fecha"] = cita.fecha
-
-    # ================================
-    # 🔹 2. PRESUPUESTOS SIN CITAS
-    # ================================
-    presupuestos_confirmados = Budget.objects.filter(
-        estado="confirmado"
-    ).select_related("paciente")
-
-    for presupuesto in presupuestos_confirmados:
-        paciente = presupuesto.paciente
+        paciente = cita.paciente
         patient_id = paciente.id
-
         nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
 
         if query and query not in nombre:
             continue
 
-        # evitar duplicados
-        if patient_id in deudores_map:
+        pacientes_por_id[patient_id] = paciente
+
+        if patient_id not in primera_cita_pendiente_por_id:
+            primera_cita_pendiente_por_id[patient_id] = cita
+
+        if patient_id not in ultima_fecha_por_id or cita.fecha > ultima_fecha_por_id[patient_id]:
+            ultima_fecha_por_id[patient_id] = cita.fecha
+
+    # Presupuestos confirmados también pueden generar deuda aunque no haya cita reciente.
+    presupuestos_confirmados = list(
+        Budget.objects
+        .filter(estado="confirmado")
+        .select_related("paciente")
+    )
+
+    deuda_presupuestos_por_id = {}
+
+    for presupuesto in presupuestos_confirmados:
+        paciente = presupuesto.paciente
+        patient_id = paciente.id
+        nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
+
+        if query and query not in nombre:
             continue
 
         try:
             saldo = presupuesto.saldo_pendiente or Decimal("0")
-        except:
+        except Exception:
             saldo = Decimal("0")
 
         if saldo <= 0:
             continue
 
-        deudores_map[patient_id] = {
-            "patient_id": patient_id,
-            "paciente": f"{paciente.apellido}, {paciente.nombre}",
-            "deuda_citas": Decimal("0"),
-            "deuda_presupuestos": saldo,
-            "deuda_total": saldo,
-            "ultima_fecha": presupuesto.fecha,
-            "cita_pendiente_id": None,
-        }
+        pacientes_por_id[patient_id] = paciente
+        deuda_presupuestos_por_id[patient_id] = deuda_presupuestos_por_id.get(patient_id, Decimal("0")) + saldo
 
-    # ================================
-    # 🔹 3. FINAL
-    # ================================
+        if patient_id not in ultima_fecha_por_id:
+            ultima_fecha_por_id[patient_id] = presupuesto.fecha
+
+    patient_ids = list(pacientes_por_id.keys())
+    resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
+
     deudores = []
 
-    for data in deudores_map.values():
-        data["deuda_total"] = data["deuda_citas"] + data["deuda_presupuestos"]
+    for patient_id, paciente in pacientes_por_id.items():
+        total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
+        total_pagado = _decimal_seguro(
+            resumenes_cobros.get(patient_id, {}).get("total_pagado", 0)
+        )
 
-        data.pop("cita_pendiente_fecha", None)
+        deuda_citas = total_cobrable - total_pagado
+        if deuda_citas < 0:
+            deuda_citas = Decimal("0")
 
-        if data["deuda_total"] > 0:
-            deudores.append(data)
+        deuda_presupuestos = deuda_presupuestos_por_id.get(patient_id, Decimal("0"))
+        deuda_total = deuda_citas + deuda_presupuestos
+
+        if deuda_total <= 0:
+            continue
+
+        cita_pendiente = primera_cita_pendiente_por_id.get(patient_id)
+
+        deudores.append({
+            "patient_id": patient_id,
+            "paciente": f"{paciente.apellido}, {paciente.nombre}",
+            "deuda_citas": deuda_citas,
+            "deuda_presupuestos": deuda_presupuestos,
+            "deuda_total": deuda_total,
+            "ultima_fecha": ultima_fecha_por_id.get(patient_id),
+            "cita_pendiente_id": cita_pendiente.id if cita_pendiente else None,
+        })
 
     deudores.sort(key=lambda x: x["deuda_total"], reverse=True)
 
@@ -3291,3 +3382,123 @@ def deudores_general(request):
             "query": query,
         }
     )
+
+def patient_finances(request, id):
+    """
+    Ficha financiera del paciente.
+
+    Pantalla liviana:
+    - Usa datos locales de Sonrisar Pro para citas/presupuestos.
+    - Consulta Sonrisar Cobros una sola vez para total pagado por patient_id.
+    - No llama a Cobros por cada cita ni por cada pago.
+    """
+    paciente = get_object_or_404(Patient, id=id)
+
+    citas_cobrables = list(
+        Appointment.objects
+        .filter(paciente=paciente, monto_total__gt=0)
+        .exclude(estado="cancelado")
+        .prefetch_related("procedimientos")
+        .order_by("-fecha", "-hora")
+    )
+
+    total_citas = Decimal("0")
+    for cita in citas_cobrables:
+        total_citas += _decimal_seguro(cita.monto_total)
+
+    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
+    total_pagado_cobros = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
+
+    saldo_actual = total_citas - total_pagado_cobros
+    if saldo_actual < 0:
+        saldo_actual = Decimal("0")
+
+    presupuestos = list(
+        Budget.objects
+        .filter(paciente=paciente)
+        .prefetch_related("items", "pagos")
+        .order_by("-fecha", "-id")
+    )
+
+    estados_aceptados = {"confirmado", "en_proceso", "entregado"}
+
+    total_presupuestos_aceptados = Decimal("0")
+    total_pagado_presupuestos = Decimal("0")
+    saldo_presupuestos = Decimal("0")
+    presupuestos_data = []
+    movimientos_presupuesto = []
+
+    for presupuesto in presupuestos:
+        total_presupuesto = _decimal_seguro(presupuesto.total)
+        total_pagado = _decimal_seguro(presupuesto.total_pagado)
+        saldo = total_presupuesto - total_pagado
+
+        if saldo < 0:
+            saldo = Decimal("0")
+
+        if presupuesto.estado in estados_aceptados:
+            total_presupuestos_aceptados += total_presupuesto
+            total_pagado_presupuestos += total_pagado
+            saldo_presupuestos += saldo
+
+        presupuestos_data.append({
+            "id": presupuesto.id,
+            "fecha": presupuesto.fecha,
+            "diagnostico": presupuesto.diagnostico,
+            "estado": presupuesto.estado,
+            "estado_display": presupuesto.get_estado_display(),
+            "total": total_presupuesto,
+            "total_pagado": total_pagado,
+            "saldo": saldo,
+            "aceptado": presupuesto.estado in estados_aceptados,
+        })
+
+        for pago in presupuesto.pagos.all():
+            movimientos_presupuesto.append({
+                "fecha": pago.fecha,
+                "tipo": pago.get_tipo_display(),
+                "concepto": pago.observacion or f"Pago presupuesto #{presupuesto.id}",
+                "metodo": pago.get_metodo_pago_display() if pago.metodo_pago else "—",
+                "monto": _decimal_seguro(pago.monto),
+                "presupuesto_id": presupuesto.id,
+            })
+
+    movimientos_presupuesto.sort(
+        key=lambda m: (m["fecha"], m["presupuesto_id"]),
+        reverse=True,
+    )
+
+    citas_data = []
+    for cita in citas_cobrables[:60]:
+        procedimientos = ", ".join([p.nombre for p in cita.procedimientos.all()])
+        citas_data.append({
+            "id": cita.id,
+            "fecha": cita.fecha,
+            "hora": cita.hora,
+            "motivo": cita.motivo,
+            "procedimientos": procedimientos,
+            "estado": cita.estado,
+            "estado_display": cita.get_estado_display(),
+            "monto_total": _decimal_seguro(cita.monto_total),
+        })
+
+    return render(
+        request,
+        "core/patient_finances.html",
+        {
+            "paciente": paciente,
+            "total_citas": total_citas,
+            "total_pagado_cobros": total_pagado_cobros,
+            "saldo_actual": saldo_actual,
+            "cobros_error": resumen_cobros.get("error"),
+            "cobros_ok": resumen_cobros.get("ok", False),
+            "cantidad_pagos_cobros": resumen_cobros.get("cantidad_pagos", 0),
+            "total_presupuestos_aceptados": total_presupuestos_aceptados,
+            "total_pagado_presupuestos": total_pagado_presupuestos,
+            "saldo_presupuestos": saldo_presupuestos,
+            "presupuestos": presupuestos_data,
+            "movimientos_presupuesto": movimientos_presupuesto,
+            "citas": citas_data,
+        }
+    )
+
