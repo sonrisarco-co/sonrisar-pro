@@ -1423,6 +1423,10 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
         with urlopen(api_url, timeout=6) as response:
             data = json.loads(response.read().decode("utf-8"))
 
+        print("DEBUG COBROS patient_ids:", patient_ids)
+        print("DEBUG COBROS api_url:", api_url)
+        print("DEBUG COBROS data:", data)
+
         if not data.get("ok"):
             raise ValueError(data.get("error", "Respuesta inválida de Cobros"))
 
