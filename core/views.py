@@ -1572,6 +1572,7 @@ def _armar_cita_agenda_rapida(cita, saldos_por_paciente):
 
 def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
+    print("DEBUG AGENDA_DAY EJECUTADA", fecha)
 
     citas = list(
         Appointment.objects.filter(fecha=fecha)
