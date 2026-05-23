@@ -5,7 +5,7 @@ from django.utils.text import slugify
 
 import calendar
 #from core.models import Cita
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.contrib import messages
 
 from django.conf import settings
@@ -33,11 +33,13 @@ from calendar import monthrange
 
 from django.views.decorators.http import require_POST
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import json
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
+
+
 
 
 from .models import (
@@ -53,6 +55,7 @@ from .models import (
     ClinicalRecord,
     RayosX,
     BudgetPayment,
+    OdontogramTooth,
 )
 
 from .forms import (
@@ -134,6 +137,7 @@ def home(request):
 # PACIENTES (COMPLETO)
 # =========================
 
+
 def patient_list(request):
 
     # 🔍 Buscar por nombre, apellido, CI o teléfono
@@ -154,10 +158,24 @@ def patient_list(request):
     page_number = request.GET.get("page")
     pacientes = paginator.get_page(page_number)
 
+    # 🕒 Contador de pacientes inactivos
+    fecha_limite = timezone.now().date() - timedelta(days=90)
+
+    cantidad_inactivos = Patient.objects.annotate(
+        ultima_cita=Max("appointment__fecha")
+    ).filter(
+        ultima_cita__isnull=False,
+        ultima_cita__lt=fecha_limite
+    ).count()
+
     return render(
         request,
         "core/patients_list.html",
-        {"pacientes": pacientes, "query": query}
+        {
+            "pacientes": pacientes,
+            "query": query,
+            "cantidad_inactivos": cantidad_inactivos,
+        }
     )
 
 
@@ -283,6 +301,7 @@ def citas_list(request):
 
 from django.urls import reverse
 
+
 def appointment_new(request):
     fecha = request.GET.get("fecha")
     hora = request.GET.get("hora")
@@ -291,8 +310,6 @@ def appointment_new(request):
     next_url = request.GET.get("next") or request.POST.get("next")
     if not next_url:
         next_url = reverse("agenda_calendar")
-
-    es_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     initial_data = {}
 
@@ -309,14 +326,7 @@ def appointment_new(request):
         form = AppointmentForm(request.POST)
 
         if form.is_valid():
-            cita = form.save()
-
-            if es_ajax:
-                return JsonResponse({
-                    "success": True,
-                    "redirect_url": next_url
-                })
-
+            form.save()
             return redirect(next_url)
 
     else:
@@ -329,7 +339,6 @@ def appointment_new(request):
             "form": form,
             "next": next_url,
             "titulo": "Nueva cita",
-            "es_ajax": es_ajax,
         }
     )
 
@@ -434,6 +443,8 @@ def appointment_move_time(request, id):
 # 📋 LISTA DE HISTORIAS
 # =========================
 
+import json
+
 def clinical_records_list(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
@@ -454,10 +465,61 @@ def clinical_records_list(request, patient_id):
         }
     )
 
-  
-# =========================
-# ➕ NUEVA HISTORIA
-# =========================
+
+def calcular_edad(fecha_nacimiento):
+    if not fecha_nacimiento:
+        return None
+
+    hoy = date.today()
+    edad = hoy.year - fecha_nacimiento.year
+
+    if (hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
+        edad -= 1
+
+    return edad
+
+
+def obtener_marcas_odontograma(paciente):
+    return [
+        {
+            "id": str(d.id),
+            "estado": d.estado,
+            "x": d.pos_x,
+            "y": d.pos_y,
+        }
+        for d in OdontogramTooth.objects.filter(paciente=paciente)
+    ]
+
+
+def guardar_odontograma_desde_post(request, paciente):
+    data = request.POST.get("odontograma_data", "")
+
+    if not data:
+        return
+
+    try:
+        marcas = json.loads(data)
+    except Exception:
+        return
+
+    OdontogramTooth.objects.filter(paciente=paciente).delete()
+
+    for marca in marcas:
+        estado = marca.get("estado")
+        x = marca.get("x")
+        y = marca.get("y")
+
+        if not estado or x is None or y is None:
+            continue
+
+        OdontogramTooth.objects.create(
+            paciente=paciente,
+            numero="marca",
+            estado=estado,
+            pos_x=float(x),
+            pos_y=float(y),
+        )
+
 
 def clinical_record_new(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
@@ -473,11 +535,16 @@ def clinical_record_new(request, patient_id):
 
     if request.method == "POST":
         form = ClinicalRecordForm(request.POST)
+
         if form.is_valid():
             registro = form.save(commit=False)
             registro.paciente = paciente
             registro.save()
+
+            guardar_odontograma_desde_post(request, paciente)
+
             return redirect("clinical_record_detail", registro_id=registro.id)
+
     else:
         form = ClinicalRecordForm()
 
@@ -489,14 +556,15 @@ def clinical_record_new(request, patient_id):
 
             fecha_hoy = timezone.localdate().strftime("%d/%m/%Y")
 
-            texto_tratamiento = f"{fecha_hoy} – Motivo de cita: {cita.motivo}"
+            texto_evolucion = f"{fecha_hoy} – Motivo de cita: {cita.motivo}"
             if procedimientos_txt:
-                texto_tratamiento += f". Procedimientos: {procedimientos_txt}"
-            texto_tratamiento += "."
+                texto_evolucion += f". Procedimientos: {procedimientos_txt}"
+            texto_evolucion += "."
 
-            form.initial["tratamiento"] = texto_tratamiento
+            form.initial["evolucion"] = texto_evolucion
 
     volver_url = request.GET.get("next") or request.POST.get("next")
+
     if not volver_url:
         volver_url = reverse("clinical_records_list", args=[paciente.id])
 
@@ -509,17 +577,13 @@ def clinical_record_new(request, patient_id):
             "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
         },
     )
-    
 
 
-# =========================
-# 👁️ DETALLE
-# =========================
 def clinical_record_detail(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
-
     paciente = registro.paciente
 
     historias = ClinicalRecord.objects.filter(
@@ -530,24 +594,23 @@ def clinical_record_detail(request, registro_id):
 
     pagos_cobros, pagos_error = obtener_pagos_cobros_paciente(request, paciente)
 
+    edad = calcular_edad(paciente.fecha_nacimiento)
+
     return render(
         request,
         "core/clinical_record_detail.html",
         {
             "registro": registro,
             "paciente": paciente,
+            "edad": edad,
             "historias": historias,
             "rayos": rayos,
             "pagos_cobros": pagos_cobros,
             "pagos_error": pagos_error,
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
         }
     )
-    
 
-
-# =========================
-# ✏️ EDITAR
-# =========================
 
 def clinical_record_edit(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
@@ -564,14 +627,17 @@ def clinical_record_edit(request, registro_id):
 
     if request.method == "POST":
         form = ClinicalRecordForm(request.POST, instance=registro)
+
         if form.is_valid():
             form.save()
+            guardar_odontograma_desde_post(request, paciente)
             return redirect("clinical_record_detail", registro_id=registro.id)
+
     else:
         form = ClinicalRecordForm(instance=registro)
 
         hoy = timezone.localdate().strftime("%d/%m/%Y")
-        texto_actual = (registro.tratamiento or "").strip()
+        texto_actual = (registro.evolucion or "").strip()
 
         if cita:
             procedimientos = [p.nombre for p in cita.procedimientos.all()]
@@ -583,20 +649,21 @@ def clinical_record_edit(request, registro_id):
             nuevo_bloque += "."
 
             if texto_actual:
-                form.initial["tratamiento"] = f"{texto_actual}\n\n{nuevo_bloque}"
+                form.initial["evolucion"] = f"{texto_actual}\n\n{nuevo_bloque}"
             else:
-                form.initial["tratamiento"] = nuevo_bloque
+                form.initial["evolucion"] = nuevo_bloque
 
             if not registro.motivo:
                 form.initial["motivo"] = cita.motivo
 
         else:
             if texto_actual:
-                form.initial["tratamiento"] = f"{texto_actual}\n{hoy} "
+                form.initial["evolucion"] = f"{texto_actual}\n{hoy} "
             else:
-                form.initial["tratamiento"] = f"{hoy} "
+                form.initial["evolucion"] = f"{hoy} "
 
     volver_url = request.GET.get("next") or request.POST.get("next")
+
     if not volver_url:
         volver_url = reverse("clinical_record_detail", args=[registro.id])
 
@@ -610,6 +677,7 @@ def clinical_record_edit(request, registro_id):
             "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
         },
     )
 
@@ -655,7 +723,6 @@ def abrir_historia_desde_cita(request, patient_id):
     return redirect(url)
 
 
-
 def clinical_record_open_from_appointment(request, patient_id, appointment_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
@@ -691,11 +758,6 @@ def clinical_record_open_from_appointment(request, patient_id, appointment_id):
     return redirect(f"{url}?{urlencode(params)}")
 
 
-
-# =========================
-# 🗑️ BORRAR
-# =========================
-
 def clinical_record_delete(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
     paciente_id = registro.paciente.id
@@ -704,12 +766,6 @@ def clinical_record_delete(request, registro_id):
 
     return redirect("clinical_records_list", patient_id=paciente_id)
 
-
-
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.shortcuts import render
-from .models import Patient
 
 def clinical_record_search(request):
     query = request.GET.get("q", "").strip()
@@ -724,11 +780,9 @@ def clinical_record_search(request):
             Q(telefono__icontains=query)
         )
 
-    # 🔹 ORDEN ALFABÉTICO SIEMPRE
     pacientes_qs = pacientes_qs.order_by("apellido", "nombre")
 
-    # ✅ PAGINACIÓN (ACÁ ES DONDE VA)
-    paginator = Paginator(pacientes_qs, 20)  # 20 por página
+    paginator = Paginator(pacientes_qs, 20)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -1138,16 +1192,23 @@ def inventory_new(request):
 
 def inventory_edit(request, pk):
     producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
         form = InventoryForm(request.POST, instance=producto)
         if form.is_valid():
             form.save()
+            if next_url:
+                return redirect(next_url)
             return redirect("inventory_list")
     else:
         form = InventoryForm(instance=producto)
 
-    return render(request, "core/inventory_edit.html", {"form": form, "producto": producto})
+    return render(request, "core/inventory_edit.html", {
+        "form": form,
+        "producto": producto,
+        "next": next_url,
+    })
 
 
 def inventory_delete(request, pk):
@@ -1293,32 +1354,265 @@ def agrupar_citas_por_bloque(citas):
     return citas_por_bloque
 
 
+
+def _decimal_seguro(valor, defecto="0"):
+    try:
+        if valor is None or valor == "":
+            return Decimal(str(defecto))
+        return Decimal(str(valor))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(str(defecto))
+
+
+def obtener_total_cobrable_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Total de cargos del paciente en Sonrisar Pro.
+    Esto NO descuenta pagos. Los pagos se descuentan desde Sonrisar Cobros.
+    """
+    citas_qs = (
+        Appointment.objects
+        .filter(paciente=paciente)
+        .exclude(estado="cancelado")
+    )
+
+    if fecha_hasta:
+        citas_qs = citas_qs.filter(fecha__lte=fecha_hasta)
+
+    total = Decimal("0")
+
+    for monto in citas_qs.values_list("monto_total", flat=True):
+        total += _decimal_seguro(monto)
+
+    return total
+
+
+def obtener_resumen_cobros_pacientes_bulk(patient_ids):
+    """
+    Consulta Sonrisar Cobros UNA sola vez para varios pacientes.
+    Esto evita que Agenda del día quede lenta por hacer una consulta HTTP por cada cita.
+    """
+    patient_ids_limpios = []
+
+    for patient_id in patient_ids:
+        try:
+            patient_id_int = int(patient_id)
+        except (TypeError, ValueError):
+            continue
+
+        if patient_id_int not in patient_ids_limpios:
+            patient_ids_limpios.append(patient_id_int)
+
+    if not patient_ids_limpios:
+        return {}
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_RESUMEN_PACIENTES_PATH",
+        "/pagos/api/resumen-pacientes/"
+    )
+
+    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'patient_ids': ','.join(str(x) for x in patient_ids_limpios)})}"
+
+    try:
+        with urlopen(api_url, timeout=6) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        if not data.get("ok"):
+            raise ValueError(data.get("error", "Respuesta inválida de Cobros"))
+
+        resumenes = {}
+
+        for item in data.get("pacientes", []):
+            patient_id = item.get("patient_id")
+            if patient_id is None:
+                continue
+
+            try:
+                patient_id = int(patient_id)
+            except (TypeError, ValueError):
+                continue
+
+            resumenes[patient_id] = {
+                "ok": True,
+                "total_pagado": _decimal_seguro(item.get("total_pagado", 0)),
+                "tipo_pago": item.get("tipo_pago", "pagado"),
+                "cantidad_pagos": item.get("cantidad_pagos", 0),
+                "error": None,
+            }
+
+        return resumenes
+
+    except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+        # Si Cobros no responde, devolvemos saldo 0 pagado para no trabar la agenda.
+        # La agenda igual carga, pero mostrará la deuda sin descuento de Cobros.
+        return {
+            patient_id: {
+                "ok": False,
+                "total_pagado": Decimal("0"),
+                "tipo_pago": "pagado",
+                "cantidad_pagos": 0,
+                "error": "No fue posible conectar con Sonrisar Cobros.",
+            }
+            for patient_id in patient_ids_limpios
+        }
+
+
+def obtener_resumen_cobros_paciente(paciente):
+    """
+    Compatibilidad para pantallas que consultan un solo paciente.
+    Internamente usa la consulta rápida agrupada.
+    """
+    resumenes = obtener_resumen_cobros_pacientes_bulk([paciente.id])
+    return resumenes.get(paciente.id, {
+        "ok": False,
+        "total_pagado": Decimal("0"),
+        "tipo_pago": "pagado",
+        "cantidad_pagos": 0,
+        "error": "No fue posible obtener pagos de Cobros.",
+    })
+
+
+def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Deuda real del paciente:
+    total cobrable en Sonrisar Pro - total pagado/señado en Sonrisar Cobros.
+    """
+    total_cobrable = obtener_total_cobrable_paciente_desde_pro(
+        paciente,
+        fecha_hasta=fecha_hasta,
+    )
+
+    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
+    total_pagado = resumen_cobros.get("total_pagado", Decimal("0"))
+
+    saldo = total_cobrable - total_pagado
+
+    if saldo < 0:
+        saldo = Decimal("0")
+
+    return saldo
+
+
+def obtener_saldo_tratamiento(cita_actual):
+    """
+    Compatibilidad con código viejo.
+    Ya no se heredan saldos por motivo/cita porque eso duplicaba deuda.
+    """
+    if not cita_actual or not cita_actual.paciente_id:
+        return Decimal("0")
+
+    return obtener_deuda_total_paciente_desde_pro(
+        cita_actual.paciente,
+        fecha_hasta=cita_actual.fecha,
+    )
+
+
+def _armar_cita_agenda_rapida(cita, saldos_por_paciente):
+    patient_id = cita.paciente.id
+    resumen = saldos_por_paciente.get(patient_id, {})
+
+    edad = calcular_edad(cita.paciente.fecha_nacimiento)
+
+    total_pagado_paciente = _decimal_seguro(resumen.get("total_pagado", 0))
+    total_cobrable_paciente = _decimal_seguro(resumen.get("total_cobrable", 0))
+    saldo_paciente = _decimal_seguro(resumen.get("saldo", 0))
+
+    # IMPORTANTE:
+    # La deuda se calcula por paciente, pero los carteles de pago de la cita
+    # deben ser visualmente correctos:
+    # - Si NO asistió / está pendiente / cancelada: nunca mostrar "Pagado".
+    # - Si tiene entregas parciales y aún debe: mostrar "Seña".
+    # - Si asistió y el saldo real del paciente quedó en 0: mostrar "Pagado".
+    cita_atendida = cita.estado == "asistio"
+    tiene_entrega_parcial = total_pagado_paciente > 0 and saldo_paciente > 0
+    cita_pagada_visual = cita_atendida and saldo_paciente <= 0
+
+    mostrar_pago_cobros = tiene_entrega_parcial or cita_pagada_visual
+
+    if tiene_entrega_parcial:
+        tipo_pago_visual = "sena"
+    elif cita_pagada_visual:
+        tipo_pago_visual = "pagado"
+    else:
+        tipo_pago_visual = "pendiente"
+
+    return {
+        "id": cita.id,
+        "patient_id": patient_id,
+        "hora_real": cita.hora,
+        "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+        "edad": edad,
+        "motivo": cita.motivo,
+        "motivo_slug": slugify(cita.motivo or ""),
+        "procedimientos": [p.nombre for p in cita.procedimientos.all()],
+        "estado": cita.get_estado_display(),
+        "estado_slug": cita.estado,
+        "pagado": cita_pagada_visual,
+        "tiene_pago_cobros": mostrar_pago_cobros,
+        "total_pagado": str(total_pagado_paciente),
+        "total_pagado_paciente": str(total_pagado_paciente),
+        "tipo_pago": tipo_pago_visual,
+        "monto_total": _decimal_seguro(cita.monto_total),
+        "total_cobrable_paciente": total_cobrable_paciente,
+        "debe": saldo_paciente,
+        "deuda_total_paciente": saldo_paciente,
+        "cobros_error": resumen.get("error"),
+    }
+
+
 def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
 
-    citas = (
+    citas = list(
         Appointment.objects.filter(fecha=fecha)
         .select_related("paciente")
         .prefetch_related("procedimientos")
         .order_by("hora")
     )
 
-    pacientes_unicos = {}
-    for cita in citas:
-        pacientes_unicos[cita.paciente.id] = cita.paciente
-
-    pacientes_pagados = obtener_pacientes_con_pago(
-        request,
-        list(pacientes_unicos.values())
-    )
-
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
+    patient_ids = []
+    pacientes_por_id = {}
+
+    for cita in citas:
+        patient_id = cita.paciente.id
+        pacientes_por_id[patient_id] = cita.paciente
+        if patient_id not in patient_ids:
+            patient_ids.append(patient_id)
+
+    resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
+
+    saldos_por_paciente = {}
+
+    for patient_id, paciente in pacientes_por_id.items():
+        total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
+        resumen_cobros = resumenes_cobros.get(patient_id, {})
+        total_pagado = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
+
+        saldo = total_cobrable - total_pagado
+        if saldo < 0:
+            saldo = Decimal("0")
+
+        saldos_por_paciente[patient_id] = {
+            "total_cobrable": total_cobrable,
+            "total_pagado": total_pagado,
+            "saldo": saldo,
+            "tipo_pago": resumen_cobros.get("tipo_pago", "pagado"),
+            "cantidad_pagos": resumen_cobros.get("cantidad_pagos", 0),
+            "error": resumen_cobros.get("error"),
+        }
+
     citas_por_bloque = agrupar_citas_por_bloque(citas)
-
     horarios = []
-    for h in generar_horarios():
 
+    for h in generar_horarios():
         if h.strftime("%H:%M") in HORARIOS_BLOQUEADOS:
             horarios.append({
                 "hora": h,
@@ -1332,40 +1626,42 @@ def agenda_day(request, day, month, year):
         citas_exactas = [c for c in citas_en_bloque if c.hora == h]
         citas_extra = [c for c in citas_en_bloque if c.hora != h]
 
+        citas_exactas_data = [
+            _armar_cita_agenda_rapida(cita, saldos_por_paciente)
+            for cita in citas_exactas
+        ]
+
+        citas_extra_data = [
+            _armar_cita_agenda_rapida(cita, saldos_por_paciente)
+            for cita in citas_extra
+        ]
+
         horarios.append({
             "hora": h,
             "ocupado_exacto": len(citas_exactas) > 0,
-            "citas_exactas": [
-                {
-                    "id": cita.id,
-                    "patient_id": cita.paciente.id,
-                    "hora_real": cita.hora,
-                    "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                    "motivo": cita.motivo,
-                    "motivo_slug": slugify(cita.motivo or ""),
-                    "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-                    "estado": cita.get_estado_display(),
-                    "estado_slug": cita.estado,
-                    "pagado": cita.paciente.id in pacientes_pagados,
-                }
-                for cita in citas_exactas
-            ],
-            "citas_extra": [
-                {
-                    "id": cita.id,
-                    "patient_id": cita.paciente.id,
-                    "hora_real": cita.hora,
-                    "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-                    "motivo": cita.motivo,
-                    "motivo_slug": slugify(cita.motivo or ""),
-                    "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-                    "estado": cita.get_estado_display(),
-                    "estado_slug": cita.estado,
-                    "pagado": cita.paciente.id in pacientes_pagados,
-                }
-                for cita in citas_extra
-            ],
+            "citas_exactas": citas_exactas_data,
+            "citas_extra": citas_extra_data,
         })
+
+    deudores = []
+    pacientes_ya_agregados = set()
+
+    for h in horarios:
+        if h.get("bloqueado"):
+            continue
+
+        for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
+            debe = _decimal_seguro(cita.get("debe", 0))
+            patient_id = cita.get("patient_id")
+
+            if debe > 0 and patient_id not in pacientes_ya_agregados:
+                deudores.append(cita)
+                pacientes_ya_agregados.add(patient_id)
+
+    total_deuda_dia = sum(
+        (_decimal_seguro(d.get("debe", 0)) for d in deudores),
+        Decimal("0")
+    )
 
     return render(
         request,
@@ -1373,8 +1669,26 @@ def agenda_day(request, day, month, year):
         {
             "fecha": fecha,
             "horarios": horarios,
+            "deudores": deudores,
+            "total_deuda_dia": total_deuda_dia,
         }
     )
+
+
+def _absolute_url(request, path_or_url):
+    """
+    Convierte una ruta relativa (/agenda/...) en URL absoluta.
+    Si ya viene absoluta, la devuelve tal cual.
+    """
+    if not path_or_url:
+        return ""
+
+    path_or_url = path_or_url.strip()
+
+    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        return path_or_url
+
+    return request.build_absolute_uri(path_or_url)
 
 
 def cobros_nuevo_desde_cita(request, appointment_id):
@@ -1383,29 +1697,38 @@ def cobros_nuevo_desde_cita(request, appointment_id):
         id=appointment_id
     )
 
-    scheme = "https" if request.is_secure() else "http"
-    current_host = request.get_host()          # ej: 192.168.1.7:8000
-    host_only = current_host.split(":")[0]     # ej: 192.168.1.7
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
 
-    cobros_port = getattr(settings, "SONRISAR_COBROS_PORT", "8001")
-    cobros_path = getattr(settings, "SONRISAR_COBROS_NUEVO_PATH", "/pagos/nuevo/")
-
-    paciente_nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".strip(", ")
-    next_path = request.GET.get("next", "").strip()
-
-    if next_path:
-        next_url = f"{scheme}://{current_host}{next_path}"
-    else:
-        next_url = ""
-
-    # URL de retorno a Sonrisar Pro, que marcará la cita como Asistió
-    confirmar_pago_url = (
-        f"{scheme}://{current_host}"
-        f"{reverse('confirmar_pago_desde_cobros')}?appointment_id={cita.id}"
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
     )
 
+    paciente_nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".strip(", ")
+
+    # Puede venir relativo o absoluto
+    next_param = request.GET.get("next", "").strip()
+    next_url = _absolute_url(request, next_param) if next_param else ""
+
+    # URL intermedia en Sonrisar Pro:
+    # Cobros guarda -> vuelve aquí -> aquí marcamos Asistió -> redirigimos al destino final
+    confirmar_pago_url = request.build_absolute_uri(
+        reverse("confirmar_pago_desde_cobros")
+    )
+
+    confirmar_params = {
+        "appointment_id": cita.id,
+    }
+
     if next_url:
-        confirmar_pago_url += f"&next={quote(next_url, safe='')}"
+        confirmar_params["next"] = next_url
+
+    confirmar_pago_url = f"{confirmar_pago_url}?{urlencode(confirmar_params)}"
 
     params = {
         "paciente": paciente_nombre,
@@ -1420,7 +1743,7 @@ def cobros_nuevo_desde_cita(request, appointment_id):
     if ci:
         params["ci"] = ci
 
-    cobros_url = f"{scheme}://{host_only}:{cobros_port}{cobros_path}?{urlencode(params)}"
+    cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
     return redirect(cobros_url)
 
 
@@ -1434,14 +1757,17 @@ def confirmar_pago_desde_cobros(request):
 
     cita = get_object_or_404(Appointment, id=appointment_id)
 
-    # No tocar citas canceladas
     if cita.estado != "cancelado":
-        # Solo actualiza si todavía no está en asistió
-        if cita.estado != "asistio":
-            cita.estado = "asistio"
-            cita.save(update_fields=["estado"])
+        cita.estado = "asistio"
 
-    messages.success(request, "Pago registrado y cita marcada como Asistió.")
+    cita.save()
+
+    cita.refresh_from_db()
+
+    messages.success(
+        request,
+        f"Pago registrado. Estado: {cita.estado} | Pagado: {cita.pagado}"
+    )
     return redirect(next_url or reverse("agenda_pro"))
 
 
@@ -1449,20 +1775,22 @@ def confirmar_pago_desde_cobros(request):
 def cobros_nuevo_desde_paciente(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
-    scheme = "https" if request.is_secure() else "http"
-    current_host = request.get_host()
-    host_only = current_host.split(":")[0]
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
 
-    cobros_port = getattr(settings, "SONRISAR_COBROS_PORT", "8001")
-    cobros_path = getattr(settings, "SONRISAR_COBROS_NUEVO_PATH", "/pagos/nuevo/")
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
 
     paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
-    next_path = request.GET.get("next", "").strip()
 
-    if next_path:
-        next_url = f"{scheme}://{current_host}{next_path}"
-    else:
-        next_url = ""
+    next_param = request.GET.get("next", "").strip()
+    next_url = _absolute_url(request, next_param) if next_param else ""
 
     params = {
         "paciente": paciente_nombre,
@@ -1477,16 +1805,17 @@ def cobros_nuevo_desde_paciente(request, patient_id):
     if next_url:
         params["next"] = next_url
 
-    cobros_url = f"{scheme}://{host_only}:{cobros_port}{cobros_path}?{urlencode(params)}"
+    cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
     return redirect(cobros_url)
 
 
 def obtener_pagos_cobros_paciente(request, paciente):
-    scheme = "https" if request.is_secure() else "http"
-    current_host = request.get_host()
-    host_only = current_host.split(":")[0]
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
 
-    cobros_port = getattr(settings, "SONRISAR_COBROS_PORT", "8001")
     cobros_api_path = getattr(
         settings,
         "SONRISAR_COBROS_API_PACIENTE_PATH",
@@ -1495,10 +1824,10 @@ def obtener_pagos_cobros_paciente(request, paciente):
 
     paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
 
-    api_url = f"{scheme}://{host_only}:{cobros_port}{cobros_api_path}?{urlencode({'paciente': paciente_nombre})}"
+    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'paciente': paciente_nombre})}"
 
     try:
-        with urlopen(api_url, timeout=4) as response:
+        with urlopen(api_url, timeout=6) as response:
             data = json.loads(response.read().decode("utf-8"))
 
         if data.get("ok"):
@@ -1508,8 +1837,98 @@ def obtener_pagos_cobros_paciente(request, paciente):
 
     except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
         return [], "No fue posible conectar con Sonrisar Cobros."
+        
 
+def obtener_pago_cobros_cita(
+    appointment_id,
+    patient_id=None
+):
 
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_CITA_PATH",
+        "/pagos/api/por-cita/"
+    )
+
+    params = {
+        "appointment_id": appointment_id,
+    }
+
+    # =====================================
+    # NUEVO
+    # =====================================
+    if patient_id:
+        params["patient_id"] = patient_id
+
+    api_url = (
+        f"{cobros_base_url}"
+        f"{cobros_api_path}"
+        f"?{urlencode(params)}"
+    )
+
+    try:
+
+        with urlopen(api_url, timeout=6) as response:
+
+            data = json.loads(
+                response.read().decode("utf-8")
+            )
+
+        total_pagado = Decimal(
+            str(data.get("total_pagado", 0))
+        )
+
+        if data.get("ok"):
+
+            return {
+                "tiene_pago": total_pagado > 0,
+                "total_pagado": str(total_pagado),
+                "tipo_pago": data.get(
+                    "tipo_pago",
+                    "pagado"
+                ),
+                "pagos": data.get(
+                    "pagos",
+                    []
+                ),
+                "error": None,
+            }
+
+        return {
+            "tiene_pago": False,
+            "total_pagado": "0",
+            "tipo_pago": "pagado",
+            "pagos": [],
+            "error": data.get(
+                "error",
+                "No se pudo obtener el pago."
+            ),
+        }
+
+    except (
+        URLError,
+        HTTPError,
+        TimeoutError,
+        ValueError,
+        json.JSONDecodeError
+    ):
+
+        return {
+            "tiene_pago": False,
+            "total_pagado": "0",
+            "tipo_pago": "pagado",
+            "pagos": [],
+            "error": (
+                "No fue posible conectar "
+                "con Sonrisar Cobros."
+            ),
+        }
 
 def obtener_pacientes_con_pago(request, pacientes):
     """
@@ -2245,7 +2664,7 @@ def inventory_list(request):
             Q(proveedor__icontains=query)
         )
 
-    paginator = Paginator(productos, 10)  # 👈 10 productos por página
+    paginator = Paginator(productos, 20)  # 👈 20 productos por página
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -2279,19 +2698,22 @@ def inventory_new(request):
 
 def inventory_edit(request, pk):
     producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
         form = InventoryForm(request.POST, instance=producto)
         if form.is_valid():
             form.save()
+            if next_url:
+                return redirect(next_url)
             return redirect("inventory_list")
     else:
         form = InventoryForm(instance=producto)
 
-    return render(request, "core/inventory_form.html", {
+    return render(request, "core/inventory_edit.html", {
         "form": form,
-        "modo": "editar",
-        "producto": producto
+        "producto": producto,
+        "next": next_url,
     })
 
 
@@ -2551,6 +2973,12 @@ def color_cita_por_motivo(motivo):
     if "colocación nueva" in m or "colocacion nueva" in m:
         return "#2563eb"  # azul
 
+    if "retiro" in m and "bracket" in m:
+        return "#795548"  # marrón
+
+    if "ajuste" in m and "limpieza" in m:
+        return "#00bfa5"  # verde agua
+
     if "endodoncia" in m:
         return "#8e24aa"  # lila
 
@@ -2771,7 +3199,306 @@ def agenda_pro(request):
     return render(request, "core/agenda_pro.html", contexto)
 
 
+def pacientes_inactivos(request):
+    dias = int(request.GET.get("dias", 90))
+    fecha_limite = timezone.now().date() - timedelta(days=dias)
+
+    pacientes = Patient.objects.annotate(
+        ultima_cita=Max("appointment__fecha")
+    ).filter(
+        ultima_cita__isnull=False,
+        ultima_cita__lt=fecha_limite
+    ).order_by("ultima_cita", "apellido", "nombre")
+
+    pacientes_con_dias = []
+    hoy = timezone.now().date()
+
+    for paciente in pacientes:
+        dias_sin_venir = (hoy - paciente.ultima_cita).days
+        pacientes_con_dias.append({
+            "id": paciente.id,
+            "apellido": paciente.apellido,
+            "nombre": paciente.nombre,
+            "telefono": getattr(paciente, "telefono", ""),
+            "ultima_cita": paciente.ultima_cita,
+            "dias_sin_venir": dias_sin_venir,
+        })
+
+    context = {
+        "pacientes": pacientes_con_dias,
+        "dias": dias,
+        "titulo": "Pacientes inactivos",
+    }
+    return render(request, "core/pacientes_inactivos.html", context)
+
+
+from django.http import FileResponse
+import os
+
+def descargar_backup(request):
+    ruta = "/opt/render/project/src/db_respaldo_cierre.sqlite3"
+    return FileResponse(open(ruta, 'rb'), as_attachment=True, filename='backup.sqlite3')
 
 
 
+def obtener_deuda_presupuestos_paciente(paciente):
+    presupuestos = Budget.objects.filter(
+        paciente=paciente,
+        estado="confirmado"
+    )
+
+    total = Decimal("0")
+
+    for p in presupuestos:
+        try:
+            saldo = p.saldo_pendiente or Decimal("0")
+        except:
+            saldo = Decimal("0")
+
+        if saldo > 0:
+            total += saldo
+
+    return total
+
+
+def deudores_general(request):
+    """
+    Pacientes deudores optimizado.
+    Antes esta pantalla consultaba Cobros una vez por cada cita (/pagos/api/por-cita/),
+    por eso la consola de Cobros no dejaba de cargar.
+
+    Ahora:
+    - Junta pacientes.
+    - Consulta Cobros una sola vez por patient_id.
+    - Calcula deuda real por paciente: total citas cobrables - total pagado.
+    """
+    query = request.GET.get("q", "").strip().lower()
+
+    citas = list(
+        Appointment.objects
+        .exclude(estado="cancelado")
+        .filter(monto_total__gt=0)
+        .select_related("paciente")
+        .order_by("fecha", "hora")[:300]
+    )
+
+    pacientes_por_id = {}
+    primera_cita_pendiente_por_id = {}
+    ultima_fecha_por_id = {}
+
+    for cita in citas:
+        paciente = cita.paciente
+        patient_id = paciente.id
+        nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
+
+        if query and query not in nombre:
+            continue
+
+        pacientes_por_id[patient_id] = paciente
+
+        if patient_id not in primera_cita_pendiente_por_id:
+            primera_cita_pendiente_por_id[patient_id] = cita
+
+        if patient_id not in ultima_fecha_por_id or cita.fecha > ultima_fecha_por_id[patient_id]:
+            ultima_fecha_por_id[patient_id] = cita.fecha
+
+    # Presupuestos confirmados también pueden generar deuda aunque no haya cita reciente.
+    presupuestos_confirmados = list(
+        Budget.objects
+        .filter(estado="confirmado")
+        .select_related("paciente")
+    )
+
+    deuda_presupuestos_por_id = {}
+
+    for presupuesto in presupuestos_confirmados:
+        paciente = presupuesto.paciente
+        patient_id = paciente.id
+        nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
+
+        if query and query not in nombre:
+            continue
+
+        try:
+            saldo = presupuesto.saldo_pendiente or Decimal("0")
+        except Exception:
+            saldo = Decimal("0")
+
+        if saldo <= 0:
+            continue
+
+        pacientes_por_id[patient_id] = paciente
+        deuda_presupuestos_por_id[patient_id] = deuda_presupuestos_por_id.get(patient_id, Decimal("0")) + saldo
+
+        if patient_id not in ultima_fecha_por_id:
+            ultima_fecha_por_id[patient_id] = presupuesto.fecha
+
+    patient_ids = list(pacientes_por_id.keys())
+    resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
+
+    deudores = []
+
+    for patient_id, paciente in pacientes_por_id.items():
+        total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
+        total_pagado = _decimal_seguro(
+            resumenes_cobros.get(patient_id, {}).get("total_pagado", 0)
+        )
+
+        deuda_citas = total_cobrable - total_pagado
+        if deuda_citas < 0:
+            deuda_citas = Decimal("0")
+
+        deuda_presupuestos = deuda_presupuestos_por_id.get(patient_id, Decimal("0"))
+        deuda_total = deuda_citas + deuda_presupuestos
+
+        if deuda_total <= 0:
+            continue
+
+        cita_pendiente = primera_cita_pendiente_por_id.get(patient_id)
+
+        deudores.append({
+            "patient_id": patient_id,
+            "paciente": f"{paciente.apellido}, {paciente.nombre}",
+            "deuda_citas": deuda_citas,
+            "deuda_presupuestos": deuda_presupuestos,
+            "deuda_total": deuda_total,
+            "ultima_fecha": ultima_fecha_por_id.get(patient_id),
+            "cita_pendiente_id": cita_pendiente.id if cita_pendiente else None,
+        })
+
+    deudores.sort(key=lambda x: x["deuda_total"], reverse=True)
+
+    total_general = sum(
+        (d["deuda_total"] for d in deudores),
+        Decimal("0")
+    )
+
+    return render(
+        request,
+        "core/deudores_general.html",
+        {
+            "deudores": deudores,
+            "total_general": total_general,
+            "query": query,
+        }
+    )
+
+def patient_finances(request, id):
+    """
+    Ficha financiera del paciente.
+
+    Pantalla liviana:
+    - Usa datos locales de Sonrisar Pro para citas/presupuestos.
+    - Consulta Sonrisar Cobros una sola vez para total pagado por patient_id.
+    - No llama a Cobros por cada cita ni por cada pago.
+    """
+    paciente = get_object_or_404(Patient, id=id)
+
+    citas_cobrables = list(
+        Appointment.objects
+        .filter(paciente=paciente, monto_total__gt=0)
+        .exclude(estado="cancelado")
+        .prefetch_related("procedimientos")
+        .order_by("-fecha", "-hora")
+    )
+
+    total_citas = Decimal("0")
+    for cita in citas_cobrables:
+        total_citas += _decimal_seguro(cita.monto_total)
+
+    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
+    total_pagado_cobros = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
+
+    saldo_actual = total_citas - total_pagado_cobros
+    if saldo_actual < 0:
+        saldo_actual = Decimal("0")
+
+    presupuestos = list(
+        Budget.objects
+        .filter(paciente=paciente)
+        .prefetch_related("items", "pagos")
+        .order_by("-fecha", "-id")
+    )
+
+    estados_aceptados = {"confirmado", "en_proceso", "entregado"}
+
+    total_presupuestos_aceptados = Decimal("0")
+    total_pagado_presupuestos = Decimal("0")
+    saldo_presupuestos = Decimal("0")
+    presupuestos_data = []
+    movimientos_presupuesto = []
+
+    for presupuesto in presupuestos:
+        total_presupuesto = _decimal_seguro(presupuesto.total)
+        total_pagado = _decimal_seguro(presupuesto.total_pagado)
+        saldo = total_presupuesto - total_pagado
+
+        if saldo < 0:
+            saldo = Decimal("0")
+
+        if presupuesto.estado in estados_aceptados:
+            total_presupuestos_aceptados += total_presupuesto
+            total_pagado_presupuestos += total_pagado
+            saldo_presupuestos += saldo
+
+        presupuestos_data.append({
+            "id": presupuesto.id,
+            "fecha": presupuesto.fecha,
+            "diagnostico": presupuesto.diagnostico,
+            "estado": presupuesto.estado,
+            "estado_display": presupuesto.get_estado_display(),
+            "total": total_presupuesto,
+            "total_pagado": total_pagado,
+            "saldo": saldo,
+            "aceptado": presupuesto.estado in estados_aceptados,
+        })
+
+        for pago in presupuesto.pagos.all():
+            movimientos_presupuesto.append({
+                "fecha": pago.fecha,
+                "tipo": pago.get_tipo_display(),
+                "concepto": pago.observacion or f"Pago presupuesto #{presupuesto.id}",
+                "metodo": pago.get_metodo_pago_display() if pago.metodo_pago else "—",
+                "monto": _decimal_seguro(pago.monto),
+                "presupuesto_id": presupuesto.id,
+            })
+
+    movimientos_presupuesto.sort(
+        key=lambda m: (m["fecha"], m["presupuesto_id"]),
+        reverse=True,
+    )
+
+    citas_data = []
+    for cita in citas_cobrables[:60]:
+        procedimientos = ", ".join([p.nombre for p in cita.procedimientos.all()])
+        citas_data.append({
+            "id": cita.id,
+            "fecha": cita.fecha,
+            "hora": cita.hora,
+            "motivo": cita.motivo,
+            "procedimientos": procedimientos,
+            "estado": cita.estado,
+            "estado_display": cita.get_estado_display(),
+            "monto_total": _decimal_seguro(cita.monto_total),
+        })
+
+    return render(
+        request,
+        "core/patient_finances.html",
+        {
+            "paciente": paciente,
+            "total_citas": total_citas,
+            "total_pagado_cobros": total_pagado_cobros,
+            "saldo_actual": saldo_actual,
+            "cobros_error": resumen_cobros.get("error"),
+            "cobros_ok": resumen_cobros.get("ok", False),
+            "cantidad_pagos_cobros": resumen_cobros.get("cantidad_pagos", 0),
+            "total_presupuestos_aceptados": total_presupuestos_aceptados,
+            "total_pagado_presupuestos": total_pagado_presupuestos,
+            "saldo_presupuestos": saldo_presupuestos,
+            "presupuestos": presupuestos_data,
+            "movimientos_presupuesto": movimientos_presupuesto,
+            "citas": citas_data,
+        }
+    )
 
