@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from datetime import date, time, timedelta, datetime
-
+import requests
 from django.utils.text import slugify
 
 import calendar
@@ -1408,7 +1408,7 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
     cobros_base_url = getattr(
         settings,
         "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros.onrender.com"
+        "https://sonrisar-cobros-1.onrender.com"
     ).rstrip("/")
 
     cobros_api_path = getattr(
@@ -1417,14 +1417,20 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
         "/pagos/api/resumen-pacientes/"
     )
 
-    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'patient_ids': ','.join(str(x) for x in patient_ids_limpios)})}"
+    api_url = (
+        f"{cobros_base_url}"
+        f"{cobros_api_path}"
+        f"?{urlencode({'patient_ids': ','.join(str(x) for x in patient_ids_limpios)})}"
+    )
 
     try:
-        with urlopen(api_url, timeout=6) as response:
-            data = json.loads(response.read().decode("utf-8"))
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
 
-        print("DEBUG COBROS patient_ids:", patient_ids)
+        print("DEBUG COBROS patient_ids:", patient_ids_limpios)
         print("DEBUG COBROS api_url:", api_url)
+        print("DEBUG COBROS status:", response.status_code)
         print("DEBUG COBROS data:", data)
 
         if not data.get("ok"):
@@ -1434,6 +1440,7 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
 
         for item in data.get("pacientes", []):
             patient_id = item.get("patient_id")
+
             if patient_id is None:
                 continue
 
@@ -1452,16 +1459,17 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
 
         return resumenes
 
-    except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
-        # Si Cobros no responde, devolvemos saldo 0 pagado para no trabar la agenda.
-        # La agenda igual carga, pero mostrará la deuda sin descuento de Cobros.
+    except Exception as e:
+        print("ERROR CONECTANDO COBROS:", str(e))
+        print("ERROR COBROS api_url:", api_url)
+
         return {
             patient_id: {
                 "ok": False,
                 "total_pagado": Decimal("0"),
                 "tipo_pago": "pagado",
                 "cantidad_pagos": 0,
-                "error": "No fue posible conectar con Sonrisar Cobros.",
+                "error": f"No fue posible conectar con Sonrisar Cobros: {str(e)}",
             }
             for patient_id in patient_ids_limpios
         }
@@ -1594,7 +1602,7 @@ def agenda_day(request, day, month, year):
 
     resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
     print("DEBUG RESUMENES COBROS AGENDA:", resumenes_cobros)
-    
+
     saldos_por_paciente = {}
 
     for patient_id, paciente in pacientes_por_id.items():
