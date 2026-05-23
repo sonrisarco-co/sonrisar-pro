@@ -1593,7 +1593,8 @@ def agenda_day(request, day, month, year):
             patient_ids.append(patient_id)
 
     resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
-
+    print("DEBUG RESUMENES COBROS AGENDA:", resumenes_cobros)
+    
     saldos_por_paciente = {}
 
     for patient_id, paciente in pacientes_por_id.items():
