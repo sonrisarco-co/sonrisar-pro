@@ -3502,3 +3502,4 @@ def patient_finances(request, id):
         }
     )
 
+ 
