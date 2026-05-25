@@ -56,6 +56,7 @@ from .models import (
     RayosX,
     BudgetPayment,
     OdontogramTooth,
+    DayBlock,
 )
 
 from .forms import (
@@ -308,6 +309,7 @@ def appointment_new(request):
     paciente_id = request.GET.get("paciente_id")
 
     next_url = request.GET.get("next") or request.POST.get("next")
+
     if not next_url:
         next_url = reverse("agenda_calendar")
 
@@ -322,11 +324,45 @@ def appointment_new(request):
     if paciente_id:
         initial_data["paciente"] = paciente_id
 
+    # 🚫 VALIDAR HORARIOS BLOQUEADOS
+    if hora in ["14:00", "14:30"]:
+        messages.error(request, "Ese horario está bloqueado.")
+        return redirect(next_url)
+
+    # 🚫 VALIDAR DÍA BLOQUEADO
+    if fecha:
+        try:
+            fecha_obj = datetime.strptime(fecha, "%Y-%m-%d").date()
+
+            if DayBlock.objects.filter(fecha=fecha_obj).exists():
+                messages.error(request, "Ese día está bloqueado.")
+                return redirect(next_url)
+
+        except Exception:
+            pass
+
     if request.method == "POST":
         form = AppointmentForm(request.POST)
 
         if form.is_valid():
-            form.save()
+
+            nueva_cita = form.save(commit=False)
+
+            # 🚫 VALIDAR HORARIO EN POST
+            hora_cita = nueva_cita.hora.strftime("%H:%M")
+
+            if hora_cita in ["14:00", "14:30"]:
+                messages.error(request, "Ese horario está bloqueado.")
+                return redirect(next_url)
+
+            # 🚫 VALIDAR DÍA BLOQUEADO
+            if DayBlock.objects.filter(fecha=nueva_cita.fecha).exists():
+                messages.error(request, "Ese día está bloqueado.")
+                return redirect(next_url)
+
+            nueva_cita.save()
+            form.save_m2m()
+
             return redirect(next_url)
 
     else:
@@ -409,32 +445,60 @@ def appointment_delete(request, id):
 
 @require_POST
 def appointment_move_time(request, id):
+
     cita = get_object_or_404(Appointment, id=id)
 
     hora_str = request.POST.get("hora", "").strip()
     fecha_str = request.POST.get("fecha", "").strip()
 
     if not hora_str:
-        return JsonResponse({"success": False, "error": "Hora no recibida."}, status=400)
+        return JsonResponse({
+            "success": False,
+            "error": "Hora no recibida."
+        }, status=400)
 
     if not fecha_str:
-        return JsonResponse({"success": False, "error": "Fecha no recibida."}, status=400)
+        return JsonResponse({
+            "success": False,
+            "error": "Fecha no recibida."
+        }, status=400)
 
+    # 🚫 BLOQUEO DESCANSO
     if hora_str in {"14:00", "14:30"}:
-        return JsonResponse({"success": False, "error": "Ese horario está bloqueado."}, status=400)
+        return JsonResponse({
+            "success": False,
+            "error": "Ese horario está bloqueado."
+        }, status=400)
 
     try:
         nueva_hora = datetime.strptime(hora_str, "%H:%M").time()
     except ValueError:
-        return JsonResponse({"success": False, "error": "Formato de hora inválido."}, status=400)
+        return JsonResponse({
+            "success": False,
+            "error": "Formato de hora inválido."
+        }, status=400)
 
     try:
-        nueva_fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        nueva_fecha = datetime.strptime(
+            fecha_str,
+            "%Y-%m-%d"
+        ).date()
     except ValueError:
-        return JsonResponse({"success": False, "error": "Formato de fecha inválido."}, status=400)
+        return JsonResponse({
+            "success": False,
+            "error": "Formato de fecha inválido."
+        }, status=400)
+
+    # 🚫 DÍA BLOQUEADO
+    if DayBlock.objects.filter(fecha=nueva_fecha).exists():
+        return JsonResponse({
+            "success": False,
+            "error": "Ese día está bloqueado."
+        }, status=400)
 
     cita.hora = nueva_hora
     cita.fecha = nueva_fecha
+
     cita.save(update_fields=["hora", "fecha"])
 
     return JsonResponse({"success": True})
@@ -1578,6 +1642,10 @@ def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
     print("DEBUG AGENDA_DAY EJECUTADA", fecha)
 
+    dia_bloqueado = DayBlock.objects.filter(
+        fecha=fecha
+    ).first()
+
     citas = list(
         Appointment.objects.filter(fecha=fecha)
         .select_related("paciente")
@@ -1593,6 +1661,7 @@ def agenda_day(request, day, month, year):
     for cita in citas:
         patient_id = cita.paciente.id
         pacientes_por_id[patient_id] = cita.paciente
+
         if patient_id not in patient_ids:
             patient_ids.append(patient_id)
 
@@ -1607,6 +1676,7 @@ def agenda_day(request, day, month, year):
         total_pagado = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
 
         saldo = total_cobrable - total_pagado
+
         if saldo < 0:
             saldo = Decimal("0")
 
@@ -1620,21 +1690,45 @@ def agenda_day(request, day, month, year):
         }
 
     citas_por_bloque = agrupar_citas_por_bloque(citas)
+
     horarios = []
 
     for h in generar_horarios():
-        if h.strftime("%H:%M") in HORARIOS_BLOQUEADOS:
+        hora_txt = h.strftime("%H:%M")
+
+        if dia_bloqueado:
+            horarios.append({
+                "hora": h,
+                "bloqueado": True,
+                "motivo": dia_bloqueado.motivo or "Día bloqueado",
+                "ocupado_exacto": False,
+                "citas_exactas": [],
+                "citas_extra": [],
+            })
+            continue
+
+        if hora_txt in HORARIOS_BLOQUEADOS:
             horarios.append({
                 "hora": h,
                 "bloqueado": True,
                 "motivo": "Descanso",
+                "ocupado_exacto": False,
+                "citas_exactas": [],
+                "citas_extra": [],
             })
             continue
 
         citas_en_bloque = citas_por_bloque.get(h, [])
 
-        citas_exactas = [c for c in citas_en_bloque if c.hora == h]
-        citas_extra = [c for c in citas_en_bloque if c.hora != h]
+        citas_exactas = [
+            c for c in citas_en_bloque
+            if c.hora == h
+        ]
+
+        citas_extra = [
+            c for c in citas_en_bloque
+            if c.hora != h
+        ]
 
         citas_exactas_data = [
             _armar_cita_agenda_rapida(cita, saldos_por_paciente)
@@ -1648,6 +1742,8 @@ def agenda_day(request, day, month, year):
 
         horarios.append({
             "hora": h,
+            "bloqueado": False,
+            "motivo": "",
             "ocupado_exacto": len(citas_exactas) > 0,
             "citas_exactas": citas_exactas_data,
             "citas_extra": citas_extra_data,
@@ -1656,17 +1752,18 @@ def agenda_day(request, day, month, year):
     deudores = []
     pacientes_ya_agregados = set()
 
-    for h in horarios:
-        if h.get("bloqueado"):
-            continue
+    if not dia_bloqueado:
+        for h in horarios:
+            if h.get("bloqueado"):
+                continue
 
-        for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
-            debe = _decimal_seguro(cita.get("debe", 0))
-            patient_id = cita.get("patient_id")
+            for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
+                debe = _decimal_seguro(cita.get("debe", 0))
+                patient_id = cita.get("patient_id")
 
-            if debe > 0 and patient_id not in pacientes_ya_agregados:
-                deudores.append(cita)
-                pacientes_ya_agregados.add(patient_id)
+                if debe > 0 and patient_id not in pacientes_ya_agregados:
+                    deudores.append(cita)
+                    pacientes_ya_agregados.add(patient_id)
 
     total_deuda_dia = sum(
         (_decimal_seguro(d.get("debe", 0)) for d in deudores),
@@ -1681,6 +1778,7 @@ def agenda_day(request, day, month, year):
             "horarios": horarios,
             "deudores": deudores,
             "total_deuda_dia": total_deuda_dia,
+            "dia_bloqueado": dia_bloqueado,
         }
     )
 
@@ -2198,14 +2296,10 @@ def confirmar_envio(request):
 
 # VISTA DEL CALENDARIO MENSUAL
 def agenda_mensual_calendario(request):
-    # Obtener mes y año desde GET (si están)
     hoy = date.today()
     year = int(request.GET.get("year", hoy.year))
     month = int(request.GET.get("month", hoy.month))
 
-    # -------------------------------
-    # 🔍 BUSCADOR
-    # -------------------------------
     q = request.GET.get("q", "").strip()
     resultados = None
 
@@ -2217,9 +2311,6 @@ def agenda_mensual_calendario(request):
             Q(motivo__icontains=q)
         ).select_related("paciente").order_by("fecha", "hora")
 
-    # -------------------------------
-    # 📅 CALENDARIO
-    # -------------------------------
     cal = calendar.Calendar(firstweekday=0)
     semanas = cal.monthdayscalendar(year, month)
 
@@ -2237,34 +2328,53 @@ def agenda_mensual_calendario(request):
         dia = cita.fecha.day
         citas_por_dia.setdefault(dia, []).append(cita)
 
-    # ✅ NUEVO: slots (ocupado/libre) para TODOS los días del mes
-    horarios_base = generar_horarios()  # 09:00 -> 19:30 c/30min
-    slots_por_dia = {}
+    bloqueos_mes = DayBlock.objects.filter(
+        fecha__year=year,
+        fecha__month=month
+    )
 
-    # 🔴 HORARIOS BLOQUEADOS FIJOS
+    bloqueos_por_dia = {
+        bloqueo.fecha.day: bloqueo
+        for bloqueo in bloqueos_mes
+    }
+
+    horarios_base = generar_horarios()
+    slots_por_dia = {}
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
-    # Días que realmente aparecen en la grilla
     dias_en_grilla = set()
     for semana in semanas:
         for d in semana:
             if d != 0:
                 dias_en_grilla.add(d)
 
-    # Construimos slots para cada día del mes visible
     for d in dias_en_grilla:
+        dia_bloqueado = bloqueos_por_dia.get(d)
         citas_del_dia = citas_por_dia.get(d, [])
         citas_por_bloque = agrupar_citas_por_bloque(citas_del_dia)
 
         slots = []
+
         for h in horarios_base:
             hora_txt = h.strftime("%H:%M")
+
+            if dia_bloqueado:
+                slots.append({
+                    "hora": h,
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "motivo_bloqueo": dia_bloqueado.motivo or "Día bloqueado",
+                    "citas": [],
+                })
+                continue
 
             if hora_txt in HORARIOS_BLOQUEADOS:
                 slots.append({
                     "hora": h,
+                    "ocupado": False,
                     "bloqueado": True,
-                    "motivo": "Descanso",
+                    "motivo_bloqueo": "Descanso",
+                    "citas": [],
                 })
                 continue
 
@@ -2274,6 +2384,7 @@ def agenda_mensual_calendario(request):
                 slots.append({
                     "hora": h,
                     "ocupado": True,
+                    "bloqueado": False,
                     "citas": [
                         {
                             "id": c.id,
@@ -2284,23 +2395,20 @@ def agenda_mensual_calendario(request):
                             "estado": c.estado,
                         }
                         for c in citas_en_bloque
-                    ]
-
+                    ],
                 })
             else:
                 slots.append({
                     "hora": h,
                     "ocupado": False,
+                    "bloqueado": False,
+                    "citas": [],
                 })
 
         slots_por_dia[d] = slots
 
-    # ✅ FIX: claves como string para el template
     slots_por_dia_str = {str(k): v for k, v in slots_por_dia.items()}
 
-    # -------------------------------
-    # ◀▶ Mes anterior / siguiente
-    # -------------------------------
     prev_month = month - 1
     prev_year = year
     if prev_month == 0:
@@ -2315,41 +2423,30 @@ def agenda_mensual_calendario(request):
 
     MESES = [
         "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"
     ]
-
-    nombre_mes = MESES[month]
-
-    # -------------------------------
-    # CONTEXTO
-    # -------------------------------
-    context = {
-        "hoy": hoy,
-        "year": year,
-        "month": month,
-        "nombre_mes": nombre_mes,
-        "semanas": semanas,
-
-        "citas_por_dia": citas_por_dia,
-
-        "slots_por_dia": slots_por_dia,
-        "slots_por_dia_str": slots_por_dia_str,
-
-        "prev_month": prev_month,
-        "prev_year": prev_year,
-        "next_month": next_month,
-        "next_year": next_year,
-
-        "q": q,
-        "resultados": resultados,
-    }
 
     return render(
         request,
         "core/agenda_mensual_calendario.html",
-        context
+        {
+            "hoy": hoy,
+            "year": year,
+            "month": month,
+            "nombre_mes": MESES[month],
+            "semanas": semanas,
+            "citas_por_dia": citas_por_dia,
+            "slots_por_dia": slots_por_dia,
+            "slots_por_dia_str": slots_por_dia_str,
+            "bloqueos_por_dia": bloqueos_por_dia,
+            "prev_month": prev_month,
+            "prev_year": prev_year,
+            "next_month": next_month,
+            "next_year": next_year,
+            "q": q,
+            "resultados": resultados,
+        }
     )
-
 
 # ENDPOINT JSON PARA FULLCALENDAR
 
@@ -3021,10 +3118,24 @@ def agenda_pro(request):
         fecha_base = hoy
 
     inicio_semana = fecha_base - timedelta(days=fecha_base.weekday())
-    fin_semana = inicio_semana + timedelta(days=5)  # lunes a sábado
+    fin_semana = inicio_semana + timedelta(days=5)
 
     dias = [inicio_semana + timedelta(days=i) for i in range(6)]
     horarios = generar_horarios()
+
+    bloqueos_semana = DayBlock.objects.filter(
+        fecha__range=[inicio_semana, fin_semana]
+    )
+
+    bloqueos_por_dia = {
+        bloqueo.fecha: bloqueo
+        for bloqueo in bloqueos_semana
+    }
+
+    bloqueos_por_dia_str = {
+        bloqueo.fecha.strftime("%Y-%m-%d"): bloqueo
+        for bloqueo in bloqueos_semana
+    }
 
     citas_semana = (
         Appointment.objects
@@ -3047,39 +3158,77 @@ def agenda_pro(request):
 
         citas_semana = citas_semana.filter(filtro)
 
-    citas_por_dia = {}
-    for dia in dias:
-        citas_dia = [c for c in citas_semana if c.fecha == dia]
-        citas_por_dia[dia] = agrupar_citas_por_bloque(citas_dia)
+    citas_semana = list(citas_semana)
+
+    citas_por_dia = {
+        dia: {}
+        for dia in dias
+    }
+
+    for cita in citas_semana:
+        if cita.fecha not in citas_por_dia:
+            citas_por_dia[cita.fecha] = {}
+
+        bloque = floor_to_30_minutes(cita.hora)
+
+        if bloque not in citas_por_dia[cita.fecha]:
+            citas_por_dia[cita.fecha][bloque] = []
+
+        citas_por_dia[cita.fecha][bloque].append(cita)
+
+    for dia in citas_por_dia:
+        for bloque in citas_por_dia[dia]:
+            citas_por_dia[dia][bloque].sort(key=lambda c: c.hora)
 
     filas = []
+
     for hora in horarios:
         celdas = []
 
         for dia in dias:
+            dia_bloqueado = bloqueos_por_dia.get(dia)
             citas_en_bloque = citas_por_dia.get(dia, {}).get(hora, [])
+
+            if dia_bloqueado:
+                celdas.append({
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "motivo_bloqueo": dia_bloqueado.motivo or "Día bloqueado",
+                    "citas": [],
+                    "fecha": dia,
+                    "hora": hora,
+                })
+                continue
 
             if citas_en_bloque:
                 citas_preparadas = []
+
                 for cita in citas_en_bloque:
                     citas_preparadas.append({
                         "id": cita.id,
                         "paciente": cita.paciente,
                         "motivo": cita.motivo,
-                        "procedimientos": [p.nombre for p in cita.procedimientos.all()],
+                        "procedimientos": [
+                            p.nombre for p in cita.procedimientos.all()
+                        ],
                         "hora": cita.hora,
                         "color": color_cita_por_motivo(cita.motivo),
                     })
 
                 celdas.append({
                     "ocupado": True,
+                    "bloqueado": False,
+                    "motivo_bloqueo": "",
                     "citas": citas_preparadas,
                     "fecha": dia,
                     "hora": hora,
                 })
+
             else:
                 celdas.append({
                     "ocupado": False,
+                    "bloqueado": False,
+                    "motivo_bloqueo": "",
                     "citas": [],
                     "fecha": dia,
                     "hora": hora,
@@ -3091,6 +3240,7 @@ def agenda_pro(request):
         })
 
     resultados_paciente = []
+
     if q:
         palabras = q.split()
 
@@ -3108,105 +3258,108 @@ def agenda_pro(request):
             .filter(filtro)
             .select_related("paciente")
             .prefetch_related("procedimientos")
-            .order_by("-fecha", "-hora")
+            .order_by("-fecha", "-hora")[:80]
         )
 
     semana_anterior = inicio_semana - timedelta(days=7)
     semana_siguiente = inicio_semana + timedelta(days=7)
 
-    # =========================
-    # MINI ALMANAQUE (1 mes)
-    # =========================
     mini_fecha_str = request.GET.get("mini_fecha")
+
     if mini_fecha_str:
         try:
-            mini_fecha_base = datetime.strptime(mini_fecha_str, "%Y-%m-%d").date()
+            mini_fecha_base = datetime.strptime(
+                mini_fecha_str,
+                "%Y-%m-%d"
+            ).date()
         except ValueError:
             mini_fecha_base = fecha_base
     else:
         mini_fecha_base = fecha_base
 
-    def construir_mes(anio, mes):
-        cal = calendar.Calendar(firstweekday=0)  # lunes
-        semanas_crudas = cal.monthdayscalendar(anio, mes)
+    mini_prev_date = (
+        mini_fecha_base.replace(day=1) - timedelta(days=1)
+    ).replace(day=1)
 
-        citas_mes = Appointment.objects.filter(
-            fecha__year=anio,
-            fecha__month=mes
-        ).values_list("fecha", flat=True)
-
-        dias_con_citas = {f.day for f in citas_mes}
-
-        semanas = []
-        for semana in semanas_crudas:
-            fila = []
-            for d in semana:
-                if d == 0:
-                    fila.append(None)
-                else:
-                    fecha_real = date(anio, mes, d)
-                    fila.append({
-                        "day": d,
-                        "date": fecha_real,
-                        "is_today": fecha_real == hoy,
-                        "is_selected": fecha_real == fecha_base,
-                        "has_appointments": d in dias_con_citas,
-                    })
-            semanas.append(fila)
-
-        meses_es = {
-            1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
-            5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
-            9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
-        }
-
-        return {
-            "year": anio,
-            "month": mes,
-            "label": f"{meses_es[mes]} {anio}",
-            "weeks": semanas,
-        }
-
-    mini_mes_actual_num = mini_fecha_base.month
-    mini_anio_actual = mini_fecha_base.year
-
-    if mini_mes_actual_num == 1:
-        mini_prev_month = 12
-        mini_prev_year = mini_anio_actual - 1
+    if mini_fecha_base.month == 12:
+        mini_next_date = mini_fecha_base.replace(
+            year=mini_fecha_base.year + 1,
+            month=1,
+            day=1
+        )
     else:
-        mini_prev_month = mini_mes_actual_num - 1
-        mini_prev_year = mini_anio_actual
+        mini_next_date = mini_fecha_base.replace(
+            month=mini_fecha_base.month + 1,
+            day=1
+        )
 
-    if mini_mes_actual_num == 12:
-        mini_next_month = 1
-        mini_next_year = mini_anio_actual + 1
-    else:
-        mini_next_month = mini_mes_actual_num + 1
-        mini_next_year = mini_anio_actual
+    mini_cal = calendar.Calendar(firstweekday=0)
+    mini_weeks_raw = mini_cal.monthdatescalendar(
+        mini_fecha_base.year,
+        mini_fecha_base.month
+    )
 
-    mini_mes_actual = construir_mes(mini_anio_actual, mini_mes_actual_num)
+    mini_inicio = mini_weeks_raw[0][0]
+    mini_fin = mini_weeks_raw[-1][-1]
 
-    mini_prev_date = date(mini_prev_year, mini_prev_month, 1)
-    mini_next_date = date(mini_next_year, mini_next_month, 1)
+    fechas_con_citas = set(
+        Appointment.objects
+        .filter(fecha__range=[mini_inicio, mini_fin])
+        .values_list("fecha", flat=True)
+    )
 
-    contexto = {
-        "dias": dias,
-        "filas": filas,
-        "inicio_semana": inicio_semana,
-        "fin_semana": fin_semana,
-        "semana_anterior": semana_anterior,
-        "semana_siguiente": semana_siguiente,
-        "hoy": hoy,
-        "q": q,
-        "resultados_paciente": resultados_paciente,
-        "fecha_base": fecha_base,
-        "mini_mes_actual": mini_mes_actual,
-        "mini_prev_date": mini_prev_date,
-        "mini_next_date": mini_next_date,
-        "mini_fecha_base": mini_fecha_base,
+    mini_weeks = []
+
+    for semana in mini_weeks_raw:
+        fila_semana = []
+
+        for dia in semana:
+            if dia.month != mini_fecha_base.month:
+                fila_semana.append(None)
+                continue
+
+            fila_semana.append({
+                "date": dia,
+                "day": dia.day,
+                "is_today": dia == hoy,
+                "is_selected": dia == fecha_base,
+                "has_appointments": dia in fechas_con_citas,
+            })
+
+        mini_weeks.append(fila_semana)
+
+    MESES = [
+        "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    mini_mes_actual = {
+        "label": f"{MESES[mini_fecha_base.month]} {mini_fecha_base.year}",
+        "weeks": mini_weeks,
     }
 
-    return render(request, "core/agenda_pro.html", contexto)
+    return render(
+        request,
+        "core/agenda_pro.html",
+        {
+            "fecha_base": fecha_base,
+            "inicio_semana": inicio_semana,
+            "fin_semana": fin_semana,
+            "dias": dias,
+            "filas": filas,
+            "semana_anterior": semana_anterior,
+            "semana_siguiente": semana_siguiente,
+            "q": q,
+            "resultados_paciente": resultados_paciente,
+            "mini_fecha_base": mini_fecha_base,
+            "mini_prev_date": mini_prev_date,
+            "mini_next_date": mini_next_date,
+            "mini_mes_actual": mini_mes_actual,
+            "bloqueos_por_dia": bloqueos_por_dia,
+            "bloqueos_por_dia_str": bloqueos_por_dia_str,
+        }
+    )
+
 
 
 def pacientes_inactivos(request):
@@ -3514,3 +3667,75 @@ def patient_finances(request, id):
 
  
 # FINANZAS_2026_05_23 
+
+
+# ============================
+# BLOQUEAR / DESBLOQUEAR DÍA
+# ============================
+
+@require_POST
+def bloquear_dia(request):
+
+    fecha = request.POST.get("fecha")
+    motivo = request.POST.get("motivo", "Día bloqueado")
+
+    if not fecha:
+        messages.error(request, "Fecha inválida.")
+        return redirect("agenda_pro")
+
+    try:
+        fecha_obj = datetime.strptime(
+            fecha,
+            "%Y-%m-%d"
+        ).date()
+
+    except ValueError:
+        messages.error(request, "Fecha inválida.")
+        return redirect("agenda_pro")
+
+    DayBlock.objects.get_or_create(
+        fecha=fecha_obj,
+        defaults={
+            "motivo": motivo
+        }
+    )
+
+    messages.success(
+        request,
+        "Día bloqueado correctamente."
+    )
+
+    return redirect(
+        f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}"
+    )
+
+
+@require_POST
+def desbloquear_dia(request):
+
+    fecha = request.POST.get("fecha")
+
+    if not fecha:
+        return redirect("agenda_pro")
+
+    try:
+        fecha_obj = datetime.strptime(
+            fecha,
+            "%Y-%m-%d"
+        ).date()
+
+    except ValueError:
+        return redirect("agenda_pro")
+
+    DayBlock.objects.filter(
+        fecha=fecha_obj
+    ).delete()
+
+    messages.success(
+        request,
+        "Día desbloqueado."
+    )
+
+    return redirect(
+        f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}"
+    )

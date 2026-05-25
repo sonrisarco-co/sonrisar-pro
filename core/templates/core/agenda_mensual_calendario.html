@@ -109,7 +109,7 @@
                                         {% if s.bloqueado %}
                                             <div class="calendar-slot bloqueado">
                                                 <small class="text-muted">{{ s.hora|time:"H:i" }}</small><br>
-                                                <strong>{{ s.motivo|default:"Bloqueado" }}</strong>
+                                                <strong>{{ s.motivo_bloqueo|default:"Bloqueado" }}</strong>
                                             </div>
 
                                         {% elif s.ocupado %}

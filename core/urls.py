@@ -41,6 +41,8 @@ urlpatterns = [
 
     path("agenda/", views.agenda_hoy, name="agenda"),
     path("agenda/agenda-pro/", views.agenda_pro, name="agenda_pro"),
+    path("agenda/bloquear-dia/", views.bloquear_dia, name="bloquear_dia"),
+    path("agenda/desbloquear-dia/", views.desbloquear_dia, name="desbloquear_dia"),
     path("agenda/semana/", views.agenda_week, name="agenda_week"),
     path("agenda/mensual/", views.agenda_month, name="agenda_month"),
 

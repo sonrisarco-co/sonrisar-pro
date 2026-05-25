@@ -66,6 +66,23 @@ class Appointment(models.Model):
         return f"{self.paciente} - {self.fecha} {self.hora}"
 
 
+# 🚫 BLOQUEO DE DÍAS
+
+class DayBlock(models.Model):
+    fecha = models.DateField(unique=True)
+
+    motivo = models.CharField(
+        max_length=200,
+        default="Día bloqueado"
+    )
+
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha"]
+
+    def __str__(self):
+        return f"{self.fecha} - {self.motivo}"
 
 
 # 📋 HISTORIA CLÍNICA

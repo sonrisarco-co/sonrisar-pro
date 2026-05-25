@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load get_item %}
 {% block title %}Calendario Sonrisar Pro{% endblock %}
 
 {% block content %}
@@ -97,6 +98,33 @@
                                     <a href="{% url 'agenda_day' day=d.day month=d.month year=d.year %}" class="agenda-pro-day-link">
                                         {{ d|date:"l d/m" }}
                                     </a>
+
+                                    {% with fecha_key=d|date:'Y-m-d' %}
+                                        {% with bloqueo=bloqueos_por_dia_str|get_item:fecha_key %}
+                                            {% if bloqueo %}
+                                                <div class="agenda-pro-dia-bloqueado-label">
+                                                    {{ bloqueo.motivo|default:"Día bloqueado" }}
+                                                </div>
+
+                                                <form method="POST" action="{% url 'desbloquear_dia' %}" class="agenda-pro-block-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="fecha" value="{{ d|date:'Y-m-d' }}">
+                                                    <button type="submit" class="btn btn-success btn-sm w-100">
+                                                        Desbloquear
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <form method="POST" action="{% url 'bloquear_dia' %}" class="agenda-pro-block-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="fecha" value="{{ d|date:'Y-m-d' }}">
+                                                    <input type="text" name="motivo" class="agenda-pro-block-input" placeholder="Motivo">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                        Bloquear día
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endwith %}
                                 </div>
                             {% endfor %}
                         </div>
@@ -112,9 +140,10 @@
                                     <td class="hora-col">{{ fila.hora|time:"H:i" }}</td>
 
                                     {% for celda in fila.celdas %}
-                                    <td class="slot-disponible"
+                                    <td class="slot-disponible{% if celda.bloqueado %} slot-dia-bloqueado-cell{% endif %}"
                                         data-fecha="{{ celda.fecha|date:'Y-m-d' }}"
-                                        data-hora="{{ celda.hora|time:'H:i' }}">
+                                        data-hora="{{ celda.hora|time:'H:i' }}"
+                                        data-bloqueado="{% if celda.bloqueado %}1{% else %}0{% endif %}">
 
                                         {% if celda.ocupado %}
                                             <div class="cita-stack">
@@ -148,10 +177,28 @@
                                                 {% endfor %}
                                             </div>
                                         {% else %}
-                                            <a class="slot-plus"
-                                               href="{% url 'appointment_new' %}?hora={{ celda.hora|time:'H:i' }}&fecha={{ celda.fecha|date:'Y-m-d' }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}">
-                                               +
-                                            </a>
+
+                                            {% if celda.bloqueado %}
+
+                                                <div class="slot-dia-bloqueado">
+                                                    {{ celda.motivo_bloqueo|default:"Día bloqueado" }}
+                                                </div>
+
+                                            {% elif celda.hora|time:"H:i" == "14:00" or celda.hora|time:"H:i" == "14:30" %}
+
+                                                <div class="slot-bloqueado-descanso">
+                                                    Descanso
+                                                </div>
+
+                                            {% else %}
+
+                                                <a class="slot-plus"
+                                                   href="{% url 'appointment_new' %}?hora={{ celda.hora|time:'H:i' }}&fecha={{ celda.fecha|date:'Y-m-d' }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}">
+                                                   +
+                                                </a>
+
+                                            {% endif %}
+
                                         {% endif %}
                                     </td>
                                     {% endfor %}
@@ -504,7 +551,8 @@
     font-size: 0.96rem;
     color: #111827;
     border-right: 1px solid var(--line);
-    white-space: nowrap;
+    white-space: normal;
+    min-height: 95px;
 }
 
 .agenda-pro-day-cell:last-child{
@@ -514,9 +562,9 @@
 .agenda-pro-day-link{
     display: block;
     width: 100%;
-    height: 100%;
     color: #111827;
     text-decoration: none;
+    margin-bottom: 6px;
 }
 
 .agenda-pro-day-link:hover{
@@ -599,6 +647,61 @@
     background: #e7f8f7;
     color: var(--sonrisar-dark);
     text-decoration: none;
+}
+
+.slot-bloqueado-descanso{
+    background: #fff3cd;
+    border-left: 4px solid #f0ad4e;
+    color: #7a5b00;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.slot-dia-bloqueado-cell{
+    background: #fff8f8;
+}
+
+.slot-dia-bloqueado{
+    background: #fde2e2;
+    border-left: 4px solid #dc3545;
+    color: #842029;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.agenda-pro-block-form{
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.agenda-pro-block-input{
+    width: 100%;
+    height: 28px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.agenda-pro-dia-bloqueado-label{
+    margin-top: 5px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    background: #fde2e2;
+    color: #842029;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    white-space: normal;
 }
 
 .cita-stack{
@@ -812,6 +915,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".slot-disponible").forEach(slot => {
         slot.addEventListener("dragover", e => {
+            if (slot.dataset.bloqueado === "1") {
+                return;
+            }
+
             e.preventDefault();
             slot.classList.add("drag-over");
         });
@@ -825,6 +932,11 @@ document.addEventListener("DOMContentLoaded", function () {
             this.classList.remove("drag-over");
 
             if (!citaId) return;
+
+            if (this.dataset.bloqueado === "1") {
+                alert("Ese día está bloqueado.");
+                return;
+            }
 
             fetch(`/agenda/mover/${citaId}/`, {
                 method: "POST",
