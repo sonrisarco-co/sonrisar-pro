@@ -3098,6 +3098,12 @@ def color_cita_por_motivo(motivo):
     if "urgencia" in m:
         return "#ff8c00"  # naranja
 
+    if "despegados" in m:
+        return "#ff6b6b"  # rojo suave
+
+    if "blanqueamiento" in m:
+        return "#c8b6e2"  # lila pastel medio
+
     return "#26ABA5"
 
 
@@ -3123,19 +3129,10 @@ def agenda_pro(request):
     dias = [inicio_semana + timedelta(days=i) for i in range(6)]
     horarios = generar_horarios()
 
-    bloqueos_semana = DayBlock.objects.filter(
-        fecha__range=[inicio_semana, fin_semana]
-    )
+    bloqueos_semana = DayBlock.objects.filter(fecha__range=[inicio_semana, fin_semana])
 
-    bloqueos_por_dia = {
-        bloqueo.fecha: bloqueo
-        for bloqueo in bloqueos_semana
-    }
-
-    bloqueos_por_dia_str = {
-        bloqueo.fecha.strftime("%Y-%m-%d"): bloqueo
-        for bloqueo in bloqueos_semana
-    }
+    bloqueos_por_dia = {bloqueo.fecha: bloqueo for bloqueo in bloqueos_semana}
+    bloqueos_por_dia_str = {bloqueo.fecha.strftime("%Y-%m-%d"): bloqueo for bloqueo in bloqueos_semana}
 
     citas_semana = (
         Appointment.objects
@@ -3146,35 +3143,20 @@ def agenda_pro(request):
     )
 
     if q:
-        palabras = q.split()
-
         filtro = Q()
-        for palabra in palabras:
+        for palabra in q.split():
             filtro &= (
                 Q(paciente__nombre__icontains=palabra) |
                 Q(paciente__apellido__icontains=palabra) |
                 Q(paciente__ci__icontains=palabra)
             )
-
         citas_semana = citas_semana.filter(filtro)
 
-    citas_semana = list(citas_semana)
-
-    citas_por_dia = {
-        dia: {}
-        for dia in dias
-    }
+    citas_por_dia = {dia: {} for dia in dias}
 
     for cita in citas_semana:
-        if cita.fecha not in citas_por_dia:
-            citas_por_dia[cita.fecha] = {}
-
         bloque = floor_to_30_minutes(cita.hora)
-
-        if bloque not in citas_por_dia[cita.fecha]:
-            citas_por_dia[cita.fecha][bloque] = []
-
-        citas_por_dia[cita.fecha][bloque].append(cita)
+        citas_por_dia.setdefault(cita.fecha, {}).setdefault(bloque, []).append(cita)
 
     for dia in citas_por_dia:
         for bloque in citas_por_dia[dia]:
@@ -3204,15 +3186,33 @@ def agenda_pro(request):
                 citas_preparadas = []
 
                 for cita in citas_en_bloque:
+                    estado_texto = cita.get_estado_display()
+
+                    if estado_texto == "En espera":
+                        estado_color = "#c8b6e2"
+                    elif cita.estado == "pendiente":
+                        estado_color = "#ffc107"
+                    elif cita.estado == "confirmado":
+                        estado_color = "#0d6efd"
+                    elif cita.estado == "asistio":
+                        estado_color = "#198754"
+                    elif cita.estado == "no_asistio":
+                        estado_color = "#dc3545"
+                    elif cita.estado == "cancelado":
+                        estado_color = "#6c757d"
+                    else:
+                        estado_color = "#6c757d"
+
                     citas_preparadas.append({
                         "id": cita.id,
                         "paciente": cita.paciente,
                         "motivo": cita.motivo,
-                        "procedimientos": [
-                            p.nombre for p in cita.procedimientos.all()
-                        ],
+                        "procedimientos": [p.nombre for p in cita.procedimientos.all()],
                         "hora": cita.hora,
                         "color": color_cita_por_motivo(cita.motivo),
+                        "estado": cita.estado,
+                        "estado_texto": estado_texto,
+                        "estado_color": estado_color,
                     })
 
                 celdas.append({
@@ -3223,7 +3223,6 @@ def agenda_pro(request):
                     "fecha": dia,
                     "hora": hora,
                 })
-
             else:
                 celdas.append({
                     "ocupado": False,
@@ -3234,18 +3233,13 @@ def agenda_pro(request):
                     "hora": hora,
                 })
 
-        filas.append({
-            "hora": hora,
-            "celdas": celdas,
-        })
+        filas.append({"hora": hora, "celdas": celdas})
 
     resultados_paciente = []
 
     if q:
-        palabras = q.split()
-
         filtro = Q()
-        for palabra in palabras:
+        for palabra in q.split():
             filtro &= (
                 Q(paciente__nombre__icontains=palabra) |
                 Q(paciente__apellido__icontains=palabra) |
@@ -3268,36 +3262,21 @@ def agenda_pro(request):
 
     if mini_fecha_str:
         try:
-            mini_fecha_base = datetime.strptime(
-                mini_fecha_str,
-                "%Y-%m-%d"
-            ).date()
+            mini_fecha_base = datetime.strptime(mini_fecha_str, "%Y-%m-%d").date()
         except ValueError:
             mini_fecha_base = fecha_base
     else:
         mini_fecha_base = fecha_base
 
-    mini_prev_date = (
-        mini_fecha_base.replace(day=1) - timedelta(days=1)
-    ).replace(day=1)
+    mini_prev_date = (mini_fecha_base.replace(day=1) - timedelta(days=1)).replace(day=1)
 
     if mini_fecha_base.month == 12:
-        mini_next_date = mini_fecha_base.replace(
-            year=mini_fecha_base.year + 1,
-            month=1,
-            day=1
-        )
+        mini_next_date = mini_fecha_base.replace(year=mini_fecha_base.year + 1, month=1, day=1)
     else:
-        mini_next_date = mini_fecha_base.replace(
-            month=mini_fecha_base.month + 1,
-            day=1
-        )
+        mini_next_date = mini_fecha_base.replace(month=mini_fecha_base.month + 1, day=1)
 
     mini_cal = calendar.Calendar(firstweekday=0)
-    mini_weeks_raw = mini_cal.monthdatescalendar(
-        mini_fecha_base.year,
-        mini_fecha_base.month
-    )
+    mini_weeks_raw = mini_cal.monthdatescalendar(mini_fecha_base.year, mini_fecha_base.month)
 
     mini_inicio = mini_weeks_raw[0][0]
     mini_fin = mini_weeks_raw[-1][-1]

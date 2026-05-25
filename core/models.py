@@ -30,6 +30,7 @@ class Procedure(models.Model):
 class Appointment(models.Model):
     ESTADOS = [
         ("pendiente", "Pendiente"),
+        ("En espera", "En espera"),
         ("confirmado", "Confirmado"),
         ("asistio", "Asistió"),
         ("no_asistio", "No asistió"),

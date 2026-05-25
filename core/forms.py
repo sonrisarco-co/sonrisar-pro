@@ -77,6 +77,8 @@ class AppointmentForm(forms.ModelForm):
         ("Ajuste (ortodoncia)", "Ajuste (ortodoncia)"),
         ("Segunda colocación + ajuste", "Segunda colocación + ajuste"),
         ("Colocación nueva", "Colocación nueva"),
+        ("Despegados", "Despegados"),
+        ("Blanqueamiento", "Blanqueamiento"),
         ("Retiro de brackets", "Retiro de brackets"),
         ("Ajuste + limpieza", "Ajuste + limpieza"),
         ("Endodoncia", "Endodoncia"),

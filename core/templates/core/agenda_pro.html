@@ -156,9 +156,31 @@
                                                         <a href="{% url 'abrir_historia_desde_cita' cita.paciente.id %}?appointment_id={{ cita.id }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}"
                                                             class="cita-card-link">
                                                             <div class="cita-card"
-                                                                 draggable="true"
-                                                                 data-id="{{ cita.id }}"
-                                                                 style="background: {{ cita.color }};">
+                                                                draggable="true"
+                                                                data-id="{{ cita.id }}"
+                                                                style="
+                                                                    background: {{ cita.color }};
+
+                                                                    {% if cita.estado == 'En espera' %}
+                                                                        border-left: 6px solid #c8b6e2;
+
+                                                                    {% elif cita.estado_slug == 'pendiente' %}
+                                                                        border-left: 6px solid #ffc107;
+
+                                                                    {% elif cita.estado_slug == 'confirmado' %}
+                                                                        border-left: 6px solid #0d6efd;
+
+                                                                    {% elif cita.estado_slug == 'asistio' %}
+                                                                        border-left: 6px solid #198754;
+
+                                                                    {% elif cita.estado_slug == 'no_asistio' %}
+                                                                        border-left: 6px solid #dc3545;
+
+                                                                    {% elif cita.estado_slug == 'cancelado' %}
+                                                                        border-left: 6px solid #6c757d;
+
+                                                                    {% endif %}
+                                                                ">
                                                                 <strong>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</strong>
                                                                 <small>{{ cita.motivo }}</small>
 
@@ -171,6 +193,20 @@
                                                                 {% endif %}
 
                                                                 <small>{{ cita.hora|time:"H:i" }}</small>
+
+                                                                {% if cita.estado == "En espera" or cita.estado_slug == "en_espera" %}
+                                                                    <span class="cita-estado-mini" style="background:#c8b6e2; color:#111827;">En espera</span>
+                                                                {% elif cita.estado_slug == "pendiente" %}
+                                                                    <span class="cita-estado-mini" style="background:#ffc107; color:#111827;">Pendiente</span>
+                                                                {% elif cita.estado_slug == "confirmado" %}
+                                                                    <span class="cita-estado-mini" style="background:#0d6efd; color:#ffffff;">Confirmado</span>
+                                                                {% elif cita.estado_slug == "asistio" %}
+                                                                    <span class="cita-estado-mini" style="background:#198754; color:#ffffff;">Asistió</span>
+                                                                {% elif cita.estado_slug == "no_asistio" %}
+                                                                    <span class="cita-estado-mini" style="background:#dc3545; color:#ffffff;">No asistió</span>
+                                                                {% elif cita.estado_slug == "cancelado" %}
+                                                                    <span class="cita-estado-mini" style="background:#6c757d; color:#ffffff;">Cancelado</span>
+                                                                {% endif %}
                                                             </div>
                                                         </a>
                                                     </div>
@@ -745,6 +781,17 @@
     display: block;
     color: rgba(255,255,255,0.96);
     font-size: 0.70rem;
+}
+
+.cita-estado-mini{
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.16);
 }
 
 .cita-edit-btn{

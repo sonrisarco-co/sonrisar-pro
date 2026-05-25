@@ -130,6 +130,16 @@
                                                     <span class="badge" style="background:#fd7e14;">
                                                         {{ cita.motivo }}
                                                     </span>
+                                                
+                                                {% elif "despeg" in motivo %}
+                                                    <span class="badge" style="background:#ff6b6b;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "blanqueamiento" in motivo %}
+                                                    <span class="badge" style="background:#c8b6e2;">
+                                                        {{ cita.motivo }}
+                                                    </span>
 
                                                 {% else %}
                                                     <span class="badge bg-secondary">{{ cita.motivo }}</span>
@@ -137,7 +147,11 @@
 
                                             {% endwith %}
 
-                                            {% if cita.estado_slug == "pendiente" %}
+                                            {% if cita.estado == "En espera" %}
+                                                <span class="badge" style="background:#c8b6e2; color:#000;">
+                                                    En espera
+                                                </span>
+                                            {% elif cita.estado_slug == "pendiente" %}
                                                 <span class="badge bg-warning text-dark">Pendiente</span>
                                             {% elif cita.estado_slug == "confirmado" %}
                                                 <span class="badge bg-primary">Confirmado</span>
@@ -314,13 +328,27 @@
                                                         {{ cita.motivo }}
                                                     </span>
 
+                                                {% elif "despeg" in motivo %}
+                                                    <span class="badge" style="background:#ff6b6b;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "blanqueamiento" in motivo %}
+                                                    <span class="badge" style="background:#c8b6e2;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
                                                 {% else %}
                                                     <span class="badge bg-secondary">{{ cita.motivo }}</span>
                                                 {% endif %}
 
                                             {% endwith %}
 
-                                            {% if cita.estado_slug == "pendiente" %}
+                                            {% if cita.estado == "En espera" %}
+                                                <span class="badge" style="background:#c8b6e2; color:#000;">
+                                                    En espera
+                                                </span>
+                                            {% elif cita.estado_slug == "pendiente" %}
                                                 <span class="badge bg-warning text-dark">Pendiente</span>
                                             {% elif cita.estado_slug == "confirmado" %}
                                                 <span class="badge bg-primary">Confirmado</span>
