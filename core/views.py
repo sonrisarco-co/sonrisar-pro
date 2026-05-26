@@ -1585,29 +1585,145 @@ def obtener_saldo_tratamiento(cita_actual):
     )
 
 
-def _armar_cita_agenda_rapida(cita, saldos_por_paciente):
-    patient_id = cita.paciente.id
-    resumen = saldos_por_paciente.get(patient_id, {})
+def _obtener_contexto_financiero_citas(citas_dia, fecha):
+    """
+    Calcula pagos, deuda y saldo a favor de forma cronológica por paciente.
+
+    Regla correcta:
+    - Cada cita muestra solo el pago registrado para ESA cita.
+    - Si el paciente paga menos que el total acumulado, queda deuda.
+    - Si paga de más, queda saldo a favor.
+    - El saldo a favor se consume en próximas citas.
+    - La deuda mostrada es la deuda real acumulada hasta esa cita.
+    """
+    contextos = {}
+
+    pacientes_ids = []
+    pacientes_por_id = {}
+
+    for cita in citas_dia:
+        if cita.paciente_id not in pacientes_ids:
+            pacientes_ids.append(cita.paciente_id)
+            pacientes_por_id[cita.paciente_id] = cita.paciente
+
+    for patient_id in pacientes_ids:
+        paciente = pacientes_por_id[patient_id]
+
+        citas_paciente = list(
+            Appointment.objects
+            .filter(
+                paciente=paciente,
+                fecha__lte=fecha
+            )
+            .exclude(estado="cancelado")
+            .select_related("paciente")
+            .prefetch_related("procedimientos")
+            .order_by("fecha", "hora", "id")
+        )
+
+        deuda_acumulada = Decimal("0")
+        saldo_a_favor_disponible = Decimal("0")
+
+        for cita in citas_paciente:
+            monto_cita = _decimal_seguro(cita.monto_total)
+
+            pago_info = obtener_pago_cobros_cita(
+                appointment_id=cita.id,
+                patient_id=patient_id
+            )
+
+            pago_cita = _decimal_seguro(
+                pago_info.get("total_pagado", 0)
+            )
+
+            tiene_pago_cita = pago_cita > 0
+
+            deuda_cita = Decimal("0")
+            saldo_usado = Decimal("0")
+            saldo_generado = Decimal("0")
+
+            if monto_cita > 0:
+                deuda_acumulada += monto_cita
+
+            # Primero aplicamos saldo a favor anterior, si existe
+            if deuda_acumulada > 0 and saldo_a_favor_disponible > 0:
+                saldo_usado = min(
+                    saldo_a_favor_disponible,
+                    deuda_acumulada
+                )
+                deuda_acumulada -= saldo_usado
+                saldo_a_favor_disponible -= saldo_usado
+
+            # Después aplicamos pago de esta cita
+            if pago_cita > 0:
+                if deuda_acumulada > 0:
+                    if pago_cita >= deuda_acumulada:
+                        sobra = pago_cita - deuda_acumulada
+                        deuda_acumulada = Decimal("0")
+
+                        if sobra > 0:
+                            saldo_generado = sobra
+                            saldo_a_favor_disponible += sobra
+                    else:
+                        deuda_acumulada -= pago_cita
+                else:
+                    saldo_generado = pago_cita
+                    saldo_a_favor_disponible += pago_cita
+
+            deuda_cita = deuda_acumulada
+
+            contextos[cita.id] = {
+                "pago_cita": pago_cita,
+                "tiene_pago_cita": tiene_pago_cita,
+                "tipo_pago": pago_info.get("tipo_pago", "pagado"),
+                "deuda_cita": deuda_cita,
+                "saldo_usado": saldo_usado,
+                "saldo_generado": saldo_generado,
+                "saldo_a_favor_restante": saldo_a_favor_disponible,
+                "tiene_saldo_generado": saldo_generado > 0,
+                "usa_saldo_a_favor": saldo_usado > 0 and not tiene_pago_cita,
+                "cobros_error": pago_info.get("error"),
+            }
+
+    return contextos
+
+
+def _armar_cita_agenda_rapida(cita, contextos_financieros):
+    contexto_financiero = contextos_financieros.get(cita.id, {})
 
     edad = calcular_edad(cita.paciente.fecha_nacimiento)
 
-    total_pagado_paciente = _decimal_seguro(resumen.get("total_pagado", 0))
-    total_cobrable_paciente = _decimal_seguro(resumen.get("total_cobrable", 0))
-    saldo_paciente = _decimal_seguro(resumen.get("saldo", 0))
+    monto_total = _decimal_seguro(cita.monto_total)
+    pago_cita = _decimal_seguro(contexto_financiero.get("pago_cita", 0))
+    deuda_cita = _decimal_seguro(contexto_financiero.get("deuda_cita", 0))
+    saldo_generado = _decimal_seguro(contexto_financiero.get("saldo_generado", 0))
+    saldo_usado = _decimal_seguro(contexto_financiero.get("saldo_usado", 0))
+    saldo_a_favor_restante = _decimal_seguro(
+        contexto_financiero.get("saldo_a_favor_restante", 0)
+    )
 
-    # IMPORTANTE:
-    # La deuda se calcula por paciente, pero los carteles de pago de la cita
-    # deben ser visualmente correctos:
-    # - Si NO asistió / está pendiente / cancelada: nunca mostrar "Pagado".
-    # - Si tiene entregas parciales y aún debe: mostrar "Seña".
-    # - Si asistió y el saldo real del paciente quedó en 0: mostrar "Pagado".
+    tiene_pago_cita = pago_cita > 0
+    tiene_monto = monto_total > 0
     cita_atendida = cita.estado == "asistio"
-    tiene_entrega_parcial = total_pagado_paciente > 0 and saldo_paciente > 0
-    cita_pagada_visual = cita_atendida and saldo_paciente <= 0
 
-    mostrar_pago_cobros = tiene_entrega_parcial or cita_pagada_visual
+    tiene_entrega_parcial = tiene_pago_cita and deuda_cita > 0
+    cita_pagada_visual = tiene_monto and deuda_cita <= 0
 
-    if tiene_entrega_parcial:
+    tiene_saldo_generado = saldo_generado > 0
+    usa_saldo_a_favor = saldo_usado > 0 and not tiene_pago_cita
+
+    mostrar_pago_cobros = (
+        tiene_pago_cita
+        or tiene_saldo_generado
+        or usa_saldo_a_favor
+        or (cita_atendida and cita_pagada_visual)
+    )
+
+    if tiene_saldo_generado:
+        tipo_pago_visual = "saldo_a_favor"
+    elif usa_saldo_a_favor:
+        tipo_pago_visual = "saldo_usado"
+    elif tiene_entrega_parcial:
         tipo_pago_visual = "sena"
     elif cita_pagada_visual:
         tipo_pago_visual = "pagado"
@@ -1616,7 +1732,7 @@ def _armar_cita_agenda_rapida(cita, saldos_por_paciente):
 
     return {
         "id": cita.id,
-        "patient_id": patient_id,
+        "patient_id": cita.paciente.id,
         "hora_real": cita.hora,
         "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
         "edad": edad,
@@ -1627,14 +1743,19 @@ def _armar_cita_agenda_rapida(cita, saldos_por_paciente):
         "estado_slug": cita.estado,
         "pagado": cita_pagada_visual,
         "tiene_pago_cobros": mostrar_pago_cobros,
-        "total_pagado": str(total_pagado_paciente),
-        "total_pagado_paciente": str(total_pagado_paciente),
+        "total_pagado": str(pago_cita),
+        "total_pagado_paciente": str(pago_cita),
         "tipo_pago": tipo_pago_visual,
-        "monto_total": _decimal_seguro(cita.monto_total),
-        "total_cobrable_paciente": total_cobrable_paciente,
-        "debe": saldo_paciente,
-        "deuda_total_paciente": saldo_paciente,
-        "cobros_error": resumen.get("error"),
+        "monto_total": monto_total,
+        "total_cobrable_paciente": monto_total,
+        "debe": deuda_cita,
+        "deuda_total_paciente": deuda_cita,
+        "saldo_a_favor": saldo_generado,
+        "saldo_a_favor_restante": saldo_a_favor_restante,
+        "saldo_usado": saldo_usado,
+        "tiene_saldo_a_favor": tiene_saldo_generado,
+        "usa_saldo_a_favor": usa_saldo_a_favor,
+        "cobros_error": contexto_financiero.get("cobros_error"),
     }
 
 
@@ -1650,44 +1771,15 @@ def agenda_day(request, day, month, year):
         Appointment.objects.filter(fecha=fecha)
         .select_related("paciente")
         .prefetch_related("procedimientos")
-        .order_by("hora")
+        .order_by("hora", "id")
     )
 
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
-    patient_ids = []
-    pacientes_por_id = {}
-
-    for cita in citas:
-        patient_id = cita.paciente.id
-        pacientes_por_id[patient_id] = cita.paciente
-
-        if patient_id not in patient_ids:
-            patient_ids.append(patient_id)
-
-    resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
-    print("DEBUG RESUMENES COBROS AGENDA:", resumenes_cobros)
-
-    saldos_por_paciente = {}
-
-    for patient_id, paciente in pacientes_por_id.items():
-        total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
-        resumen_cobros = resumenes_cobros.get(patient_id, {})
-        total_pagado = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
-
-        saldo = total_cobrable - total_pagado
-
-        if saldo < 0:
-            saldo = Decimal("0")
-
-        saldos_por_paciente[patient_id] = {
-            "total_cobrable": total_cobrable,
-            "total_pagado": total_pagado,
-            "saldo": saldo,
-            "tipo_pago": resumen_cobros.get("tipo_pago", "pagado"),
-            "cantidad_pagos": resumen_cobros.get("cantidad_pagos", 0),
-            "error": resumen_cobros.get("error"),
-        }
+    contextos_financieros = _obtener_contexto_financiero_citas(
+        citas,
+        fecha
+    )
 
     citas_por_bloque = agrupar_citas_por_bloque(citas)
 
@@ -1731,12 +1823,18 @@ def agenda_day(request, day, month, year):
         ]
 
         citas_exactas_data = [
-            _armar_cita_agenda_rapida(cita, saldos_por_paciente)
+            _armar_cita_agenda_rapida(
+                cita,
+                contextos_financieros
+            )
             for cita in citas_exactas
         ]
 
         citas_extra_data = [
-            _armar_cita_agenda_rapida(cita, saldos_por_paciente)
+            _armar_cita_agenda_rapida(
+                cita,
+                contextos_financieros
+            )
             for cita in citas_extra
         ]
 

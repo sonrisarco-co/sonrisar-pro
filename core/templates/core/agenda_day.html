@@ -165,7 +165,17 @@
 
                                             {% if cita.tiene_pago_cobros %}
 
-                                                {% if cita.debe > 0 %}
+                                                {% if cita.tiene_saldo_a_favor %}
+
+                                                    <span class="badge badge-pagado">
+                                                        Pagó $ {{ cita.total_pagado }}
+                                                    </span>
+
+                                                    <span class="badge badge-saldo-favor">
+                                                        💰 Saldo a favor $ {{ cita.saldo_a_favor|floatformat:0 }}
+                                                    </span>
+
+                                                {% elif cita.debe > 0 %}
 
                                                     {% if cita.tipo_pago == "sena" %}
                                                         <span class="badge badge-sena">
@@ -183,9 +193,25 @@
 
                                                 {% else %}
 
-                                                    <span class="badge badge-pagado">
-                                                        Pagado
-                                                    </span>
+                                                    {% if cita.usa_saldo_a_favor %}
+
+                                                        <span class="badge badge-saldo-favor">
+                                                            💰 Usó saldo a favor $ {{ cita.saldo_usado|floatformat:0 }}
+                                                        </span>
+
+                                                        {% if cita.saldo_a_favor_restante > 0 %}
+                                                            <span class="badge badge-saldo-favor">
+                                                                Restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}
+                                                            </span>
+                                                        {% endif %}
+
+                                                    {% else %}
+
+                                                        <span class="badge badge-pagado">
+                                                            Pagado
+                                                        </span>
+
+                                                    {% endif %}
 
                                                 {% endif %}
 
@@ -362,7 +388,17 @@
 
                                             {% if cita.tiene_pago_cobros %}
 
-                                                {% if cita.debe > 0 %}
+                                                {% if cita.tiene_saldo_a_favor %}
+
+                                                    <span class="badge badge-pagado">
+                                                        Pagó $ {{ cita.total_pagado }}
+                                                    </span>
+
+                                                    <span class="badge badge-saldo-favor">
+                                                        💰 Saldo a favor $ {{ cita.saldo_a_favor|floatformat:0 }}
+                                                    </span>
+
+                                                {% elif cita.debe > 0 %}
 
                                                     {% if cita.tipo_pago == "sena" %}
                                                         <span class="badge badge-sena">
@@ -523,6 +559,11 @@
 
 .badge-debe {
     background: #dc3545 !important;
+    color: #fff !important;
+}
+
+.badge-saldo-favor {
+    background: #20c997 !important;
     color: #fff !important;
 }
 
