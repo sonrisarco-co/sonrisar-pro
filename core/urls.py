@@ -165,6 +165,7 @@ urlpatterns = [
     # =====================
     path("whatsapp/", views.whatsapp_reminders, name="whatsapp_reminders"),
     path("whatsapp/iniciar/", views.iniciar_recordatorios_manana, name="iniciar_recordatorios_manana"),
+    path("whatsapp/iniciar-48h/", views.iniciar_recordatorios_48h, name="iniciar_recordatorios_48h"),
     path("whatsapp/siguiente/", views.siguiente_recordatorio, name="siguiente_recordatorio"),
     path("whatsapp/confirmar/", views.confirmar_envio, name="confirmar_envio"),
     path("whatsapp/enviar/<int:id>/", views.cita_recordatorio, name="cita_recordatorio"),

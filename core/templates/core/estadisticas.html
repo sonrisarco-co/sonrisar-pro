@@ -58,11 +58,10 @@
     .stats-card {
         height: 100%;
         border: 1px solid #e8eeee;
-        border-radius: 18px;
+        border-radius: 14px;
         background: #ffffff;
-        box-shadow: 0 8px 22px rgba(17, 24, 39, 0.055);
-        padding: 20px 18px;
-        transition: 0.18s ease;
+        box-shadow: 0 6px 16px rgba(17, 24, 39, 0.045);
+        padding: 12px 14px;
     }
 
     .stats-card:hover {
@@ -73,13 +72,13 @@
     .stats-card-inner {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 10px;
     }
 
     .stats-card-icon {
-        flex: 0 0 54px;
-        width: 54px;
-        height: 54px;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -100,13 +99,13 @@
     .stats-card-number {
         margin: 0;
         color: var(--sonrisar-dark);
-        font-size: 2rem;
+        font-size: 1.55rem;
         font-weight: 750;
         line-height: 1;
     }
 
     .stats-card-note {
-        margin: 6px 0 0 0;
+        margin: 2px 0 0 0;
         color: var(--text-muted);
         font-size: 0.84rem;
     }
@@ -252,6 +251,7 @@
     </div>
 
     <div class="row g-3 mb-4">
+
         <div class="col-md-6 col-xl-3">
             <div class="stats-card">
                 <div class="stats-card-inner">
@@ -303,7 +303,63 @@
                 </div>
             </div>
         </div>
+
+</div>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="stats-card">
+            <div class="stats-card-inner">
+                <div class="stats-card-icon">🦷</div>
+                <div>
+                    <p class="stats-card-label">Ajustes de ortodoncia</p>
+                    <p class="stats-card-number">
+                        {{ ajustes_ortodoncia_mes }}
+                    </p>
+                    <p class="stats-card-note">
+                        Realizados este mes
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="col-md-4">
+        <div class="stats-card">
+            <div class="stats-card-inner">
+                <div class="stats-card-icon">👤</div>
+                <div>
+                    <p class="stats-card-label">Ortodoncia activa</p>
+                    <p class="stats-card-number">
+                        {{ pacientes_ortodoncia_activos }}
+                    </p>
+                    <p class="stats-card-note">
+                        Pacientes únicos este mes
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stats-card">
+            <div class="stats-card-inner">
+                <div class="stats-card-icon">📊</div>
+                <div>
+                    <p class="stats-card-label">Promedio controles</p>
+                    <p class="stats-card-number">
+                        {{ promedio_ajustes_ortodoncia }}
+                    </p>
+                    <p class="stats-card-note">
+                        Ajustes por paciente
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 
     <div class="row g-4">
         <div class="col-lg-6">

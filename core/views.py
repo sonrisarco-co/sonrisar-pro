@@ -98,6 +98,15 @@ def home(request):
     if total > 0:
         porcentaje = round((asistieron / total) * 100, 1)
 
+    ausentismo_real = 0
+    total_con_resultado = asistieron + no_asistieron
+
+    if total_con_resultado > 0:
+        ausentismo_real = round(
+            (no_asistieron / total_con_resultado) * 100,
+            1
+        )
+
     ranking = (
         citas.filter(estado="no_asistio")
         .values("paciente__apellido", "paciente__nombre")
@@ -105,12 +114,11 @@ def home(request):
         .order_by("-faltas")
     )
 
-    # navegación entre meses
     prev_month = month - 1 if month > 1 else 12
-    prev_year  = year - 1 if month == 1 else year
+    prev_year = year - 1 if month == 1 else year
 
     next_month = month + 1 if month < 12 else 1
-    next_year  = year + 1 if month == 12 else year
+    next_year = year + 1 if month == 12 else year
 
     context = {
         "total": total,
@@ -120,6 +128,7 @@ def home(request):
         "cancelados": cancelados,
         "pendientes": pendientes,
         "porcentaje": porcentaje,
+        "ausentismo_real": ausentismo_real,
         "month": month,
         "year": year,
         "ranking": ranking,
@@ -2248,150 +2257,6 @@ def agenda_month(request):
     return render(request, "core/agenda_month.html", contexto)
 
 
-def cita_recordatorio(request, id):
-    cita = get_object_or_404(Appointment, id=id)
-
-    paciente = cita.paciente
-    telefono = paciente.telefono  # CONFIRMAR si se llama "telefono" en tu modelo
-    nombre = paciente.nombre
-
-    fecha = cita.fecha.strftime("%d/%m/%Y")
-    hora = cita.hora.strftime("%H:%M")
-
-    mensaje = (
-        f"Hola {nombre}, te recordamos tu cita odontológica para el día {fecha} "
-        f"a las {hora} en Sonrisar - Centro Odontológico. "
-        f"Dirección: Román Guerra 752. "
-        f"Ubicación en Google Maps: https://maps.app.goo.gl/6X9d13YqcqVb8sGw8 "
-        f"Si necesitás reprogramar o cancelar, escribinos al 092706293. "
-        f"¡Te esperamos!"
-    )
-
-    params = urlencode({"text": mensaje})
-    url = f"https://wa.me/598{telefono}?{params}"
-
-    return redirect(url)
-
-def recordatorios_manana(request):
-    manana = date.today() + timedelta(days=1)
-    citas = Appointment.objects.filter(fecha=manana)
-
-    if not citas.exists():
-        messages.warning(request, "No hay citas para mañana.")
-        return redirect("agenda_day")
-
-    # Obtener la primera cita de mañana
-    cita = citas.first()
-    paciente = cita.paciente
-
-    telefono = paciente.telefono
-    nombre = paciente.nombre
-    fecha = cita.fecha.strftime("%d/%m/%Y")
-    hora = cita.hora.strftime("%H:%M")
-
-    mensaje = (
-        f"Hola {nombre}, te recordamos tu cita odontológica para el día {fecha} "
-        f"a las {hora} en Sonrisar - Centro Odontológico. "
-        f"Dirección: Román Guerra 752. "
-        f"Ubicación en Google Maps: https://maps.app.goo.gl/6X9d13YqcqVb8sGw8 "
-        f"Si necesitás reprogramar o cancelar, escribinos al 092706293. "
-        f"¡Te esperamos!"
-    )
-
-    params = urlencode({"text": mensaje})
-    url = f"https://wa.me/598{telefono}?{params}"
-
-    return redirect(url)
-
-
-def iniciar_recordatorios_manana(request):
-    manana = date.today() + timedelta(days=1)
-    citas = Appointment.objects.filter(fecha=manana).order_by("hora")
-
-    if not citas.exists():
-        messages.warning(request, "No hay citas para mañana.")
-        return redirect("whatsapp_reminders")
-
-    request.session["recordatorios_lista"] = [c.id for c in citas]
-
-    return redirect("siguiente_recordatorio")
-
-
-def siguiente_recordatorio(request):
-    lista = request.session.get("recordatorios_lista", [])
-
-    # Si ya no quedan
-    if not lista:
-        messages.success(request, "Todos los recordatorios fueron enviados correctamente.")
-        return redirect("agenda_day")
-
-    cita_id = lista.pop(0)
-    request.session["recordatorios_lista"] = lista
-
-    cita = get_object_or_404(Appointment, id=cita_id)
-    paciente = cita.paciente
-
-    telefono = paciente.telefono
-    nombre = paciente.nombre
-    fecha = cita.fecha.strftime("%d/%m/%Y")
-    hora = cita.hora.strftime("%H:%M")
-
-    # 🔹 MENSAJE PROLIJO SIN 'text=' Y SIN LINK LARGO
-    mensaje = (
-        f"Hola {nombre} 😊\n"
-        f"Te recordamos tu cita odontológica para el *{fecha}* a las *{hora}* en Sonrisar - Centro Odontológico.\n\n"
-        f"📍 Dirección: Román Guerra 752\n"
-        f"🗺️ Ubicación: https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay\n\n"
-        f"Si necesitás reprogramar o cancelar, escribinos al 092 706 293.\n"
-        f"¡Te esperamos! ✨"
-    )
-
-
-    params = urlencode({"text": mensaje})
-    url_whatsapp = f"https://web.whatsapp.com/send?phone=598{telefono}&{params}"
-
-    return render(request, "core/esperando.html", {"url_whatsapp": url_whatsapp})
-
-
-def cita_recordatorio(request, id):
-    cita = get_object_or_404(Appointment, id=id)
-
-    paciente = cita.paciente
-    telefono = paciente.telefono
-    nombre = paciente.nombre
-
-    fecha = cita.fecha.strftime("%d/%m/%Y")
-    hora = cita.hora.strftime("%H:%M")
-
-    mensaje = (
-        f"Hola {nombre} 😊\n\n"
-        f"Te recordamos tu cita odontológica para el *{fecha}* "
-        f"a las *{hora}* en *Sonrisar – Centro Odontológico*.\n\n"
-        f"📍 Dirección: Román Guerra 752\n"
-        f"🗺️ Ubicación: https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay\n\n"
-        f"Si necesitás reprogramar o cancelar, escribinos al 092 706 293.\n\n"
-        f"¡Te esperamos! 🦷✨"
-    )
-
-    params = urlencode({"text": mensaje})
-    url = f"https://wa.me/598{telefono}?{params}"
-
-    return redirect(url)
-
-def confirmar_envio(request):
-    lista = request.session.get("recordatorios_lista", [])
-
-    if lista:
-        lista.pop(0)  # ahora sí sacamos el anterior
-        request.session["recordatorios_lista"] = lista
-
-    if not lista:
-        messages.success(request, "Todos los recordatorios fueron enviados.")
-        return redirect("whatsapp_reminders")
-
-    return redirect("siguiente_recordatorio")
-
-
 # VISTA DEL CALENDARIO MENSUAL
 def agenda_mensual_calendario(request):
     hoy = date.today()
@@ -2595,15 +2460,102 @@ def agenda(request):
 # 📲 WHATSAPP (recordatorios)
 # =============================
 
+def _normalizar_telefono_uy(telefono):
+    """
+    Limpia el teléfono y lo deja listo para WhatsApp.
+    Ejemplos:
+    092 706 293 -> 59892706293
+    59892706293 -> 59892706293
+    """
+    telefono_num = "".join(c for c in str(telefono or "") if c.isdigit())
+
+    if telefono_num.startswith("0"):
+        telefono_num = telefono_num[1:]
+
+    if telefono_num and not telefono_num.startswith("598"):
+        telefono_num = "598" + telefono_num
+
+    return telefono_num
+
+
+def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
+    paciente = cita.paciente
+    nombre = paciente.nombre
+
+    dias = {
+        0: "Lunes",
+        1: "Martes",
+        2: "Miércoles",
+        3: "Jueves",
+        4: "Viernes",
+        5: "Sábado",
+        6: "Domingo",
+    }
+
+    fecha_txt = f"{dias[cita.fecha.weekday()]} {cita.fecha.strftime('%d/%m/%Y')}"
+    hora_txt = cita.hora.strftime("%H:%M")
+
+    if tipo_recordatorio == "48h":
+        return (
+            f"Hola {nombre} 😊\n\n"
+            f"Te recordamos tu cita odontológica el *{fecha_txt}* "
+            f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
+            f"📍 Román Guerra 752, Maldonado\n\n"
+            f"Si necesitás modificar o cancelar tu cita, te agradecemos avisarnos con anticipación.\n\n"
+            f"¡Muchas gracias! 🦷✨\n\n"
+            f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
+        )
+
+    return (
+        f"Hola {nombre} 😊\n\n"
+        f"Te recordamos tu cita odontológica para el *{fecha_txt}* "
+        f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
+        f"📍 Román Guerra 752, Maldonado\n\n"
+        f"Si necesitás reprogramar o cancelar, comunicate con nosotros\n\n"
+        f"¡Te esperamos! 🦷✨\n\n"
+        f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
+    )
+
+
 def iniciar_recordatorios_manana(request):
-    manana = date.today() + timedelta(days=1)
-    citas = Appointment.objects.filter(fecha=manana).order_by("hora")
+    fecha_objetivo = date.today() + timedelta(days=1)
+
+    citas = (
+        Appointment.objects
+        .filter(fecha=fecha_objetivo)
+        .exclude(estado="cancelado")
+        .select_related("paciente")
+        .order_by("hora")
+    )
 
     if not citas.exists():
         messages.warning(request, "No hay citas para mañana.")
-        return redirect("agenda_day")
+        return redirect("whatsapp_reminders")
 
     request.session["recordatorios_lista"] = [c.id for c in citas]
+    request.session["tipo_recordatorio"] = "24h"
+
+    return redirect("siguiente_recordatorio")
+
+
+def iniciar_recordatorios_48h(request):
+    fecha_objetivo = date.today() + timedelta(days=2)
+
+    citas = (
+        Appointment.objects
+        .filter(fecha=fecha_objetivo)
+        .exclude(estado="cancelado")
+        .select_related("paciente")
+        .order_by("hora")
+    )
+
+    if not citas.exists():
+        messages.warning(request, "No hay citas para dentro de 48 horas.")
+        return redirect("whatsapp_reminders")
+
+    request.session["recordatorios_lista"] = [c.id for c in citas]
+    request.session["tipo_recordatorio"] = "48h"
+
     return redirect("siguiente_recordatorio")
 
 
@@ -2611,59 +2563,47 @@ def siguiente_recordatorio(request):
     lista = request.session.get("recordatorios_lista", [])
 
     if not lista:
+        request.session.pop("tipo_recordatorio", None)
         messages.success(request, "Todos los recordatorios fueron enviados correctamente.")
         return redirect("whatsapp_reminders")
 
-    cita_id = lista[0]  # NO sacamos aún hasta confirmar
-    cita = get_object_or_404(Appointment, id=cita_id)
+    cita_id = lista[0]  # No se borra hasta confirmar envío
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=cita_id
+    )
 
     paciente = cita.paciente
-    telefono = (paciente.telefono or "").strip()
+    telefono_num = _normalizar_telefono_uy(paciente.telefono)
 
-    if not telefono:
+    if not telefono_num:
         messages.warning(request, f"El paciente {paciente} no tiene teléfono cargado. Se salta.")
         lista.pop(0)
         request.session["recordatorios_lista"] = lista
         return redirect("siguiente_recordatorio")
 
-    # Armamos mensaje
-    fecha_txt = cita.fecha.strftime("%d/%m/%Y")
-    hora_txt = cita.hora.strftime("%H:%M")
-
-    mensaje = (
-        f"Hola {paciente.nombre} 😊\n"
-        f"Te recordamos tu cita odontológica para el *{fecha_txt}* a las *{hora_txt}* "
-        f"en Sonrisar - Centro Odontológico.\n\n"
-        f"📍 Dirección: Román Guerra 752\n"
-        f"🗺️ Ubicación: https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay\n\n"
-        f"Si necesitás reprogramar o cancelar, escribinos al 092 706 293.\n"
-        f"¡Te esperamos! ✨"
-    )
+    tipo_recordatorio = request.session.get("tipo_recordatorio", "24h")
+    mensaje = _mensaje_recordatorio(cita, tipo_recordatorio)
 
     params = urlencode({"text": mensaje})
-
-    # Normalizamos teléfono: dejamos solo números
-    telefono_num = "".join([c for c in telefono if c.isdigit()])
-
-    # Si el usuario guarda teléfonos sin el 598, lo agregamos
-    if telefono_num.startswith("0"):
-        telefono_num = telefono_num[1:]  # 092xxxxxx -> 92xxxxxx
-    if not telefono_num.startswith("598"):
-        telefono_num = "598" + telefono_num
-
     url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
 
-    return render(request, "core/esperando.html", {"url_whatsapp": url_whatsapp, "cita": cita})
+    return render(request, "core/esperando.html", {
+        "url_whatsapp": url_whatsapp,
+        "cita": cita,
+        "tipo_recordatorio": tipo_recordatorio,
+    })
 
 
 def confirmar_envio(request):
     lista = request.session.get("recordatorios_lista", [])
 
     if lista:
-        lista.pop(0)  # ahora sí sacamos el anterior
+        lista.pop(0)
         request.session["recordatorios_lista"] = lista
 
     if not lista:
+        request.session.pop("tipo_recordatorio", None)
         messages.success(request, "Todos los recordatorios fueron enviados.")
         return redirect("whatsapp_reminders")
 
@@ -2671,106 +2611,72 @@ def confirmar_envio(request):
 
 
 def cita_recordatorio(request, id):
-    cita = get_object_or_404(Appointment, id=id)
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=id
+    )
 
     paciente = cita.paciente
-    telefono = (paciente.telefono or "").strip()
+    telefono_num = _normalizar_telefono_uy(paciente.telefono)
 
-    if not telefono:
+    if not telefono_num:
         messages.warning(request, "Este paciente no tiene teléfono cargado.")
         return redirect("whatsapp_reminders")
 
-    fecha_txt = cita.fecha.strftime("%d/%m/%Y")
-    hora_txt = cita.hora.strftime("%H:%M")
-
-    mensaje = (
-        f"Hola {paciente.nombre} 😊\n"
-        f"Te recordamos tu cita odontológica para el *{fecha_txt}* a las *{hora_txt}* "
-        f"en Sonrisar - Centro Odontológico.\n\n"
-        f"📍 Dirección: Román Guerra 752\n"
-        f"🗺️ Ubicación: https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay\n\n"
-        f"Si necesitás reprogramar o cancelar, escribinos al 092 706 293.\n"
-        f"¡Te esperamos! ✨"
-    )
-
+    mensaje = _mensaje_recordatorio(cita, "24h")
     params = urlencode({"text": mensaje})
-
-    telefono_num = "".join([c for c in telefono if c.isdigit()])
-    if telefono_num.startswith("0"):
-        telefono_num = telefono_num[1:]
-    if not telefono_num.startswith("598"):
-        telefono_num = "598" + telefono_num
-
     url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
+
     return redirect(url_whatsapp)
 
+
 def whatsapp_reminders(request):
-    manana = date.today() + timedelta(days=1)
-    citas = Appointment.objects.filter(
-        fecha=manana
-    ).select_related("paciente").order_by("hora")
+    tipo = request.GET.get("tipo", "24h")
 
-    if request.method == "POST":
-        if not citas.exists():
-            messages.warning(request, "No hay citas para mañana.")
-            return redirect("agenda_day")
+    if tipo == "48h":
+        fecha_objetivo = date.today() + timedelta(days=2)
+        titulo_fecha = "Recordatorios 48 h"
+    else:
+        tipo = "24h"
+        fecha_objetivo = date.today() + timedelta(days=1)
+        titulo_fecha = "Recordatorios 24 h"
 
-        primera_cita = citas.first()
-        return redirect("whatsapp_paciente", primera_cita.id)
+    citas = (
+        Appointment.objects
+        .filter(fecha=fecha_objetivo)
+        .exclude(estado="cancelado")
+        .select_related("paciente")
+        .order_by("hora")
+    )
 
     return render(
         request,
         "core/whatsapp_reminders.html",
         {
             "citas": citas,
-            "manana": manana
+            "fecha_objetivo": fecha_objetivo,
+            "tipo": tipo,
+            "titulo_fecha": titulo_fecha,
         }
     )
 
 
-
 def whatsapp_paciente(request, id):
-    cita = get_object_or_404(Appointment, id=id)
-    paciente = cita.paciente
-
-    # ---------- DÍA EN ESPAÑOL ----------
-    DIAS_ES = {
-        "Monday": "Lunes",
-        "Tuesday": "Martes",
-        "Wednesday": "Miércoles",
-        "Thursday": "Jueves",
-        "Friday": "Viernes",
-        "Saturday": "Sábado",
-        "Sunday": "Domingo",
-    }
-
-    dia_en = cita.fecha.strftime("%A")
-    dia = DIAS_ES.get(dia_en, dia_en)
-
-    fecha = cita.fecha.strftime("%d/%m/%Y")
-    hora = cita.hora.strftime("%H:%M")
-
-    # ---------- TELÉFONO ----------
-    telefono = (paciente.telefono or "").strip().replace(" ", "").replace("-", "")
-    if not telefono.startswith("598"):
-        telefono = "598" + telefono
-
-    # ---------- MENSAJE WHATSAPP ----------
-    mensaje = (
-        "⚠️ ATENCIÓN: NOS ENCONTRAMOS EN NUEVA DIRECCIÓN ⚠️\n\n"
-        f"Hola {paciente.nombre} 👋 Sonrisar Centro Odontológico te recuerda tu turno para "
-        f"{dia} {fecha} a las {hora}.\n\n"
-        "📍 Dirección: Román Guerra 752\Local 101\n"
-        "🗺️ Ubicación: https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay\n\n"
-        "Para dejar tu turno asegurado, respondé “Confirmo”, por favor. ✅\n"
-        "Si no recibimos confirmación, el turno podría cancelarse y liberarse para otro paciente.\n\n"
-        "¡Gracias por tu comprensión!"
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=id
     )
 
-    mensaje_url = quote(mensaje)
+    paciente = cita.paciente
+    telefono_num = _normalizar_telefono_uy(paciente.telefono)
 
-    # ---------- ABRIR WHATSAPP WEB ----------
-    url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono}&text={mensaje_url}"
+    if not telefono_num:
+        messages.warning(request, "Este paciente no tiene teléfono cargado.")
+        return redirect("whatsapp_reminders")
+
+    mensaje = _mensaje_recordatorio(cita, "24h")
+    params = urlencode({"text": mensaje})
+    url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
 
     return redirect(url_whatsapp)
 
@@ -3844,6 +3750,27 @@ def estadisticas(request):
         estado="asistio"
     ).values("paciente").distinct().count()
 
+    ajustes_ortodoncia_mes = Appointment.objects.filter(
+        fecha__year=hoy.year,
+        fecha__month=hoy.month,
+        motivo="Ajuste (ortodoncia)",
+        estado="asistio"
+    ).count()
+
+    pacientes_ortodoncia_activos = Appointment.objects.filter(
+        fecha__year=hoy.year,
+        fecha__month=hoy.month,
+        motivo="Ajuste (ortodoncia)",
+        estado="asistio"
+    ).values("paciente").distinct().count()
+
+    promedio_ajustes_ortodoncia = 0
+    if pacientes_ortodoncia_activos > 0:
+        promedio_ajustes_ortodoncia = round(
+            ajustes_ortodoncia_mes / pacientes_ortodoncia_activos,
+            2
+        )
+
     motivos = (
         Appointment.objects
         .filter(estado="asistio")
@@ -3885,5 +3812,9 @@ def estadisticas(request):
             "motivos": motivos,
             "colocaciones_por_mes": colocaciones_por_mes,
             "anio_actual": hoy.year,
+
+            "ajustes_ortodoncia_mes": ajustes_ortodoncia_mes,
+            "pacientes_ortodoncia_activos": pacientes_ortodoncia_activos,
+            "promedio_ajustes_ortodoncia": promedio_ajustes_ortodoncia,
         }
     )

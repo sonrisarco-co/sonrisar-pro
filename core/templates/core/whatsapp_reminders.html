@@ -6,9 +6,8 @@
 
 <div class="container mt-4">
 
-    <div class="card sonrisar-card mx-auto" style="max-width: 900px;">
-        
-        <!-- HEADER -->
+    <div class="card sonrisar-card mx-auto" style="max-width: 1000px;">
+
         <div class="card-header sonrisar-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">
                 📲 Recordatorios por WhatsApp
@@ -19,13 +18,30 @@
             </a>
         </div>
 
-        <!-- BODY -->
         <div class="card-body">
 
-            <p class="text-muted mb-4">
-                Desde aquí podés enviar recordatorios de turnos a los pacientes del día siguiente.
-                Se abrirá WhatsApp Web con el mensaje listo para enviar.
+            <p class="text-muted mb-3">
+                Desde aquí podés enviar recordatorios de turnos por WhatsApp Web.
+                Podés enviar los recordatorios de 24 horas o los de 48 horas.
             </p>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a href="{% url 'whatsapp_reminders' %}?tipo=24h" class="btn btn-success">
+                    📲 Ver recordatorios 24 h
+                </a>
+
+                <a href="{% url 'whatsapp_reminders' %}?tipo=48h" class="btn btn-warning">
+                    ⏰ Ver recordatorios 48 h
+                </a>
+            </div>
+
+            <div class="alert alert-info py-2">
+                <strong>{{ titulo_fecha }}</strong>
+
+                {% if fecha_objetivo %}
+                    ({{ fecha_objetivo|date:"d/m/Y" }})
+                {% endif %}
+            </div>
 
             {% if citas %}
                 <div class="table-responsive">
@@ -35,7 +51,8 @@
                                 <th>Paciente</th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
-                                <th>Acción</th>
+                                <th>Teléfono</th>
+                                <th>Acción manual</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -51,12 +68,15 @@
                                     {{ cita.hora|time:"H:i" }}
                                 </td>
                                 <td>
+                                    {{ cita.paciente.telefono|default:"Sin teléfono" }}
+                                </td>
+                                <td>
                                     <a
-                                        href="{% url 'whatsapp_paciente' cita.id %}"
+                                        href="{% url 'cita_recordatorio' cita.id %}"
                                         target="_blank"
                                         class="btn btn-sonrisar btn-sm"
                                     >
-                                        📤 Enviar recordatorio
+                                        📤 Abrir WhatsApp
                                     </a>
                                 </td>
                             </tr>
@@ -66,7 +86,7 @@
                 </div>
             {% else %}
                 <div class="alert alert-success text-center">
-                    ✔ No hay citas pendientes para mañana.
+                    ✔ No hay citas para este período.
                 </div>
             {% endif %}
 

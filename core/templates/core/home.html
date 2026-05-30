@@ -118,21 +118,21 @@
 
     <div class="row g-3">
 
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="dashboard-card">
                 Total turnos
                 <div class="dashboard-num">{{ total }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="dashboard-card">
                 Asistieron
                 <div class="dashboard-num text-success">{{ asistieron }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="dashboard-card">
                 No asistieron
                 <div class="dashboard-num text-danger">{{ no_asistieron }}</div>
@@ -143,6 +143,15 @@
             <div class="dashboard-card">
                 % Asistencia
                 <div class="dashboard-num">{{ porcentaje }}%</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                🔴 Ausentismo real
+                <div class="dashboard-num text-danger">
+                    {{ ausentismo_real }}%
+                </div>
             </div>
         </div>
 
