@@ -1,0 +1,378 @@
+{% extends "core/base.html" %}
+
+{% block title %}Estadísticas - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        --sonrisar: #26ABA5;
+        --sonrisar-dark: #168d88;
+        --sonrisar-soft: rgba(38, 171, 165, 0.10);
+        --sonrisar-border: rgba(38, 171, 165, 0.22);
+        --text-main: #111827;
+        --text-muted: #6b7280;
+        --line-soft: #eef2f3;
+    }
+
+    .stats-page {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding-bottom: 22px;
+    }
+
+    .stats-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .stats-header-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: var(--sonrisar-soft);
+        color: var(--sonrisar-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        box-shadow: 0 8px 18px rgba(38, 171, 165, 0.08);
+    }
+
+    .stats-title {
+        margin: 0;
+        color: var(--text-main);
+        font-size: 1.55rem;
+        font-weight: 600;
+        line-height: 1.1;
+    }
+
+    .stats-subtitle {
+        margin: 4px 0 0 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+    }
+
+    .stats-card {
+        height: 100%;
+        border: 1px solid #e8eeee;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(17, 24, 39, 0.055);
+        padding: 20px 18px;
+        transition: 0.18s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgba(17, 24, 39, 0.075);
+    }
+
+    .stats-card-inner {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .stats-card-icon {
+        flex: 0 0 54px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--sonrisar-soft);
+        color: var(--sonrisar-dark);
+        font-size: 1.35rem;
+    }
+
+    .stats-card-label {
+        margin: 0 0 6px 0;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 0.96rem;
+        line-height: 1.15;
+    }
+
+    .stats-card-number {
+        margin: 0;
+        color: var(--sonrisar-dark);
+        font-size: 2rem;
+        font-weight: 750;
+        line-height: 1;
+    }
+
+    .stats-card-note {
+        margin: 6px 0 0 0;
+        color: var(--text-muted);
+        font-size: 0.84rem;
+    }
+
+    .stats-info-strip {
+        margin: 18px 0 20px 0;
+        border: 1px solid var(--sonrisar-border);
+        border-radius: 16px;
+        background: linear-gradient(90deg, rgba(38, 171, 165, 0.08), rgba(255, 255, 255, 0.92));
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .stats-info-title {
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .stats-info-text {
+        margin: 3px 0 0 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .stats-info-number {
+        color: var(--sonrisar-dark);
+        font-size: 1.8rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .stats-panel {
+        border: 1px solid #e8eeee;
+        border-radius: 18px;
+        background: #ffffff;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(17, 24, 39, 0.055);
+        height: 100%;
+    }
+
+    .stats-panel-header {
+        padding: 18px 20px 12px 20px;
+        border-bottom: 1px solid var(--line-soft);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .stats-panel-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: var(--sonrisar-soft);
+        color: var(--sonrisar-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .stats-panel-title {
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1.08rem;
+    }
+
+    .stats-panel-subtitle {
+        margin: 3px 0 0 0;
+        color: var(--text-muted);
+        font-size: 0.86rem;
+    }
+
+    .stats-table {
+        margin: 0;
+        font-size: 0.93rem;
+    }
+
+    .stats-table thead th {
+        background: #ffffff;
+        color: var(--text-main);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        border-bottom: 1px solid var(--line-soft);
+        padding: 10px 20px;
+    }
+
+    .stats-table tbody td {
+        padding: 9px 20px;
+        border-bottom: 1px solid var(--line-soft);
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .stats-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .stats-pill {
+        min-width: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(38, 171, 165, 0.10);
+        color: #087873;
+        font-weight: 800;
+        font-size: 0.78rem;
+        border: 1px solid rgba(38, 171, 165, 0.13);
+    }
+
+    @media (max-width: 768px) {
+        .stats-title {
+            font-size: 1.35rem;
+        }
+
+        .stats-info-strip {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .stats-info-number {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+
+<div class="stats-page">
+
+    <div class="stats-header">
+        <div class="stats-header-icon">📊</div>
+        <div>
+            <h2 class="stats-title">Indicadores Sonrisar Pro</h2>
+            <p class="stats-subtitle">Resumen general de pacientes, citas y colocaciones nuevas</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="stats-card">
+                <div class="stats-card-inner">
+                    <div class="stats-card-icon">👥</div>
+                    <div>
+                        <p class="stats-card-label">Total de pacientes</p>
+                        <p class="stats-card-number">{{ total_pacientes }}</p>
+                        <p class="stats-card-note">Pacientes registrados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="stats-card">
+                <div class="stats-card-inner">
+                    <div class="stats-card-icon">🗓️</div>
+                    <div>
+                        <p class="stats-card-label">Citas del mes</p>
+                        <p class="stats-card-number">{{ citas_mes }}</p>
+                        <p class="stats-card-note">Citas agendadas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="stats-card">
+                <div class="stats-card-inner">
+                    <div class="stats-card-icon">🦷</div>
+                    <div>
+                        <p class="stats-card-label">Colocaciones nuevas del mes</p>
+                        <p class="stats-card-number">{{ colocaciones_mes }}</p>
+                        <p class="stats-card-note">Asistieron este mes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="stats-card">
+                <div class="stats-card-inner">
+                    <div class="stats-card-icon">🏅</div>
+                    <div>
+                        <p class="stats-card-label">Pacientes nuevos</p>
+                        <p class="stats-card-number">{{ colocaciones_anio }}</p>
+                        <p class="stats-card-note">Por colocación nueva</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="stats-panel">
+                <div class="stats-panel-header">
+                    <div class="stats-panel-icon">📋</div>
+                    <div>
+                        <p class="stats-panel-title">Motivos de consulta asistida</p>
+                        <p class="stats-panel-subtitle">Citas realizadas con estado “Asistió”</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table stats-table">
+                        <thead>
+                            <tr>
+                                <th>Motivo</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in motivos %}
+                                <tr>
+                                    <td>{{ item.motivo }}</td>
+                                    <td class="text-end"><span class="stats-pill">{{ item.total }}</span></td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted py-4">Todavía no hay citas asistidas cargadas.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="stats-panel">
+                <div class="stats-panel-header">
+                    <div class="stats-panel-icon">📈</div>
+                    <div>
+                        <p class="stats-panel-title">Pacientes nuevos por mes - {{ anio_actual }}</p>
+                        <p class="stats-panel-subtitle">Pacientes únicos con primera colocación asistida</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table stats-table">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th class="text-end">Pacientes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in colocaciones_por_mes %}
+                                <tr>
+                                    <td>{{ item.mes }}</td>
+                                    <td class="text-end"><span class="stats-pill">{{ item.cantidad }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

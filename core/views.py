@@ -3816,3 +3816,74 @@ def desbloquear_dia(request):
     return redirect(
         f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}"
     )
+
+# =============================
+# 📊 ESTADÍSTICAS SONRISAR PRO
+# =============================
+
+def estadisticas(request):
+    hoy = timezone.now().date()
+
+    total_pacientes = Patient.objects.count()
+
+    citas_mes = Appointment.objects.filter(
+        fecha__year=hoy.year,
+        fecha__month=hoy.month
+    ).count()
+
+    colocaciones_mes = Appointment.objects.filter(
+        fecha__year=hoy.year,
+        fecha__month=hoy.month,
+        motivo="Colocación nueva",
+        estado="asistio"
+    ).values("paciente").distinct().count()
+
+    colocaciones_anio = Appointment.objects.filter(
+        fecha__year=hoy.year,
+        motivo="Colocación nueva",
+        estado="asistio"
+    ).values("paciente").distinct().count()
+
+    motivos = (
+        Appointment.objects
+        .filter(estado="asistio")
+        .values("motivo")
+        .annotate(total=Count("id"))
+        .order_by("-total", "motivo")
+    )
+
+    nombres_meses = [
+        "",
+        "Enero", "Febrero", "Marzo", "Abril",
+        "Mayo", "Junio", "Julio", "Agosto",
+        "Setiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    colocaciones_por_mes = []
+
+    for mes in range(1, 13):
+        cantidad = Appointment.objects.filter(
+            fecha__year=hoy.year,
+            fecha__month=mes,
+            motivo="Colocación nueva",
+            estado="asistio"
+        ).values("paciente").distinct().count()
+
+        colocaciones_por_mes.append({
+            "mes": nombres_meses[mes],
+            "cantidad": cantidad,
+        })
+
+    return render(
+        request,
+        "core/estadisticas.html",
+        {
+            "total_pacientes": total_pacientes,
+            "citas_mes": citas_mes,
+            "colocaciones_mes": colocaciones_mes,
+            "colocaciones_anio": colocaciones_anio,
+            "motivos": motivos,
+            "colocaciones_por_mes": colocaciones_por_mes,
+            "anio_actual": hoy.year,
+        }
+    )

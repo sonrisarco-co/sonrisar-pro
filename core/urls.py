@@ -131,6 +131,7 @@ urlpatterns = [
     ),
 
     path("dashboard-asistencia/", views.dashboard_asistencia, name="dashboard_asistencia"),
+    path("estadisticas/", views.estadisticas, name="estadisticas"),
 
 
 
