@@ -88,7 +88,13 @@
 
 <div class="ficha-container">
 
-    <!-- HEADER -->
+    {% if request.GET.next %}
+        <a href="{{ request.GET.next }}"
+           class="btn btn-light mb-3">
+            ← Volver
+        </a>
+    {% endif %}
+
     <div class="ficha-header">
         <h2>
             📄 Ficha del Paciente

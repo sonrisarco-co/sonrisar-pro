@@ -160,6 +160,12 @@
                                                             🗑
                                                         </a>
 
+                                                        <a href="{% url 'patient_detail' cita.paciente.id %}?next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}"
+                                                            class="cita-paciente-btn"
+                                                            title="Ficha paciente">
+                                                            👤
+                                                        </a>
+
 
                                                         <a href="{% url 'abrir_historia_desde_cita' cita.paciente.id %}?appointment_id={{ cita.id }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}"
                                                             class="cita-card-link">
@@ -844,6 +850,29 @@
 
 .cita-delete-btn:hover{
     background: #dc3545;
+    color: #fff;
+    text-decoration: none;
+}
+
+.cita-paciente-btn{
+    position: absolute;
+    top: 50px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    z-index: 3;
+}
+
+.cita-paciente-btn:hover{
+    background: rgba(255,255,255,0.40);
     color: #fff;
     text-decoration: none;
 }

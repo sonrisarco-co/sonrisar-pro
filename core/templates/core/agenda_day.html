@@ -228,6 +228,11 @@
                                                 Historia clínica
                                             </a>
 
+                                            <a href="{% url 'patient_detail' cita.patient_id %}?next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-outline-secondary">
+                                                Ficha paciente
+                                            </a>
+
                                             {% if cita.tiene_pago_cobros and cita.debe <= 0 %}
                                                 <span class="btn btn-sm btn-success disabled">
                                                     Ya cobrado
@@ -433,6 +438,11 @@
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
                                                class="btn btn-sm btn-outline-success">
                                                 Historia clínica
+                                            </a>
+
+                                            <a href="{% url 'patient_detail' cita.patient_id %}?next={{ request.get_full_path|urlencode }}"
+                                                class="btn btn-sm btn-outline-secondary">
+                                                Ficha paciente
                                             </a>
 
                                             {% if cita.tiene_pago_cobros and cita.debe <= 0 %}
