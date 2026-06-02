@@ -1709,35 +1709,6 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
 
 
 def _armar_cita_agenda_rapida(cita, contextos_financieros):
-    if not contextos_financieros:
-        return {
-            "id": cita.id,
-            "patient_id": cita.paciente.id,
-            "hora_real": cita.hora,
-            "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
-            "edad": calcular_edad(cita.paciente.fecha_nacimiento),
-            "motivo": cita.motivo,
-            "motivo_slug": slugify(cita.motivo or ""),
-            "procedimientos": [p.nombre for p in cita.procedimientos.all()],
-            "estado": cita.get_estado_display(),
-            "estado_slug": cita.estado,
-            "pagado": False,
-            "tiene_pago_cobros": False,
-            "total_pagado": "0",
-            "total_pagado_paciente": "0",
-            "tipo_pago": "pendiente",
-            "monto_total": _decimal_seguro(cita.monto_total),
-            "total_cobrable_paciente": _decimal_seguro(cita.monto_total),
-            "debe": Decimal("0"),
-            "deuda_total_paciente": Decimal("0"),
-            "saldo_a_favor": Decimal("0"),
-            "saldo_a_favor_restante": Decimal("0"),
-            "saldo_usado": Decimal("0"),
-            "tiene_saldo_a_favor": False,
-            "usa_saldo_a_favor": False,
-            "cobros_error": None,
-        }
-
     contexto_financiero = contextos_financieros.get(cita.id, {})
 
     edad = calcular_edad(cita.paciente.fecha_nacimiento)
@@ -1812,8 +1783,6 @@ def agenda_day(request, day, month, year):
     fecha = date(year, month, day)
     print("DEBUG AGENDA_DAY EJECUTADA", fecha)
 
-    modo_rapido = request.GET.get("rapido") == "1"
-
     dia_bloqueado = DayBlock.objects.filter(
         fecha=fecha
     ).first()
@@ -1827,13 +1796,10 @@ def agenda_day(request, day, month, year):
 
     HORARIOS_BLOQUEADOS = {"14:00", "14:30"}
 
-    if modo_rapido:
-        contextos_financieros = {}
-    else:
-        contextos_financieros = _obtener_contexto_financiero_citas(
-            citas,
-            fecha
-        )
+    contextos_financieros = _obtener_contexto_financiero_citas(
+        citas,
+        fecha
+    )
 
     citas_por_bloque = agrupar_citas_por_bloque(citas)
 
@@ -1904,7 +1870,7 @@ def agenda_day(request, day, month, year):
     deudores = []
     pacientes_ya_agregados = set()
 
-    if not modo_rapido and not dia_bloqueado:
+    if not dia_bloqueado:
         for h in horarios:
             if h.get("bloqueado"):
                 continue
@@ -1931,7 +1897,6 @@ def agenda_day(request, day, month, year):
             "deudores": deudores,
             "total_deuda_dia": total_deuda_dia,
             "dia_bloqueado": dia_bloqueado,
-            "modo_rapido": modo_rapido,
         }
     )
 
