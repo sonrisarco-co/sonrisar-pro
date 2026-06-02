@@ -89,8 +89,8 @@
 <div class="ficha-container">
 
     {% if request.GET.next %}
-        <a href="{{ request.GET.next }}"
-           class="btn btn-light mb-3">
+        <a href="{{ request.GET.next }}{% if '?' in request.GET.next %}&{% else %}?{% endif %}rapido=1"
+            class="btn btn-light mb-3">
             ← Volver
         </a>
     {% endif %}
@@ -101,7 +101,8 @@
         </h2>
 
         <div class="ficha-actions">
-            <a href="{% url 'patient_edit' paciente.id %}" class="btn btn-outline-primary">
+            <a href="{% url 'patient_edit' paciente.id %}?next={{ request.GET.next|urlencode }}"
+                class="btn btn-outline-primary">
                 ✏️ Editar
             </a>
 
