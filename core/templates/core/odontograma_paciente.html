@@ -1,0 +1,208 @@
+{% extends "core/base.html" %}
+
+{% block title %}Odontograma - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <a href="{% url 'patient_detail' paciente.id %}" class="btn btn-light mb-3">
+        ← Volver a ficha
+    </a>
+
+    <div class="card shadow-sm">
+        <div class="card-header" style="background:#26ABA5; color:white;">
+            <h4 class="mb-0">🦷 Odontograma - {{ paciente.apellido }}, {{ paciente.nombre }}</h4>
+        </div>
+
+        <div class="card-body">
+
+            <form method="post" id="odontogramaForm">
+                {% csrf_token %}
+                <input type="hidden" name="odontograma_data" id="odontogramaData">
+
+                <div class="mb-3">
+                    <strong>Herramienta:</strong>
+
+                    <button type="button" class="btn btn-sm btn-danger tool-btn" data-estado="caries">Caries</button>
+                    <button type="button" class="btn btn-sm btn-primary tool-btn" data-estado="obturado">Obturado</button>
+                    <button type="button" class="btn btn-sm btn-warning tool-btn" data-estado="corona">Corona</button>
+                    <button type="button" class="btn btn-sm btn-secondary tool-btn" data-estado="ausente">Ausente</button>
+                    <button type="button" class="btn btn-sm btn-dark tool-btn" data-estado="extraccion">Extracción</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="borrarBtn">Borrar marca</button>
+                </div>
+
+                <div class="alert alert-info py-2">
+                    Selecciona una herramienta y haz clic sobre el odontograma.
+                </div>
+
+                <div id="odontogramaArea" class="odontograma-area">
+                    <div class="fila">
+                        <span>18</span><span>17</span><span>16</span><span>15</span><span>14</span><span>13</span><span>12</span><span>11</span>
+                        <span class="separador"></span>
+                        <span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span>
+                    </div>
+
+                    <div class="fila temporales">
+                        <span>55</span><span>54</span><span>53</span><span>52</span><span>51</span>
+                        <span class="separador"></span>
+                        <span>61</span><span>62</span><span>63</span><span>64</span><span>65</span>
+                    </div>
+
+                    <div class="fila temporales">
+                        <span>85</span><span>84</span><span>83</span><span>82</span><span>81</span>
+                        <span class="separador"></span>
+                        <span>71</span><span>72</span><span>73</span><span>74</span><span>75</span>
+                    </div>
+
+                    <div class="fila">
+                        <span>48</span><span>47</span><span>46</span><span>45</span><span>44</span><span>43</span><span>42</span><span>41</span>
+                        <span class="separador"></span>
+                        <span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-sonrisar">
+                        💾 Guardar odontograma
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<style>
+.odontograma-area {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 25px;
+    min-height: 360px;
+    overflow-x: auto;
+}
+
+.fila {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 28px 0;
+}
+
+.fila span:not(.separador) {
+    width: 44px;
+    height: 58px;
+    border: 2px solid #26ABA5;
+    border-radius: 45% 45% 35% 35%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #107361;
+    background: linear-gradient(#ffffff, #eefdfa);
+    cursor: crosshair;
+    user-select: none;
+}
+
+.temporales span:not(.separador) {
+    width: 38px;
+    height: 48px;
+    font-size: 0.85rem;
+}
+
+.separador {
+    width: 20px;
+}
+
+.marca {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    cursor: pointer;
+}
+
+.marca.caries { background: #dc3545; }
+.marca.obturado { background: #0d6efd; }
+.marca.corona { background: #ffc107; }
+.marca.ausente { background: #6c757d; }
+.marca.extraccion { background: #212529; }
+
+.tool-btn.active {
+    outline: 3px solid #26ABA5;
+}
+</style>
+
+<script>
+const area = document.getElementById("odontogramaArea");
+const input = document.getElementById("odontogramaData");
+const form = document.getElementById("odontogramaForm");
+const borrarBtn = document.getElementById("borrarBtn");
+
+let herramienta = "caries";
+let marcas = {{ odontograma_marcas|safe }};
+
+function renderMarcas() {
+    area.querySelectorAll(".marca").forEach(m => m.remove());
+
+    marcas.forEach((marca, index) => {
+        const div = document.createElement("div");
+        div.className = "marca " + marca.estado;
+        div.style.left = marca.x + "%";
+        div.style.top = marca.y + "%";
+        div.title = marca.estado;
+
+        div.addEventListener("click", function(e) {
+            e.stopPropagation();
+            marcas.splice(index, 1);
+            renderMarcas();
+        });
+
+        area.appendChild(div);
+    });
+}
+
+document.querySelectorAll(".tool-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+        document.querySelectorAll(".tool-btn").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        herramienta = this.dataset.estado;
+    });
+});
+
+area.addEventListener("click", function(e) {
+    if (!herramienta) return;
+
+    const rect = area.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    marcas.push({
+        estado: herramienta,
+        x: x,
+        y: y
+    });
+
+    renderMarcas();
+});
+
+borrarBtn.addEventListener("click", function() {
+    marcas = [];
+    renderMarcas();
+});
+
+form.addEventListener("submit", function() {
+    input.value = JSON.stringify(marcas);
+});
+
+renderMarcas();
+document.querySelector(".tool-btn").classList.add("active");
+</script>
+
+{% endblock %}

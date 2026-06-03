@@ -605,6 +605,25 @@ def guardar_odontograma_desde_post(request, paciente):
         )
 
 
+def odontograma_paciente(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+
+    if request.method == "POST":
+        guardar_odontograma_desde_post(request, paciente)
+        messages.success(request, "Odontograma guardado correctamente.")
+        return redirect("odontograma_paciente", patient_id=paciente.id)
+
+    return render(
+        request,
+        "core/odontograma_paciente.html",
+        {
+            "paciente": paciente,
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+        }
+    )
+
+
+
 def clinical_record_new(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 

@@ -31,6 +31,11 @@ urlpatterns = [
     path("paciente/<int:patient_id>/presupuestos/", views.patient_budgets, name="patient_budgets"),
     path("pacientes/quick-new/", views.patient_quick_new, name="patient_quick_new"),
     path("pacientes/inactivos/", views.pacientes_inactivos, name="pacientes_inactivos"),
+    path(
+        "pacientes/<int:patient_id>/odontograma/",
+        views.odontograma_paciente,
+        name="odontograma_paciente"
+    ),
 
 
     
