@@ -2473,15 +2473,47 @@ def agenda(request):
 def _normalizar_telefono_uy(telefono):
     """
     Limpia el teléfono y lo deja listo para WhatsApp.
-    Ejemplos:
-    092 706 293 -> 59892706293
+
+    Uruguay:
+    092706293 -> 59892706293
     59892706293 -> 59892706293
+
+    Argentina:
+    1123456789 -> 5491123456789
+    5491123456789 -> 5491123456789
+    +54 9 11 2345 6789 -> 5491123456789
     """
+
     telefono_num = "".join(c for c in str(telefono or "") if c.isdigit())
 
+    if not telefono_num:
+        return ""
+
+    # Uruguay ya completo
+    if telefono_num.startswith("598"):
+        return telefono_num
+
+    # Argentina ya completo para WhatsApp
+    if telefono_num.startswith("549"):
+        return telefono_num
+
+    # Argentina escrito como 54 + número celular sin el 9
+    # Ej: 541123456789 -> 5491123456789
+    if telefono_num.startswith("54") and not telefono_num.startswith("549"):
+        return "549" + telefono_num[2:]
+
+    # Argentina celular CABA/Buenos Aires sin código país
+    # Ej: 1123456789 -> 5491123456789
+    if telefono_num.startswith("11") and len(telefono_num) == 10:
+        return "549" + telefono_num
+
+    # Uruguay con 0 adelante
+    # Ej: 099123456 -> 99123456
     if telefono_num.startswith("0"):
         telefono_num = telefono_num[1:]
 
+    # Uruguay sin código país
+    # Ej: 99123456 -> 59899123456
     if telefono_num and not telefono_num.startswith("598"):
         telefono_num = "598" + telefono_num
 
@@ -2521,7 +2553,8 @@ def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
         f"Te recordamos tu cita odontológica para el *{fecha_txt}* "
         f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
         f"📍 Román Guerra 752, Maldonado\n\n"
-        f"Si necesitás reprogramar o cancelar, comunicate con nosotros\n\n"
+        f"Para dejar tu turno asegurado, respondé *Confirmo*, por favor. ✅\n"
+        f"Si no recibimos confirmación, el turno podría cancelarse y liberarse para otro paciente.\n\n"
         f"¡Te esperamos! 🦷✨\n\n"
         f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
     )
@@ -2626,6 +2659,10 @@ def cita_recordatorio(request, id):
         id=id
     )
 
+    tipo = request.GET.get("tipo", "24h")
+    if tipo not in ["24h", "48h"]:
+        tipo = "24h"
+
     paciente = cita.paciente
     telefono_num = _normalizar_telefono_uy(paciente.telefono)
 
@@ -2633,7 +2670,7 @@ def cita_recordatorio(request, id):
         messages.warning(request, "Este paciente no tiene teléfono cargado.")
         return redirect("whatsapp_reminders")
 
-    mensaje = _mensaje_recordatorio(cita, "24h")
+    mensaje = _mensaje_recordatorio(cita, tipo)
     params = urlencode({"text": mensaje})
     url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
 
