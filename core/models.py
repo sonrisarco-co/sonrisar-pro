@@ -176,6 +176,49 @@ class OdontogramTooth(models.Model):
         return f"{self.numero} - {self.estado}"
 
 
+class OdontogramaCara(models.Model):
+
+    CARAS = [
+        ("vestibular", "Vestibular"),
+        ("mesial", "Mesial"),
+        ("distal", "Distal"),
+        ("oclusal", "Oclusal / Incisal"),
+        ("palatino_lingual", "Palatino / Lingual"),
+    ]
+
+    ESTADOS = [
+        ("caries", "Caries"),
+        ("obturado", "Obturado"),
+        ("corona", "Corona"),
+        ("endodoncia", "Endodoncia"),
+        ("implante", "Implante"),
+        ("extraccion", "Extracción indicada"),
+        ("ausente", "Ausente"),
+        ("sano", "Sano"),
+    ]
+
+    paciente = models.ForeignKey(
+        Patient,
+        on_delete=models.CASCADE,
+        related_name="odontograma_caras"
+    )
+
+    pieza = models.CharField(max_length=5)
+    cara = models.CharField(max_length=30, choices=CARAS)
+    estado = models.CharField(max_length=30, choices=ESTADOS)
+
+    observacion = models.CharField(max_length=255, blank=True)
+    fecha = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["pieza", "cara"]
+        unique_together = ("paciente", "pieza", "cara")
+
+    def __str__(self):
+        return f"{self.paciente} - {self.pieza} - {self.cara} - {self.estado}"
+
+
+
 # 💰 PRESUPUESTOS
 from decimal import Decimal
 
