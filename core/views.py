@@ -56,6 +56,7 @@ from .models import (
     RayosX,
     BudgetPayment,
     OdontogramTooth,
+    OdontogramaCara,
     DayBlock,
 )
 
@@ -622,6 +623,39 @@ def odontograma_paciente(request, patient_id):
         }
     )
 
+
+def odontograma_profesional(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+
+    if request.method == "POST":
+        pieza = request.POST.get("pieza")
+        cara = request.POST.get("cara")
+        estado = request.POST.get("estado")
+
+        if pieza and cara and estado:
+            OdontogramaCara.objects.update_or_create(
+                paciente=paciente,
+                pieza=pieza,
+                cara=cara,
+                defaults={"estado": estado}
+            )
+
+            return JsonResponse({"success": True})
+
+        return JsonResponse({"success": False}, status=400)
+
+    marcas = {}
+    for item in OdontogramaCara.objects.filter(paciente=paciente):
+        marcas[f"{item.pieza}_{item.cara}"] = item.estado
+
+    return render(
+        request,
+        "core/odontograma_profesional.html",
+        {
+            "paciente": paciente,
+            "marcas": json.dumps(marcas),
+        }
+    )
 
 
 def clinical_record_new(request, patient_id):

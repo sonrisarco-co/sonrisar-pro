@@ -36,6 +36,11 @@ urlpatterns = [
         views.odontograma_paciente,
         name="odontograma_paciente"
     ),
+    path(
+        "pacientes/<int:patient_id>/odontograma-profesional/",
+        views.odontograma_profesional,
+        name="odontograma_profesional"
+    ),
 
 
     
