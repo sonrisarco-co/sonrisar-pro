@@ -154,10 +154,12 @@ class OdontogramTooth(models.Model):
         ("sano", "Sano"),
         ("caries", "Caries"),
         ("obturado", "Obturado"),
-        ("ausente", "Ausente"),
         ("corona", "Corona"),
-        ("movilidad", "Movilidad"),
+        ("endodoncia", "Endodoncia"),
+        ("implante", "Implante"),
         ("extraccion", "Extracción"),
+        ("ausente", "Ausente"),
+        ("movilidad", "Movilidad"),
     ]
 
     paciente = models.ForeignKey(

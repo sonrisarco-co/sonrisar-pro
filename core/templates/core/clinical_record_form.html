@@ -131,58 +131,21 @@
                 <span>🦷</span>
                 <div>
                     <h3>7. Odontograma</h3>
-                    <p>Seleccioná pieza, estado y hacé clic exactamente donde querés marcar.</p>
+                    <p>Odontograma profesional del paciente.</p>
                 </div>
             </div>
 
-            <div class="odontograma-selector-grid">
-                <div class="hc-field">
-                    <label>Pieza dental</label>
-                    <select id="pieza-dental-select">
-                        <option value="">Sin especificar</option>
-                        <option value="18">18</option><option value="17">17</option><option value="16">16</option><option value="15">15</option>
-                        <option value="14">14</option><option value="13">13</option><option value="12">12</option><option value="11">11</option>
-                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
-                        <option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option>
-                        <option value="55">55</option><option value="54">54</option><option value="53">53</option><option value="52">52</option><option value="51">51</option>
-                        <option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="65">65</option>
-                        <option value="85">85</option><option value="84">84</option><option value="83">83</option><option value="82">82</option><option value="81">81</option>
-                        <option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option>
-                        <option value="48">48</option><option value="47">47</option><option value="46">46</option><option value="45">45</option>
-                        <option value="44">44</option><option value="43">43</option><option value="42">42</option><option value="41">41</option>
-                        <option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option>
-                        <option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option>
-                    </select>
+            <div class="odontograma-link-card">
+                <div>
+                    <strong>Odontograma actual</strong>
+                    <p>Se abre el odontograma profesional nuevo, con piezas anatómicas y marcado por diente completo.</p>
                 </div>
-            </div>
 
-            <div class="estado-selector">
-                <button type="button" data-estado="sano">Diente sano</button>
-                <button type="button" data-estado="caries" class="estado-activo">Caries</button>
-                <button type="button" data-estado="obturado">Obturado</button>
-                <button type="button" data-estado="ausente">Ausente</button>
-                <button type="button" data-estado="corona">Corona</button>
-                <button type="button" data-estado="movilidad">Movilidad</button>
-                <button type="button" data-estado="extraccion">Extracción</button>
+                <a href="{% url 'odontograma_profesional' paciente.id %}?next={{ request.get_full_path|urlencode }}"
+                    class="btn-sonrisar odontograma-open-btn">
+                    Abrir odontograma profesional
+                </a>
             </div>
-
-            <div class="odontograma-tools">
-                <button type="button" id="btn-limpiar-odontograma" class="btn-mini-danger">
-                    Limpiar odontograma
-                </button>
-            </div>
-
-            <div class="odontograma-scroll">
-                <div class="odontograma-edit" id="odontograma-container">
-                    <img
-                        src="{% static 'core/img/odontograma_base.png' %}"
-                        class="odontograma-img"
-                        alt="Odontograma"
-                    >
-                </div>
-            </div>
-
-            <input type="hidden" name="odontograma_data" id="odontograma_data">
         </section>
 
         <section class="hc-card">
@@ -571,6 +534,38 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+.odontograma-link-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #f3fffe;
+    border: 1px solid #d4eeee;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.odontograma-link-card strong {
+    color: #146B6C;
+    font-size: 18px;
+}
+
+.odontograma-link-card p {
+    margin: 5px 0 0;
+    color: #64748b;
+}
+
+.odontograma-open-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    white-space: nowrap;
+}
+
 </style>
 
 <script>
@@ -583,116 +578,7 @@ document.querySelectorAll("textarea").forEach(function(textarea) {
     autoResize();
 });
 
-let estadoActual = "caries";
-let marcasOdontograma = [];
 
-const formHistoria = document.getElementById("historia-form");
-const containerOdonto = document.getElementById("odontograma-container");
-const inputOdonto = document.getElementById("odontograma_data");
-const btnLimpiar = document.getElementById("btn-limpiar-odontograma");
-const piezaSelect = document.getElementById("pieza-dental-select");
-const marcasInicialesJson = "{{ odontograma_marcas|default:'[]'|escapejs }}";
-
-const labelsEstado = {
-    sano: "Diente sano",
-    caries: "Caries",
-    obturado: "Obturado",
-    ausente: "Ausente",
-    corona: "Corona",
-    movilidad: "Movilidad",
-    extraccion: "Extracción"
-};
-
-try {
-    marcasOdontograma = JSON.parse(marcasInicialesJson);
-} catch (error) {
-    marcasOdontograma = [];
-}
-
-function actualizarInputOdontograma() {
-    inputOdonto.value = JSON.stringify(marcasOdontograma);
-}
-
-function etiquetaMarca(marca) {
-    const labelEstado = labelsEstado[marca.estado] || marca.estado;
-    return marca.diente ? (marca.diente + " — " + labelEstado) : labelEstado;
-}
-
-function dibujarMarca(marca) {
-    const punto = document.createElement("button");
-    punto.type = "button";
-    punto.className = "marca-odontograma " + marca.estado;
-    punto.style.left = marca.x + "%";
-    punto.style.top = marca.y + "%";
-    punto.dataset.label = etiquetaMarca(marca);
-
-    punto.addEventListener("click", function(event) {
-        event.stopPropagation();
-
-        marcasOdontograma = marcasOdontograma.filter(function(item) {
-            return item.id !== marca.id;
-        });
-
-        punto.remove();
-        actualizarInputOdontograma();
-    });
-
-    containerOdonto.appendChild(punto);
-}
-
-marcasOdontograma.forEach(function(marca) {
-    dibujarMarca(marca);
-});
-
-document.querySelectorAll(".estado-selector button").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-        document.querySelectorAll(".estado-selector button").forEach(function(b) {
-            b.classList.remove("estado-activo");
-        });
-
-        btn.classList.add("estado-activo");
-        estadoActual = btn.dataset.estado;
-    });
-});
-
-containerOdonto.addEventListener("click", function(event) {
-    if (event.target.classList.contains("marca-odontograma")) {
-        return;
-    }
-
-    const rect = containerOdonto.getBoundingClientRect();
-
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-
-    const marca = {
-        id: Date.now().toString() + Math.random().toString(16).slice(2),
-        estado: estadoActual,
-        diente: piezaSelect.value,
-        x: x,
-        y: y
-    };
-
-    marcasOdontograma.push(marca);
-    dibujarMarca(marca);
-    actualizarInputOdontograma();
-});
-
-btnLimpiar.addEventListener("click", function() {
-    marcasOdontograma = [];
-
-    containerOdonto.querySelectorAll(".marca-odontograma").forEach(function(marca) {
-        marca.remove();
-    });
-
-    actualizarInputOdontograma();
-});
-
-formHistoria.addEventListener("submit", function() {
-    actualizarInputOdontograma();
-});
-
-actualizarInputOdontograma();
 </script>
 
 {% endblock %}

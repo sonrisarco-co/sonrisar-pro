@@ -407,6 +407,38 @@
             page-break-inside: avoid;
         }
     }
+
+
+    .odontograma-link-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: #f3fffe;
+        border: 1px solid #d4eeee;
+        border-radius: 16px;
+        padding: 18px;
+    }
+
+    .odontograma-link-card strong {
+        color: #146B6C;
+        font-size: 18px;
+    }
+
+    .odontograma-link-card p {
+        margin: 5px 0 0;
+        color: #64748b;
+    }
+
+    .odontograma-open-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        white-space: nowrap;
+    }
+
 </style>
 
 <div class="container mt-4 hc-print-root">
@@ -529,15 +561,20 @@
     <div class="hc-box">
         <h3 class="hc-section-title">7. Odontograma</h3>
 
-        <div class="odontograma-scroll">
-            <div class="odontograma-view" id="odontograma-view">
-                <img
-                    src="{% static 'core/img/odontograma_base.png' %}"
-                    alt="Odontograma"
-                    class="odontograma-img"
-                >
+        <div class="odontograma-link-card">
+            <div>
+                <strong>Odontograma actual</strong>
+                <p>Ver o actualizar el odontograma profesional del paciente.</p>
             </div>
+
+            <a href="{% url 'odontograma_profesional' paciente.id %}"
+               class="btn-sonrisar odontograma-open-btn"
+               target="_blank"
+               rel="noopener">
+                Abrir odontograma profesional
+            </a>
         </div>
+    </div>
     </div>
 
     <div class="hc-box">
@@ -604,40 +641,5 @@
     </div>
 
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const container = document.getElementById("odontograma-view");
-    const marcasJson = "{{ odontograma_marcas|default:'[]'|escapejs }}";
-
-    const labelsEstado = {
-        sano: "Diente sano",
-        caries: "Caries",
-        obturado: "Obturado",
-        ausente: "Ausente",
-        corona: "Corona",
-        movilidad: "Movilidad",
-        extraccion: "Extracción"
-    };
-
-    let marcas = [];
-
-    try {
-        marcas = JSON.parse(marcasJson);
-    } catch (error) {
-        marcas = [];
-    }
-
-    marcas.forEach(function(marca) {
-        const punto = document.createElement("div");
-        punto.className = "marca-odontograma " + marca.estado;
-        punto.style.left = marca.x + "%";
-        punto.style.top = marca.y + "%";
-        punto.dataset.label = labelsEstado[marca.estado] || marca.estado;
-
-        container.appendChild(punto);
-    });
-});
-</script>
 
 {% endblock %}

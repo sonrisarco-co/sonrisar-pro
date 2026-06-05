@@ -565,15 +565,26 @@ def calcular_edad(fecha_nacimiento):
 
 
 def obtener_marcas_odontograma(paciente):
-    return [
-        {
-            "id": str(d.id),
-            "estado": d.estado,
-            "x": d.pos_x,
-            "y": d.pos_y,
-        }
-        for d in OdontogramTooth.objects.filter(paciente=paciente)
-    ]
+    """
+    Odontograma simplificado Opción A:
+    una sola marca por pieza dental.
+
+    Devuelve un diccionario así:
+    {
+        "18": "caries",
+        "17": "obturado"
+    }
+
+    Se siguen usando los campos existentes de OdontogramTooth:
+    - numero = pieza dental
+    - estado = tratamiento
+    - pos_x / pos_y quedan en 0 para compatibilidad con registros viejos
+    """
+    return {
+        str(d.numero): d.estado
+        for d in OdontogramTooth.objects.filter(paciente=paciente).exclude(estado="sano")
+        if str(d.numero).strip() and str(d.numero) != "marca"
+    }
 
 
 def guardar_odontograma_desde_post(request, paciente):
@@ -587,23 +598,57 @@ def guardar_odontograma_desde_post(request, paciente):
     except Exception:
         return
 
-    OdontogramTooth.objects.filter(paciente=paciente).delete()
+    estados_validos = {
+        "caries",
+        "obturado",
+        "corona",
+        "endodoncia",
+        "implante",
+        "extraccion",
+        "ausente",
+        "sano",
+    }
 
-    for marca in marcas:
-        estado = marca.get("estado")
-        x = marca.get("x")
-        y = marca.get("y")
+    # Nuevo formato recomendado: {"18": "caries", "17": "obturado"}
+    if isinstance(marcas, dict):
+        OdontogramTooth.objects.filter(paciente=paciente).delete()
 
-        if not estado or x is None or y is None:
-            continue
+        for pieza, estado in marcas.items():
+            pieza = str(pieza).strip()
+            estado = str(estado).strip()
 
-        OdontogramTooth.objects.create(
-            paciente=paciente,
-            numero="marca",
-            estado=estado,
-            pos_x=float(x),
-            pos_y=float(y),
-        )
+            if not pieza or estado not in estados_validos or estado == "sano":
+                continue
+
+            OdontogramTooth.objects.create(
+                paciente=paciente,
+                numero=pieza,
+                estado=estado,
+                pos_x=0,
+                pos_y=0,
+            )
+        return
+
+    # Compatibilidad con el odontograma viejo por coordenadas.
+    if isinstance(marcas, list):
+        OdontogramTooth.objects.filter(paciente=paciente).delete()
+
+        for marca in marcas:
+            estado = marca.get("estado")
+            pieza = marca.get("pieza") or marca.get("numero") or "marca"
+            x = marca.get("x", 0)
+            y = marca.get("y", 0)
+
+            if not estado or estado not in estados_validos:
+                continue
+
+            OdontogramTooth.objects.create(
+                paciente=paciente,
+                numero=str(pieza),
+                estado=estado,
+                pos_x=float(x or 0),
+                pos_y=float(y or 0),
+            )
 
 
 def odontograma_paciente(request, patient_id):
@@ -628,25 +673,54 @@ def odontograma_profesional(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
     if request.method == "POST":
-        pieza = request.POST.get("pieza")
-        cara = request.POST.get("cara")
-        estado = request.POST.get("estado")
+        # Guardado normal desde el formulario del odontograma nuevo.
+        if request.POST.get("odontograma_data"):
+            guardar_odontograma_desde_post(request, paciente)
+            messages.success(request, "Odontograma guardado correctamente.")
 
-        if pieza and cara and estado:
-            OdontogramaCara.objects.update_or_create(
-                paciente=paciente,
-                pieza=pieza,
-                cara=cara,
-                defaults={"estado": estado}
+            next_url = request.GET.get("next") or request.POST.get("next")
+
+            if next_url:
+                return redirect(next_url)
+
+            return redirect(
+                "odontograma_profesional",
+                patient_id=paciente.id
             )
 
+        # Guardado AJAX opcional: pieza + estado.
+        pieza = request.POST.get("pieza")
+        estado = request.POST.get("estado")
+
+        estados_validos = {
+            "caries",
+            "obturado",
+            "corona",
+            "endodoncia",
+            "implante",
+            "extraccion",
+            "ausente",
+            "sano",
+        }
+
+        if pieza and estado in estados_validos:
+            if estado == "sano":
+                OdontogramTooth.objects.filter(paciente=paciente, numero=pieza).delete()
+            else:
+                OdontogramTooth.objects.update_or_create(
+                    paciente=paciente,
+                    numero=pieza,
+                    defaults={
+                        "estado": estado,
+                        "pos_x": 0,
+                        "pos_y": 0,
+                    }
+                )
             return JsonResponse({"success": True})
 
         return JsonResponse({"success": False}, status=400)
 
-    marcas = {}
-    for item in OdontogramaCara.objects.filter(paciente=paciente):
-        marcas[f"{item.pieza}_{item.cara}"] = item.estado
+    marcas = obtener_marcas_odontograma(paciente)
 
     return render(
         request,

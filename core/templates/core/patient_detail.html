@@ -159,33 +159,22 @@
 
     <!-- ACCIONES -->
     <div class="acciones-paciente">
-        <h4>Acciones del paciente</h4>
+        <h4>Módulos del paciente</h4>
 
         <a href="{% url 'patient_appointments' paciente.id %}" class="btn btn-sonrisar">
             Citas
         </a>
 
-
         <a href="{% url 'patient_budgets' paciente.id %}" class="btn btn-sonrisar">
             Presupuestos
         </a>
-
 
         <a href="{% url 'patient_finances' paciente.id %}" class="btn btn-sonrisar">
             💳 Finanzas
         </a>
 
-
-        <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}" class="btn btn-rayos">
+        <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}" class="btn btn-sonrisar">
             🩻 Rayos X
-        </a>
-
-        <a href="{% url 'odontograma_paciente' patient_id=paciente.id %}" class="btn btn-sonrisar">
-            🦷 Odontograma
-        </a>
-
-        <a href="{% url 'odontograma_profesional' patient_id=paciente.id %}" class="btn btn-sonrisar">
-            🦷 Odontograma Profesional
         </a>
 
     </div>

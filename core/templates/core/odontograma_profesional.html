@@ -1,0 +1,844 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Odontograma - Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="odonto-page">
+    {% if request.GET.next %}
+    <a href="{{ request.GET.next }}"
+        class="btn btn-light odonto-back">
+        ← Volver a Historia Clínica
+    </a>
+    {% else %}
+    <a href="{% url 'patient_detail' paciente.id %}"
+        class="btn btn-light odonto-back">
+        ← Volver a ficha
+    </a>
+    {% endif %}
+
+    <div class="odonto-card">
+        <div class="odonto-header">🦷 Odontograma - {{ paciente.apellido }}, {{ paciente.nombre }}</div>
+
+        <form method="post" id="odontogramaForm" class="odonto-body">
+            {% csrf_token %}
+            <input type="hidden" name="odontograma_data" id="odontogramaData">
+
+            <div class="tools-bar">
+                <button type="button" class="tool active" data-estado="caries"><span class="dot red"></span>Caries</button>
+                <button type="button" class="tool" data-estado="obturado"><span class="dot blue"></span>Obturado</button>
+                <button type="button" class="tool" data-estado="corona"><span class="dot yellow"></span>Corona</button>
+                <button type="button" class="tool" data-estado="endodoncia"><span class="dot purple"></span>Endodoncia</button>
+                <button type="button" class="tool" data-estado="implante"><span class="dot green"></span>Implante</button>
+                <button type="button" class="tool" data-estado="extraccion"><span class="dot orange"></span>Extracción</button>
+                <button type="button" class="tool" data-estado="ausente"><span class="dot gray"></span>Ausente</button>
+                <button type="button" class="tool tool-clear" data-estado="sano">Borrar pieza</button>
+                <button type="button" class="tool tool-clear-all" id="limpiarTodoBtn">Borrar todo</button>
+            </div>
+
+            <div class="alert alert-info odonto-info">Seleccioná un tratamiento y hacé clic sobre la pieza dental para pintarla completa.</div>
+
+            <div class="odontograma-panel">
+                <div class="odontograma-cross odontograma-cross-main">
+                    <div class="cross-v"></div>
+                    <div class="cross-h"></div>
+                    <div class="fila fila-superior"><button type="button" class="tooth" data-pieza="18" title="Pieza 18">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/18.png' %}" alt="18">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">18</span>
+</button>
+<button type="button" class="tooth" data-pieza="17" title="Pieza 17">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/17.png' %}" alt="17">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">17</span>
+</button>
+<button type="button" class="tooth" data-pieza="16" title="Pieza 16">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/16.png' %}" alt="16">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">16</span>
+</button>
+<button type="button" class="tooth" data-pieza="15" title="Pieza 15">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/15.png' %}" alt="15">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">15</span>
+</button>
+<button type="button" class="tooth" data-pieza="14" title="Pieza 14">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/14.png' %}" alt="14">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">14</span>
+</button>
+<button type="button" class="tooth" data-pieza="13" title="Pieza 13">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/13.png' %}" alt="13">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">13</span>
+</button>
+<button type="button" class="tooth" data-pieza="12" title="Pieza 12">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/12.png' %}" alt="12">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">12</span>
+</button>
+<button type="button" class="tooth" data-pieza="11" title="Pieza 11">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/11.png' %}" alt="11">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">11</span>
+</button>
+<button type="button" class="tooth" data-pieza="21" title="Pieza 21">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/21.png' %}" alt="21">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">21</span>
+</button>
+<button type="button" class="tooth" data-pieza="22" title="Pieza 22">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/22.png' %}" alt="22">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">22</span>
+</button>
+<button type="button" class="tooth" data-pieza="23" title="Pieza 23">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/23.png' %}" alt="23">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">23</span>
+</button>
+<button type="button" class="tooth" data-pieza="24" title="Pieza 24">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/24.png' %}" alt="24">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">24</span>
+</button>
+<button type="button" class="tooth" data-pieza="25" title="Pieza 25">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/25.png' %}" alt="25">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">25</span>
+</button>
+<button type="button" class="tooth" data-pieza="26" title="Pieza 26">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/26.png' %}" alt="26">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">26</span>
+</button>
+<button type="button" class="tooth" data-pieza="27" title="Pieza 27">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/27.png' %}" alt="27">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">27</span>
+</button>
+<button type="button" class="tooth" data-pieza="28" title="Pieza 28">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/28.png' %}" alt="28">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">28</span>
+</button></div>
+                    <div class="fila fila-inferior"><button type="button" class="tooth" data-pieza="48" title="Pieza 48">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/48.png' %}" alt="48">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">48</span>
+</button>
+<button type="button" class="tooth" data-pieza="47" title="Pieza 47">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/47.png' %}" alt="47">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">47</span>
+</button>
+<button type="button" class="tooth" data-pieza="46" title="Pieza 46">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/46.png' %}" alt="46">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">46</span>
+</button>
+<button type="button" class="tooth" data-pieza="45" title="Pieza 45">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/45.png' %}" alt="45">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">45</span>
+</button>
+<button type="button" class="tooth" data-pieza="44" title="Pieza 44">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/44.png' %}" alt="44">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">44</span>
+</button>
+<button type="button" class="tooth" data-pieza="43" title="Pieza 43">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/43.png' %}" alt="43">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">43</span>
+</button>
+<button type="button" class="tooth" data-pieza="42" title="Pieza 42">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/42.png' %}" alt="42">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">42</span>
+</button>
+<button type="button" class="tooth" data-pieza="41" title="Pieza 41">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/41.png' %}" alt="41">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">41</span>
+</button>
+<button type="button" class="tooth" data-pieza="31" title="Pieza 31">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/31.png' %}" alt="31">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">31</span>
+</button>
+<button type="button" class="tooth" data-pieza="32" title="Pieza 32">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/32.png' %}" alt="32">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">32</span>
+</button>
+<button type="button" class="tooth" data-pieza="33" title="Pieza 33">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/33.png' %}" alt="33">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">33</span>
+</button>
+<button type="button" class="tooth" data-pieza="34" title="Pieza 34">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/34.png' %}" alt="34">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">34</span>
+</button>
+<button type="button" class="tooth" data-pieza="35" title="Pieza 35">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/35.png' %}" alt="35">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">35</span>
+</button>
+<button type="button" class="tooth" data-pieza="36" title="Pieza 36">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/36.png' %}" alt="36">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">36</span>
+</button>
+<button type="button" class="tooth" data-pieza="37" title="Pieza 37">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/37.png' %}" alt="37">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">37</span>
+</button>
+<button type="button" class="tooth" data-pieza="38" title="Pieza 38">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/38.png' %}" alt="38">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">38</span>
+</button></div>
+                </div>
+
+                <div class="odontograma-cross odontograma-cross-temp">
+                    <div class="cross-v"></div>
+                    <div class="cross-h"></div>
+                    <div class="fila fila-temp-superior"><button type="button" class="tooth tooth-temp" data-pieza="55" title="Pieza 55">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/55.png' %}" alt="55">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">55</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="54" title="Pieza 54">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/54.png' %}" alt="54">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">54</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="53" title="Pieza 53">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/53.png' %}" alt="53">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">53</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="52" title="Pieza 52">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/52.png' %}" alt="52">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">52</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="51" title="Pieza 51">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/51.png' %}" alt="51">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">51</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="61" title="Pieza 61">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/61.png' %}" alt="61">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">61</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="62" title="Pieza 62">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/62.png' %}" alt="62">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">62</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="63" title="Pieza 63">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/63.png' %}" alt="63">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">63</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="64" title="Pieza 64">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/64.png' %}" alt="64">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">64</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="65" title="Pieza 65">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/65.png' %}" alt="65">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">65</span>
+</button></div>
+                    <div class="fila fila-temp-inferior"><button type="button" class="tooth tooth-temp" data-pieza="85" title="Pieza 85">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/85.png' %}" alt="85">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">85</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="84" title="Pieza 84">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/84.png' %}" alt="84">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">84</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="83" title="Pieza 83">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/83.png' %}" alt="83">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">83</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="82" title="Pieza 82">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/82.png' %}" alt="82">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">82</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="81" title="Pieza 81">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/81.png' %}" alt="81">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">81</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="71" title="Pieza 71">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/71.png' %}" alt="71">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">71</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="72" title="Pieza 72">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/72.png' %}" alt="72">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">72</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="73" title="Pieza 73">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/73.png' %}" alt="73">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">73</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="74" title="Pieza 74">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/74.png' %}" alt="74">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">74</span>
+</button>
+<button type="button" class="tooth tooth-temp" data-pieza="75" title="Pieza 75">
+    <span class="tooth-img-wrap">
+        <img src="{% static 'core/img/odontograma_dientes/75.png' %}" alt="75">
+        <span class="tooth-color"></span>
+    </span>
+    <span class="tooth-num">75</span>
+</button></div>
+                </div>
+            </div>
+
+            <div class="bottom-row">
+                <div class="referencias">
+                    <strong>Referencias</strong>
+                    <span class="badge estado-caries">Caries</span>
+                    <span class="badge estado-obturado">Obturado</span>
+                    <span class="badge estado-corona">Corona</span>
+                    <span class="badge estado-endodoncia">Endodoncia</span>
+                    <span class="badge estado-implante">Implante</span>
+                    <span class="badge estado-extraccion">Extracción</span>
+                    <span class="badge estado-ausente">Ausente</span>
+                </div>
+                <button type="submit" class="btn btn-sonrisar save-btn">💾 Guardar odontograma</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.odonto-page {
+    width: min(100%, 1500px);
+    margin: 8px auto 22px;
+    padding: 0 12px;
+}
+
+.odonto-back {
+    margin-bottom: 10px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.odonto-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(15,23,42,.07);
+    overflow: hidden;
+}
+
+.odonto-header {
+    background: linear-gradient(90deg, #087d78, #26ABA5);
+    color: white;
+    padding: 9px 16px;
+    font-size: 1.2rem;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.odonto-body {
+    padding: 12px 18px 14px;
+}
+
+.tools-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.tool {
+    border: 1px solid #d8e1e7;
+    background: #fff;
+    border-radius: 10px;
+    padding: 7px 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 112px;
+    justify-content: center;
+    transition: .12s ease;
+}
+
+.tool:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(15,23,42,.08);
+}
+
+.tool.active {
+    background: #26ABA5;
+    color: white;
+    border-color: #26ABA5;
+}
+
+.tool-clear,
+.tool-clear-all {
+    margin-left: auto;
+}
+
+.tool-clear-all {
+    margin-left: 4px;
+}
+
+.dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    display: inline-block;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,.45), 0 1px 3px rgba(15,23,42,.25);
+}
+
+.red { background:#c81e1e; }
+.blue { background:#0476df; }
+.yellow { background:#d99b00; }
+.purple { background:#4346b7; }
+.green { background:#157a3d; }
+.orange { background:#d95a00; }
+.gray { background:#6f7378; }
+
+.odonto-info {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    background: #dff5fb;
+    border-color: #bfe9f6;
+    color: #0f4f61;
+    border-radius: 9px;
+}
+
+.odontograma-panel {
+    background: #fff;
+    border: 1px solid #dfe7ec;
+    border-radius: 14px;
+    height: 560px;
+    padding: 16px 22px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+}
+
+.odontograma-cross {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.odontograma-cross-main {
+    height: 330px;
+}
+
+.odontograma-cross-temp {
+    width: 72%;
+    height: 165px;
+}
+
+.cross-v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    background: #050505;
+    border-radius: 999px;
+    transform: translateX(-50%);
+    z-index: 0;
+}
+
+.cross-h {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px;
+    background: #050505;
+    border-radius: 999px;
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.fila {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    z-index: 2;
+}
+
+.odontograma-cross-main .fila {
+    grid-template-columns: repeat(16, minmax(44px, 1fr));
+    column-gap: 5px;
+}
+
+.odontograma-cross-temp .fila {
+    grid-template-columns: repeat(10, minmax(34px, 1fr));
+    column-gap: 6px;
+}
+
+.fila-superior { top: 0; height: 150px; }
+.fila-inferior { bottom: 0; height: 150px; }
+.fila-temp-superior { top: 0; height: 70px; }
+.fila-temp-inferior { bottom: 0; height: 70px; }
+
+.tooth {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    max-width: 72px;
+    height: 145px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.tooth-temp {
+    max-width: 46px;
+    height: 68px;
+}
+
+.tooth-img-wrap {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    overflow: visible;
+}
+
+.tooth-img-wrap img,
+.tooth-color {
+    grid-area: 1 / 1;
+}
+
+.tooth img {
+    display: block;
+    max-width: 100%;
+    max-height: 108px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(15,23,42,.18));
+    user-select: none;
+    pointer-events: none;
+}
+
+.tooth-temp img {
+    max-height: 45px;
+}
+
+.tooth-color {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    mask-repeat: no-repeat;
+    mask-position: center center;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center center;
+    -webkit-mask-size: 100% 100%;
+    mix-blend-mode: multiply;
+}
+
+.tooth:hover .tooth-img-wrap {
+    transform: translateY(-2px);
+}
+
+.tooth-num {
+    display: block;
+    margin-top: 4px;
+    font-size: .84rem;
+    line-height: 1;
+    font-weight: 900;
+    color: #063f45;
+}
+
+.tooth-temp .tooth-num {
+    margin-top: 3px;
+    font-size: .74rem;
+}
+
+.tooth.estado-caries .tooth-color { background:#c81e1e; opacity:.88; }
+.tooth.estado-obturado .tooth-color { background:#0476df; opacity:.84; }
+.tooth.estado-corona .tooth-color { background:#d99b00; opacity:.86; }
+.tooth.estado-endodoncia .tooth-color { background:#4346b7; opacity:.84; }
+.tooth.estado-implante .tooth-color { background:#157a3d; opacity:.84; }
+.tooth.estado-extraccion .tooth-color { background:#d95a00; opacity:.86; }
+.tooth.estado-ausente .tooth-color { background:#6f7378; opacity:.86; }
+
+.bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.referencias {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    font-size: .9rem;
+}
+
+.referencias strong { margin-right: 4px; }
+.badge { border-radius: 7px; padding: 5px 10px; font-size: .82rem; color: white; }
+.badge.estado-caries { background:#c81e1e; }
+.badge.estado-obturado { background:#0476df; }
+.badge.estado-corona { background:#d99b00; color:#111; }
+.badge.estado-endodoncia { background:#4346b7; }
+.badge.estado-implante { background:#157a3d; }
+.badge.estado-extraccion { background:#d95a00; }
+.badge.estado-ausente { background:#6f7378; }
+
+.save-btn {
+    background: #087d78;
+    border: none;
+    color: white;
+    font-weight: 800;
+    border-radius: 9px;
+    padding: 8px 14px;
+    white-space: nowrap;
+}
+
+@media (max-height: 760px) {
+    .odonto-page { margin-top: 4px; }
+    .odonto-body { padding: 10px 16px 8px; }
+    .tools-bar { gap: 7px; margin-bottom: 8px; }
+    .tool { padding: 6px 10px; min-width: 98px; font-size: .9rem; }
+    .odonto-info { padding: 7px 12px; margin-bottom: 8px; }
+    .odontograma-panel { height: 500px; padding: 12px 18px; gap: 12px; }
+    .odontograma-cross-main { height: 300px; }
+    .odontograma-cross-temp { height: 150px; }
+    .tooth { max-width: 68px; height: 132px; }
+    .tooth img { max-height: 98px; }
+    .tooth-temp { max-width: 42px; height: 62px; }
+    .tooth-temp img { max-height: 39px; }
+}
+
+@media (max-width: 900px) {
+    .odonto-page { padding: 0 8px; }
+    .odontograma-panel { overflow-x: auto; align-items: flex-start; }
+    .odontograma-cross-main { min-width: 1060px; }
+    .odontograma-cross-temp { min-width: 720px; width: 720px; }
+    .tool-clear, .tool-clear-all { margin-left: 0; }
+    .bottom-row { flex-direction: column; align-items: stretch; }
+}
+</style>
+
+<script>
+const form = document.getElementById("odontogramaForm");
+const odontogramaData = document.getElementById("odontogramaData");
+const limpiarTodoBtn = document.getElementById("limpiarTodoBtn");
+
+let estadoSeleccionado = "caries";
+let marcas = {{ marcas|safe }};
+
+function normalizarMarcas(valor) {
+    if (!valor || Array.isArray(valor)) return {};
+    return valor;
+}
+
+marcas = normalizarMarcas(marcas);
+
+function aplicarMascaras() {
+    document.querySelectorAll(".tooth").forEach(btn => {
+        const pieza = btn.dataset.pieza;
+        const color = btn.querySelector(".tooth-color");
+        const url = btn.querySelector("img").getAttribute("src");
+
+        color.style.maskImage = `url("${url}")`;
+        color.style.webkitMaskImage = `url("${url}")`;
+
+        btn.classList.remove(
+            "estado-caries",
+            "estado-obturado",
+            "estado-corona",
+            "estado-endodoncia",
+            "estado-implante",
+            "estado-extraccion",
+            "estado-ausente"
+        );
+
+        if (marcas[pieza]) {
+            btn.classList.add("estado-" + marcas[pieza]);
+            btn.title = "Pieza " + pieza + " - " + marcas[pieza];
+        } else {
+            btn.title = "Pieza " + pieza;
+        }
+    });
+}
+
+document.querySelectorAll(".tooth").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const pieza = btn.dataset.pieza;
+        if (estadoSeleccionado === "sano") {
+            delete marcas[pieza];
+        } else {
+            marcas[pieza] = estadoSeleccionado;
+        }
+        aplicarMascaras();
+    });
+});
+
+document.querySelectorAll(".tool").forEach(btn => {
+    btn.addEventListener("click", function() {
+        if (this.id === "limpiarTodoBtn") return;
+        document.querySelectorAll(".tool").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        estadoSeleccionado = this.dataset.estado;
+    });
+});
+
+limpiarTodoBtn.addEventListener("click", () => {
+    if (confirm("¿Seguro que querés borrar todo el odontograma?")) {
+        marcas = {};
+        aplicarMascaras();
+    }
+});
+
+form.addEventListener("submit", () => {
+    odontogramaData.value = JSON.stringify(marcas);
+});
+
+window.addEventListener("load", aplicarMascaras);
+aplicarMascaras();
+</script>
+
+{% endblock %}
