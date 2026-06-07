@@ -6,7 +6,6 @@
 
 <div class="container mt-4 tabla-pacientes">
 
-    <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h3 class="mb-0">Lista de Pacientes</h3>
 
@@ -15,7 +14,6 @@
         </a>
     </div>
 
-    <!-- ACCESO DESTACADO A PACIENTES INACTIVOS -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
@@ -37,14 +35,12 @@
         </div>
     </div>
 
-    <!-- BUSCADOR -->
     <form method="GET" class="input-group mb-3">
         <input type="text" name="q" class="form-control" placeholder="Buscar paciente..."
                value="{{ query }}">
         <button class="btn btn-sonrisar" type="submit">Buscar</button>
     </form>
 
-    <!-- TABLA -->
     <div class="table-responsive">
         <table class="table table-striped table-hover w-100">
             <thead class="table-sonrisar">
@@ -87,51 +83,80 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center py-3">No se encontraron pacientes.</td>
+                    <td colspan="5" class="text-center py-3">
+                        No se encontraron pacientes.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <!-- PAGINACIÓN -->
+    {% if pacientes.paginator.num_pages > 1 %}
     <nav aria-label="Pagination" class="mt-3">
-        <ul class="pagination justify-content-center">
+        <ul class="pagination justify-content-center flex-wrap gap-1">
 
             {% if pacientes.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?q={{ query }}&page={{ pacientes.previous_page_number }}">«</a>
+                    <a class="page-link" href="?q={{ query }}&page={{ pacientes.previous_page_number }}">Anterior</a>
                 </li>
             {% else %}
                 <li class="page-item disabled">
-                    <span class="page-link">«</span>
+                    <span class="page-link">Anterior</span>
+                </li>
+            {% endif %}
+
+            {% if pacientes.number > 3 %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page=1">1</a>
+                </li>
+
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
                 </li>
             {% endif %}
 
             {% for num in pacientes.paginator.page_range %}
-                {% if num == pacientes.number %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                {% else %}
-                    <li class="page-item">
-                        <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
-                    </li>
+                {% if num >= pacientes.number|add:"-2" and num <= pacientes.number|add:"2" %}
+
+                    {% if num == pacientes.number %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+
                 {% endif %}
             {% endfor %}
 
+            {% if pacientes.number < pacientes.paginator.num_pages|add:"-2" %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ query }}&page={{ pacientes.paginator.num_pages }}">
+                        {{ pacientes.paginator.num_pages }}
+                    </a>
+                </li>
+            {% endif %}
+
             {% if pacientes.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?q={{ query }}&page={{ pacientes.next_page_number }}">»</a>
+                    <a class="page-link" href="?q={{ query }}&page={{ pacientes.next_page_number }}">Siguiente</a>
                 </li>
             {% else %}
                 <li class="page-item disabled">
-                    <span class="page-link">»</span>
+                    <span class="page-link">Siguiente</span>
                 </li>
             {% endif %}
 
         </ul>
     </nav>
+    {% endif %}
 
 </div>
 
