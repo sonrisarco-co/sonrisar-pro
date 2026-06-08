@@ -2677,11 +2677,11 @@ def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
 
     return (
         f"Hola {nombre} 😊\n\n"
-        f"Te recordamos tu cita odontológica para el *{fecha_txt}* "
+        f"Te recordamos tu cita odontológica para mañana *{fecha_txt}* "
         f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
         f"📍 Román Guerra 752, Maldonado\n\n"
-        f"Para dejar tu turno asegurado, respondé *Confirmo*, por favor. ✅\n"
-        f"Si no recibimos confirmación, el turno podría cancelarse y liberarse para otro paciente.\n\n"
+        f"Para dejar tu turno asegurado, respondé CONFIRMO, ✅\n\n"
+        f"En caso de no confirmar, su turno será cancelado.\n\n"
         f"¡Te esperamos! 🦷✨\n\n"
         f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
     )
