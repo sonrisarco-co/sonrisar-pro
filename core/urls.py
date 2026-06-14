@@ -217,8 +217,11 @@ urlpatterns = [
     path("inventario/nuevo/", views.inventory_new, name="inventory_new"),
     path("inventario/editar/<int:pk>/", views.inventory_edit, name="inventory_edit"),
     path("inventario/eliminar/<int:pk>/", views.inventory_delete, name="inventory_delete"),
-
-
+    path("inventario/stock/<int:pk>/<str:action>/", views.inventory_adjust_stock, name="inventory_adjust_stock"),
+    path("inventario/<int:pk>/historial/", views.inventory_history, name="inventory_history"),
+    path("inventario/lista-compras/", views.inventory_shopping_list, name="inventory_shopping_list"),
+    path("inventario/movimiento/", views.inventory_movement_new, name="inventory_movement_new"),
+    
     # =====================
     # PRÓTESIS
     # =====================

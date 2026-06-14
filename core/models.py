@@ -377,6 +377,35 @@ class Inventory(models.Model):
     def __str__(self):
         return self.nombre
 
+class InventoryMovement(models.Model):
+    producto = models.ForeignKey(
+        Inventory,
+        on_delete=models.CASCADE,
+        related_name="movimientos"
+    )
+
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    tipo = models.CharField(
+        max_length=10,
+        choices=[
+            ("entrada", "Entrada"),
+            ("salida", "Salida"),
+        ]
+    )
+
+    cantidad = models.IntegerField(default=1)
+
+    observacion = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.tipo} ({self.cantidad})"
+
+
 
 class RayosX(models.Model):
     paciente = models.ForeignKey(

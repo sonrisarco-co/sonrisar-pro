@@ -1,0 +1,148 @@
+{% extends "core/base.html" %}
+
+{% block title %}Lista de Compras | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <div class="card shadow-sm border-0 compras-card">
+
+        <div class="card-body border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <div>
+                <h4 class="mb-1 titulo-sonrisar">🛒 Lista de compras</h4>
+                <p class="text-muted mb-0">
+                    Productos con stock igual o menor al mínimo.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                    🖨 Imprimir
+                </button>
+
+                <a href="{% url 'inventory_list' %}" class="btn btn-sonrisar btn-sm">
+                    ← Volver
+                </a>
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            {% if productos %}
+
+                <div class="alert alerta-compra">
+                    <strong>⚠ {{ productos|length }} productos necesitan reposición.</strong>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle tabla-sonrisar">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Proveedor</th>
+                                <th class="text-end">Stock</th>
+                                <th class="text-end">Mínimo</th>
+                                <th class="text-end">Sugerido comprar</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for p in productos %}
+                            <tr>
+                                <td><strong>{{ p.nombre }}</strong></td>
+                                <td>{{ p.categoria|default:"-" }}</td>
+                                <td>{{ p.proveedor|default:"Sin proveedor" }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-danger">{{ p.stock }}</span>
+                                </td>
+                                <td class="text-end">{{ p.stock_minimo }}</td>
+                                <td class="text-end">
+                                    <strong>
+                                        {% if p.stock_minimo > p.stock %}
+                                            {{ p.stock_minimo|add:p.stock|default:p.stock_minimo }}
+                                        {% else %}
+                                            1
+                                        {% endif %}
+                                    </strong>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+
+                <div class="alert alert-success text-center mb-0">
+                    ✅ No hay productos para reponer.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+.compras-card {
+    border-radius: 18px;
+    border: 1px solid #e7efef !important;
+}
+
+.titulo-sonrisar {
+    color: #146B6C;
+    font-weight: 700;
+}
+
+.btn-sonrisar {
+    background: #26ABA5;
+    border-color: #26ABA5;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.btn-sonrisar:hover {
+    background: #1f8e8a;
+    border-color: #1f8e8a;
+    color: #fff;
+}
+
+.tabla-sonrisar thead {
+    background: #f5fbfb;
+    color: #146B6C;
+    font-weight: 600;
+}
+
+.alerta-compra {
+    background: #fff5f5;
+    border: 1px solid #f1c2c7;
+    border-radius: 14px;
+}
+
+@media print {
+    .btn,
+    #menuToggle,
+    nav,
+    header {
+        display: none !important;
+    }
+
+    body {
+        background: white !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: none !important;
+    }
+}
+</style>
+
+{% endblock %}

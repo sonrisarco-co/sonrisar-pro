@@ -5,7 +5,7 @@ from django.utils.text import slugify
 
 import calendar
 #from core.models import Cita
-from django.db.models import Q, Max
+from django.db.models import Q, F, Max
 from django.contrib import messages
 
 from django.conf import settings
@@ -52,6 +52,7 @@ from .models import (
     Payment,
     Prosthesis,
     Inventory,
+    InventoryMovement,
     ClinicalRecord,
     RayosX,
     BudgetPayment,
@@ -66,6 +67,7 @@ from .forms import (
     ClinicalRecordForm,
     BudgetForm,
     InventoryForm,
+    InventoryMovementForm,
     ProsthesisForm,
     RayosXForm,
     BudgetPaymentForm,
@@ -1434,6 +1436,95 @@ def inventory_delete(request, pk):
         "core/inventory_confirmar_eliminar.html", 
         {"producto": producto}
     )
+
+def inventory_adjust_stock(request, pk, action):
+    producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.POST.get("next") or request.GET.get("next") or "inventory_list"
+
+    if request.method == "POST":
+        if action == "sumar":
+            producto.stock = producto.stock + 1
+            producto.save()
+
+            InventoryMovement.objects.create(
+                producto=producto,
+                tipo="entrada",
+                cantidad=1,
+                observacion="Ajuste rápido desde inventario"
+            )
+
+        elif action == "restar":
+            if producto.stock > 0:
+                producto.stock = producto.stock - 1
+                producto.save()
+
+                InventoryMovement.objects.create(
+                    producto=producto,
+                    tipo="salida",
+                    cantidad=1,
+                    observacion="Ajuste rápido desde inventario"
+                )
+
+    return redirect(next_url)
+
+
+def inventory_history(request, pk):
+    producto = get_object_or_404(Inventory, pk=pk)
+
+    movimientos = InventoryMovement.objects.filter(
+        producto=producto
+    ).order_by("-fecha")
+
+    return render(request, "core/inventory_history.html", {
+        "producto": producto,
+        "movimientos": movimientos,
+    })
+
+def inventory_shopping_list(request):
+    productos = Inventory.objects.filter(
+        stock__lte=F("stock_minimo")
+    ).order_by("proveedor", "nombre")
+
+    return render(request, "core/inventory_shopping_list.html", {
+        "productos": productos,
+    })
+
+def inventory_movement_new(request):
+    if request.method == "POST":
+        form = InventoryMovementForm(request.POST)
+
+        if form.is_valid():
+            movimiento = form.save(commit=False)
+            producto = movimiento.producto
+            cantidad = movimiento.cantidad
+
+            if movimiento.tipo == "entrada":
+                producto.stock += cantidad
+
+            elif movimiento.tipo == "salida":
+                if producto.stock < cantidad:
+                    form.add_error(
+                        "cantidad",
+                        "No hay stock suficiente para registrar esta salida."
+                    )
+                    return render(request, "core/inventory_movement_form.html", {
+                        "form": form,
+                    })
+
+                producto.stock -= cantidad
+
+            producto.save()
+            movimiento.save()
+
+            return redirect("inventory_list")
+
+    else:
+        form = InventoryMovementForm()
+
+    return render(request, "core/inventory_movement_form.html", {
+        "form": form,
+    })
+
 
 
 # =============================
@@ -2936,8 +3027,10 @@ def lista_de_citas(request):
 # INVENTARIO
 # =============================
 
+
 def inventory_list(request):
     query = request.GET.get("q", "")
+    faltantes = request.GET.get("faltantes", "")
 
     productos = Inventory.objects.all().order_by("nombre")
 
@@ -2949,7 +3042,25 @@ def inventory_list(request):
             Q(proveedor__icontains=query)
         )
 
-    paginator = Paginator(productos, 20)  # 👈 20 productos por página
+    if faltantes == "1":
+        productos = productos.filter(stock__lte=F("stock_minimo"))
+
+    total_productos = Inventory.objects.count()
+    sin_stock = Inventory.objects.filter(stock=0).count()
+    bajo_stock = Inventory.objects.filter(
+        stock__gt=0,
+        stock__lte=F("stock_minimo")
+    ).count()
+    total_faltantes = Inventory.objects.filter(
+        stock__lte=F("stock_minimo")
+    ).count()
+
+    valor_total = sum(
+        (p.stock or 0) * (p.precio or 0)
+        for p in Inventory.objects.all()
+    )
+
+    paginator = Paginator(productos, 20)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -2960,9 +3071,14 @@ def inventory_list(request):
             "productos": page_obj,
             "query": query,
             "page_obj": page_obj,
+            "faltantes": faltantes,
+            "total_faltantes": total_faltantes,
+            "total_productos": total_productos,
+            "sin_stock": sin_stock,
+            "bajo_stock": bajo_stock,
+            "valor_total": valor_total,
         }
     )
-
 
 
 def inventory_new(request):

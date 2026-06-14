@@ -1,0 +1,122 @@
+{% extends "core/base.html" %}
+
+{% block title %}Movimiento de Stock | Sonrisar Pro{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <div class="card shadow-sm border-0 movimiento-card">
+
+        <div class="card-body border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <div>
+                <h4 class="mb-1 titulo-sonrisar">📥 Movimiento de stock</h4>
+                <p class="text-muted mb-0">
+                    Registrá entradas o salidas de productos sin entrar a editar.
+                </p>
+            </div>
+
+            <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary btn-sm">
+                ← Volver
+            </a>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="col-md-6">
+                    <label class="form-label">Producto</label>
+                    {{ form.producto }}
+                    {% if form.producto.errors %}
+                        <div class="text-danger small mt-1">{{ form.producto.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Tipo</label>
+                    {{ form.tipo }}
+                    {% if form.tipo.errors %}
+                        <div class="text-danger small mt-1">{{ form.tipo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Cantidad</label>
+                    {{ form.cantidad }}
+                    {% if form.cantidad.errors %}
+                        <div class="text-danger small mt-1">{{ form.cantidad.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Observación</label>
+                    {{ form.observacion }}
+                    {% if form.observacion.errors %}
+                        <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+
+                    <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-sonrisar">
+                        Guardar movimiento
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+.movimiento-card {
+    border-radius: 18px;
+    border: 1px solid #e7efef !important;
+}
+
+.titulo-sonrisar {
+    color: #146B6C;
+    font-weight: 700;
+}
+
+.btn-sonrisar {
+    background: #26ABA5;
+    border-color: #26ABA5;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.btn-sonrisar:hover {
+    background: #1f8e8a;
+    border-color: #1f8e8a;
+    color: #fff;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #146B6C;
+}
+</style>
+
+{% endblock %}

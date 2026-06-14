@@ -131,6 +131,15 @@
             color: white;
         }
 
+        .menu-seccion-sonrisar {
+            margin: 16px 0 8px 4px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: #26ABA5;
+            text-transform: uppercase;
+        }
+
         .menu-sonrisar-link.menu-alerta-deuda {
             background: #fff5f5;
             color: #b42318;
@@ -272,14 +281,24 @@
 
         <div class="offcanvas-body">
             <a class="menu-sonrisar-link" href="{% url 'home' %}">Inicio</a>
+
+            <div class="menu-seccion-sonrisar">AGENDA</div>
             <a class="menu-sonrisar-link" href="{% url 'agenda_pro' %}">Calendario</a>
             <a class="menu-sonrisar-link" href="{% url 'agenda' %}">Agenda del día</a>
-            <a class="menu-sonrisar-link" href="{% url 'agenda_week' %}">Agenda semanal</a>
-            <a class="menu-sonrisar-link" href="{% url 'agenda_month' %}">Agenda mensual</a>
+
+            <div class="menu-seccion-sonrisar">PACIENTES</div>
             <a class="menu-sonrisar-link" href="{% url 'patient_list' %}">Pacientes</a>
-            <a class="menu-sonrisar-link" href="{% url 'estadisticas' %}">📊 Estadísticas</a>
             <a class="menu-sonrisar-link menu-alerta-deuda" href="{% url 'deudores_general' %}">💰 Pacientes deudores</a>
+
+            <div class="menu-seccion-sonrisar">GESTIÓN</div>
+            <a class="menu-sonrisar-link" href="{% url 'inventory_list' %}">📦 Inventario</a>
+            <a class="menu-sonrisar-link" href="{% url 'inventory_shopping_list' %}">🛒 Lista de compras</a>
+
+            <div class="menu-seccion-sonrisar">COMUNICACIÓN</div>
             <a class="menu-sonrisar-link" href="{% url 'whatsapp_reminders' %}">WhatsApp</a>
+
+            <div class="menu-seccion-sonrisar">REPORTES</div>
+            <a class="menu-sonrisar-link" href="{% url 'estadisticas' %}">📊 Estadísticas</a>
         </div>
     </div>
 

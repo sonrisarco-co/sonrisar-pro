@@ -7,6 +7,7 @@ from .models import (
     Prosthesis,
     ClinicalRecord,
     Inventory,   # ← ESTE ES EL MODELO CORRECTO DEL INVENTARIO
+    InventoryMovement,
     RayosX,
     Procedure,
 
@@ -232,6 +233,38 @@ class InventoryForm(forms.ModelForm):
             "stock_minimo": forms.NumberInput(attrs={"class": "form-control"}),
             "precio": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }
+
+
+class InventoryMovementForm(forms.ModelForm):
+    class Meta:
+        model = InventoryMovement
+        fields = ["producto", "tipo", "cantidad", "observacion"]
+        widgets = {
+            "producto": forms.Select(attrs={
+                "class": "form-select"
+            }),
+            "tipo": forms.Select(attrs={
+                "class": "form-select"
+            }),
+            "cantidad": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": "1",
+                "placeholder": "Cantidad"
+            }),
+            "observacion": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ej: Compra Impodent, ajuste de inventario, uso clínico..."
+            }),
+        }
+
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data.get("cantidad")
+
+        if cantidad is None or cantidad <= 0:
+            raise forms.ValidationError("La cantidad debe ser mayor a cero.")
+
+        return cantidad
+
 
 
 # -------------------------

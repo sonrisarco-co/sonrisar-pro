@@ -19,14 +19,64 @@
                 </p>
             </div>
 
-            <a href="{% url 'inventory_new' %}" class="btn btn-sonrisar">
-                ➕ Nuevo producto
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'inventory_movement_new' %}" class="btn btn-outline-success">
+                    📥 Movimiento
+                </a>
+
+                <a href="{% url 'inventory_shopping_list' %}" class="btn btn-outline-secondary">
+                    🛒 Lista de compras
+                </a>
+
+                <a href="{% url 'inventory_new' %}" class="btn btn-sonrisar">
+                    ➕ Nuevo producto
+                </a>
+            </div>
 
         </div>
 
         <!-- BUSCADOR -->
         <div class="card-body pb-0">
+
+
+            <!-- DASHBOARD INVENTARIO -->
+            <div class="row g-3 mb-3">
+
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="dashboard-icon">📦</div>
+                        <div class="dashboard-number">{{ total_productos }}</div>
+                        <div class="dashboard-label">Productos</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="dashboard-icon">🔴</div>
+                        <div class="dashboard-number text-danger">{{ sin_stock }}</div>
+                        <div class="dashboard-label">Sin stock</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="dashboard-icon">🟡</div>
+                        <div class="dashboard-number text-warning">{{ bajo_stock }}</div>
+                        <div class="dashboard-label">Bajo mínimo</div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="dashboard-card">
+                        <div class="dashboard-icon">💰</div>
+                        <div class="dashboard-number dashboard-money">
+                            $ {{ valor_total|floatformat:0 }}
+                        </div>
+                        <div class="dashboard-label">Valor inventario</div>
+                    </div>
+                </div>
+
+            </div>
             <form method="get" class="row g-2 mb-3">
 
                 <div class="col-md-9">
@@ -44,6 +94,27 @@
                 </div>
 
             </form>
+
+            {% if total_faltantes > 0 %}
+            <div class="alerta-stock mb-3">
+                <div>
+                    <strong>⚠ Productos a reponer: {{ total_faltantes }}</strong>
+                    <div class="text-muted small">
+                        Hay productos con stock igual o menor al mínimo.
+                    </div>
+                </div>
+
+                {% if faltantes == "1" %}
+                    <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary btn-sm">
+                        Ver todos
+                    </a>
+                {% else %}
+                    <a href="?faltantes=1" class="btn btn-outline-danger btn-sm">
+                        Ver faltantes
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- TABLA -->
@@ -79,15 +150,35 @@
 
                             <td>{{ p.proveedor }}</td>
 
-                            <!-- STOCK -->
+                            <!-- STOCK RÁPIDO -->
                             <td class="text-end">
-                                {% if p.stock <= p.stock_minimo %}
-                                    <span class="badge badge-stock-danger">{{ p.stock }}</span>
-                                {% elif p.stock <= p.stock_minimo|add:2 %}
-                                    <span class="badge badge-stock-warning">{{ p.stock }}</span>
-                                {% else %}
-                                    <span class="badge badge-stock-ok">{{ p.stock }}</span>
-                                {% endif %}
+                                <div class="stock-control">
+
+                                    <form method="post"
+                                        action="{% url 'inventory_adjust_stock' p.id 'restar' %}"
+                                        class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="btn-stock btn-stock-minus">−</button>
+                                    </form>
+
+                                    {% if p.stock <= p.stock_minimo %}
+                                        <span class="badge badge-stock-danger stock-numero">{{ p.stock }}</span>
+                                    {% elif p.stock <= p.stock_minimo|add:2 %}
+                                        <span class="badge badge-stock-warning stock-numero">{{ p.stock }}</span>
+                                    {% else %}
+                                        <span class="badge badge-stock-ok stock-numero">{{ p.stock }}</span>
+                                    {% endif %}
+
+                                    <form method="post"
+                                        action="{% url 'inventory_adjust_stock' p.id 'sumar' %}"
+                                        class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="btn-stock btn-stock-plus">+</button>
+                                    </form>
+
+                                </div>
                             </td>
 
                             <td class="text-end">{{ p.stock_minimo }}</td>
@@ -109,6 +200,11 @@
                                 <a href="{% url 'inventory_delete' p.id %}"
                                    class="btn btn-outline-delete btn-sm">
                                     Eliminar
+                                </a>
+
+                                <a href="{% url 'inventory_history' p.id %}"
+                                    class="btn btn-outline-secondary btn-sm">
+                                    Historial
                                 </a>
 
                             </td>
@@ -225,10 +321,31 @@
     border-color: #1f8e8a;
 }
 
-.tabla-sonrisar thead {
-    background: #f5fbfb;
-    color: #146B6C;
-    font-weight: 600;
+.tabla-sonrisar thead th {
+    background: #26ABA5 !important;
+    color: #fff !important;
+    font-weight: 700;
+    border: none !important;
+    padding: 12px 10px;
+    vertical-align: middle;
+}
+
+.tabla-sonrisar thead th:nth-child(5),
+.tabla-sonrisar thead th:nth-child(6),
+.tabla-sonrisar thead th:nth-child(7),
+.tabla-sonrisar thead th:nth-child(8) {
+    text-align: center !important;
+}
+
+.tabla-sonrisar thead th:nth-child(1),
+.tabla-sonrisar thead th:nth-child(2),
+.tabla-sonrisar thead th:nth-child(3),
+.tabla-sonrisar thead th:nth-child(4) {
+    text-align: left !important;
+}
+
+.tabla-sonrisar thead tr {
+    background: #26ABA5 !important;
 }
 
 .tabla-sonrisar tbody tr:hover {
@@ -277,6 +394,107 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
+
+.stock-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.btn-stock {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid #d6e4e4;
+    background: #fff;
+    color: #146B6C;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+}
+
+.btn-stock:hover {
+    background: #26ABA5;
+    border-color: #26ABA5;
+    color: #fff;
+}
+
+.btn-stock-minus:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+.stock-numero {
+    min-width: 30px;
+    display: inline-block;
+    text-align: center;
+}
+
+.alerta-stock {
+    border: 1px solid #f1c2c7;
+    background: #fff5f5;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+
+.dashboard-card {
+    border: 1px solid #e7efef;
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+    height: 100%;
+}
+
+.dashboard-icon {
+    font-size: 26px;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.dashboard-number {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #146B6C;
+    line-height: 1.2;
+}
+
+.dashboard-money {
+    font-size: 1.05rem;
+    white-space: nowrap;
+}
+
+.dashboard-label {
+    font-size: 0.82rem;
+    color: #6c757d;
+    margin-top: 3px;
+}
+
+.tabla-sonrisar {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.tabla-sonrisar thead th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.tabla-sonrisar thead th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.tabla-sonrisar td:last-child {
+    white-space: nowrap;
+}
+
 </style>
 
 {% endblock %}
