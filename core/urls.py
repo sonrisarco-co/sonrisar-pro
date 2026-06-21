@@ -232,6 +232,33 @@ urlpatterns = [
     path("protesis/eliminar/<int:id>/", views.protesis_delete, name="protesis_delete"),
     path("protesis/ver/<int:id>/", views.protesis_detail, name="protesis_detail"),
     path("protesis/pdf/<int:id>/", views.protesis_print, name="protesis_print"),
+    path(
+        "protesis/<int:protesis_id>/cobrar/",
+        views.cobros_nuevo_desde_protesis,
+        name="cobros_nuevo_desde_protesis"
+    ),
+    path(
+        "protesis/<int:protesis_id>/orden-laboratorio/nueva/",
+        views.orden_laboratorio_nueva,
+        name="orden_laboratorio_nueva"
+    ),
+    path(
+        "orden-laboratorio/<int:orden_id>/",
+        views.orden_laboratorio_detalle,
+        name="orden_laboratorio_detalle"
+    ),
+
+    path(
+        "orden-laboratorio/<int:orden_id>/editar/",
+        views.orden_laboratorio_editar,
+        name="orden_laboratorio_editar"
+    ),
+
+    path(
+        "orden-laboratorio/<int:orden_id>/pdf/",
+        views.orden_laboratorio_print,
+        name="orden_laboratorio_print"
+    ),
 
     path("api/", include("core.api.urls")),
 

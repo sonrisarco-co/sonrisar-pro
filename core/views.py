@@ -51,6 +51,7 @@ from .models import (
     BudgetItem,
     Payment,
     Prosthesis,
+    OrdenLaboratorio,
     Inventory,
     InventoryMovement,
     ClinicalRecord,
@@ -69,6 +70,7 @@ from .forms import (
     InventoryForm,
     InventoryMovementForm,
     ProsthesisForm,
+    OrdenLaboratorioForm,
     RayosXForm,
     BudgetPaymentForm,
 )
@@ -1532,17 +1534,49 @@ def inventory_movement_new(request):
 # =============================
 
 def protesis_list(request):
-    protesis = Prosthesis.objects.all().order_by("-fecha_envio")
-    return render(request, "core/protesis_list.html", {"protesis": protesis})
+
+    filtro = request.GET.get("filtro", "activas")
+
+    protesis = (
+        Prosthesis.objects
+        .prefetch_related("ordenes_laboratorio")
+        .all()
+    )
+
+    if filtro == "activas":
+        protesis = protesis.exclude(estado="entregada")
+
+    elif filtro == "entregadas":
+        protesis = protesis.filter(estado="entregada")
+
+    activas = Prosthesis.objects.exclude(estado="entregada").count()
+    laboratorio = Prosthesis.objects.filter(estado="laboratorio").count()
+    prueba = Prosthesis.objects.filter(estado="prueba").count()
+
+    pendientes_pago = sum(
+        1 for p in Prosthesis.objects.all()
+        if p.saldo_pendiente > 0
+    )
+
+    protesis = protesis.order_by("-fecha_inicio", "-id")
+
+    return render(
+        request,
+        "core/protesis_list.html",
+        {
+            "protesis": protesis,
+            "filtro": filtro,
+            "activas": activas,
+            "laboratorio": laboratorio,
+            "prueba": prueba,
+            "pendientes_pago": pendientes_pago,
+        }
+    )
 
 
 def protesis_new(request):
     if request.method == "POST":
         form = ProsthesisForm(request.POST)
-
-        # 🔍 Imprimir los datos enviados y los errores del formulario
-        print("POST DATA:", request.POST)
-        print("FORM ERRORS:", form.errors)
 
         if form.is_valid():
             form.save()
@@ -1553,7 +1587,10 @@ def protesis_new(request):
     return render(
         request,
         "core/protesis_form.html",
-        {"form": form, "titulo": "Nueva Prótesis"},
+        {
+            "form": form,
+            "titulo": "Nueva Prótesis",
+        }
     )
 
 
@@ -1582,7 +1619,18 @@ def protesis_delete(request, id):
 
 
 def protesis_detail(request, id):
-    return HttpResponse("Detalle de prótesis aún no implementado.")
+    protesis = get_object_or_404(Prosthesis, id=id)
+
+    ordenes = protesis.ordenes_laboratorio.all().order_by("-id")
+
+    return render(
+        request,
+        "core/protesis_detail.html",
+        {
+            "protesis": protesis,
+            "ordenes": ordenes,
+        }
+    )
 
 
 def protesis_print(request, id):
@@ -1593,6 +1641,99 @@ def protesis_print(request, id):
         "core/protesis_print.html",
         {
             "protesis": protesis
+        }
+    )
+
+
+# =============================
+# 🧪 ORDENES DE LABORATORIO
+# =============================
+
+def orden_laboratorio_nueva(request, protesis_id):
+
+    protesis = get_object_or_404(
+        Prosthesis,
+        id=protesis_id
+    )
+
+    if request.method == "POST":
+        form = OrdenLaboratorioForm(request.POST)
+
+        if form.is_valid():
+            orden = form.save(commit=False)
+            orden.protesis = protesis
+            orden.save()
+
+            return redirect(
+                "protesis_detail",
+                id=protesis.id
+            )
+        else:
+            print("ERRORES ORDEN LABORATORIO:", form.errors)
+
+    else:
+        form = OrdenLaboratorioForm()
+
+    return render(
+        request,
+        "core/orden_laboratorio_form.html",
+        {
+            "form": form,
+            "protesis": protesis,
+            "titulo": "Nueva Orden de Laboratorio",
+        }
+    )
+
+def orden_laboratorio_detalle(request, orden_id):
+    orden = get_object_or_404(OrdenLaboratorio, id=orden_id)
+
+    return render(
+        request,
+        "core/orden_laboratorio_detalle.html",
+        {
+            "orden": orden,
+            "protesis": orden.protesis,
+        }
+    )
+
+
+def orden_laboratorio_editar(request, orden_id):
+    orden = get_object_or_404(OrdenLaboratorio, id=orden_id)
+    protesis = orden.protesis
+
+    if request.method == "POST":
+        form = OrdenLaboratorioForm(request.POST, instance=orden)
+
+        if form.is_valid():
+            form.save()
+            return redirect("protesis_detail", id=protesis.id)
+        else:
+            print("ERRORES EDITAR ORDEN:", form.errors)
+
+    else:
+        form = OrdenLaboratorioForm(instance=orden)
+
+    return render(
+        request,
+        "core/orden_laboratorio_form.html",
+        {
+            "form": form,
+            "protesis": protesis,
+            "titulo": "Editar Orden de Laboratorio",
+        }
+    )
+
+
+def orden_laboratorio_print(request, orden_id):
+    orden = get_object_or_404(OrdenLaboratorio, id=orden_id)
+    protesis = orden.protesis
+
+    return render(
+        request,
+        "core/orden_laboratorio_print.html",
+        {
+            "orden": orden,
+            "protesis": protesis,
         }
     )
 
@@ -2250,6 +2391,50 @@ def cobros_nuevo_desde_paciente(request, patient_id):
 
     cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
     return redirect(cobros_url)
+
+
+def cobros_nuevo_desde_protesis(request, protesis_id):
+
+    protesis = get_object_or_404(
+        Prosthesis.objects.select_related("paciente"),
+        id=protesis_id
+    )
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "http://127.0.0.1:8001"
+    ).rstrip("/")
+
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
+
+    paciente_nombre = (
+        f"{protesis.paciente.apellido}, "
+        f"{protesis.paciente.nombre}"
+    ).strip(", ")
+
+    next_url = request.build_absolute_uri(reverse("protesis_list"))
+
+    params = {
+        "paciente": paciente_nombre,
+        "concepto": protesis.get_tipo_protesis_display(),
+        "patient_id": protesis.paciente.id,
+        "protesis_id": protesis.id,
+        "next": next_url,
+    }
+
+    cobros_url = (
+        f"{cobros_base_url}"
+        f"{cobros_path}"
+        f"?{urlencode(params)}"
+    )
+
+    return redirect(cobros_url)
+
 
 
 def obtener_pagos_cobros_paciente(request, paciente):

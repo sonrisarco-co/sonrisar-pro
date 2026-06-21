@@ -5,6 +5,7 @@ from .models import (
     Budget,
     Payment,
     Prosthesis,
+    OrdenLaboratorio,
     ClinicalRecord,
     Inventory,   # ← ESTE ES EL MODELO CORRECTO DEL INVENTARIO
     InventoryMovement,
@@ -382,20 +383,72 @@ class RayosXForm(forms.ModelForm):
 class ProsthesisForm(forms.ModelForm):
     class Meta:
         model = Prosthesis
+
         fields = [
             "paciente",
-            "trabajo",
+            "tipo_protesis",
+            "monto_total",
+            "fecha_inicio",
             "etapa",
-            "fecha_envio",
+            "estado",
             "fecha_retorno",
             "observaciones",
         ]
+
         widgets = {
-            "fecha_envio": forms.DateInput(attrs={"type": "date"}),
-            "fecha_retorno": forms.DateInput(attrs={"type": "date"}),
-            "observaciones": forms.Textarea(attrs={"rows": 3}),
+            "paciente": forms.Select(attrs={
+                "class": "form-select paciente-search",
+            }),
+            "tipo_protesis": forms.Select(attrs={"class": "form-select"}),
+
+            "monto_total": forms.NumberInput(attrs={
+                "class": "form-control",
+                "step": "0.01",
+                "placeholder": "Monto total de la prótesis"
+            }),
+
+            "fecha_inicio": forms.DateInput(attrs={
+                "class": "form-control",
+                "type": "date"
+            }),
+
+            
+            "etapa": forms.Select(attrs={"class": "form-select"}),
+            "estado": forms.Select(attrs={"class": "form-select"}),
+
+            "fecha_retorno": forms.DateInput(attrs={
+                "class": "form-control",
+                "type": "date"
+            }),
+
+            "observaciones": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3
+            }),
         }
 
 
+# -------------------------
+# ORDEN DE LABORATORIO
+# -------------------------
 
+class OrdenLaboratorioForm(forms.ModelForm):
+    class Meta:
+        model = OrdenLaboratorio
+        exclude = ("protesis", "fecha", "estado")
+
+        widgets = {
+            "estado": forms.Select(attrs={"class": "form-select"}),
+
+            "removible_otros_texto": forms.TextInput(attrs={"class": "form-control"}),
+            "ortodoncia_otros_texto": forms.TextInput(attrs={"class": "form-control"}),
+            "material_otros_texto": forms.TextInput(attrs={"class": "form-control"}),
+
+            "indicaciones": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "observaciones": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+
+            "fecha_envio": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "fecha_entrega_prometida": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "fecha_recepcion": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        }
 

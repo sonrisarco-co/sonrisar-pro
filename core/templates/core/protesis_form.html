@@ -3,86 +3,276 @@
 {% block title %}{{ titulo }} - Sonrisar Pro{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
 
-    <h2 class="text-center titulo-seccion mb-4">{{ titulo }}</h2>
+<div class="container mt-4 protesis-form-page">
 
-    <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="titulo-seccion mb-1">🦷 {{ titulo }}</h2>
+            <p class="text-muted mb-0">Registro completo de prótesis del paciente</p>
+        </div>
+
         <a href="{% url 'protesis_list' %}" class="btn btn-outline-secondary">
-            ⬅ Volver a la lista
+            ← Volver
         </a>
     </div>
 
-    <div class="card shadow-sm p-4">
+    <form method="post" novalidate>
+        {% csrf_token %}
 
-        <form method="post" novalidate>
-            {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
 
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {{ form.non_field_errors }}
-                </div>
-            {% endif %}
+        <div class="protesis-form-card shadow-sm">
+            <div class="form-section-title">Datos generales</div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Paciente</label>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Paciente</label>
                     {{ form.paciente }}
-                    {{ form.paciente.errors }}
+                    <div class="form-help">Escribí nombre o apellido para buscar rápido.</div>
+                    <div class="text-danger small">{{ form.paciente.errors }}</div>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Trabajo</label>
-                    {{ form.trabajo }}
-                    {{ form.trabajo.errors }}
+                <div class="col-md-6">
+                    <label class="form-label">Tipo de prótesis</label>
+                    {{ form.tipo_protesis }}
+                    <div class="text-danger small">{{ form.tipo_protesis.errors }}</div>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Etapa</label>
+                <div class="col-md-6">
+                    <label class="form-label">Monto total</label>
+                    {{ form.monto_total }}
+                    <div class="text-danger small">{{ form.monto_total.errors }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Fecha de inicio / toma de impresión</label>
+                    {{ form.fecha_inicio }}
+                    <div class="text-danger small">{{ form.fecha_inicio.errors }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="protesis-form-card shadow-sm mt-3">
+            <div class="form-section-title">Seguimiento</div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Etapa actual</label>
                     {{ form.etapa }}
-                    {{ form.etapa.errors }}
+                    <div class="text-danger small">{{ form.etapa.errors }}</div>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Fecha de envío</label>
-                    {{ form.fecha_envio }}
-                    {{ form.fecha_envio.errors }}
+                <div class="col-md-4">
+                    <label class="form-label">Estado</label>
+                    {{ form.estado }}
+                    <div class="text-danger small">{{ form.estado.errors }}</div>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Fecha de retorno</label>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha de retorno</label>
                     {{ form.fecha_retorno }}
-                    {{ form.fecha_retorno.errors }}
+                    <div class="text-danger small">{{ form.fecha_retorno.errors }}</div>
                 </div>
             </div>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold">Observaciones</label>
-                {{ form.observaciones }}
-                {{ form.observaciones.errors }}
-            </div>
+        <div class="protesis-form-card shadow-sm mt-3">
+            <div class="form-section-title">Observaciones</div>
 
-            <button type="submit" class="btn btn-sonrisar">Guardar</button>
+            {{ form.observaciones }}
+            <div class="text-danger small">{{ form.observaciones.errors }}</div>
+        </div>
 
-        </form>
+        <div class="form-actions mt-4">
+            <button type="submit" class="btn btn-sonrisar">
+                💾 Guardar
+            </button>
 
-    </div>
+            <a href="{% url 'protesis_list' %}" class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+        </div>
+
+    </form>
+
 </div>
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+
 <style>
+    .protesis-form-page {
+        max-width: 1050px;
+    }
+
     .titulo-seccion {
         color: #107361;
+        font-weight: 800;
+    }
+
+    .protesis-form-card {
+        background: white;
+        border: 1px solid #d8eeee;
+        border-left: 5px solid #26ABA5;
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .form-section-title {
+        color: #107361;
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .form-help {
+        color: #6c757d;
+        font-size: 0.78rem;
+        margin-top: 4px;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        border-radius: 10px !important;
+        border: 1px solid #bde8e5 !important;
+        padding: 8px 11px !important;
+        background: #ffffff !important;
+        font-size: 0.95rem;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #26ABA5 !important;
+        box-shadow: 0 0 0 0.18rem rgba(38, 171, 165, 0.18) !important;
+        outline: none !important;
+    }
+
+    textarea {
+        min-height: 115px;
+        resize: vertical;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 43px;
+        border-radius: 10px !important;
+        border: 1px solid #bde8e5 !important;
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #333;
+        line-height: 43px;
+        padding-left: 11px;
+        padding-right: 34px;
+        font-size: 0.95rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 41px;
+        right: 8px;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #26ABA5 !important;
+        box-shadow: 0 0 0 0.18rem rgba(38, 171, 165, 0.18) !important;
+    }
+
+    .select2-dropdown {
+        border: 1px solid #bde8e5 !important;
+        border-radius: 10px !important;
+        overflow: hidden;
+    }
+
+    .select2-search__field {
+        border-radius: 8px !important;
+        border: 1px solid #bde8e5 !important;
+        padding: 7px 10px !important;
+    }
+
+    .btn-sonrisar {
+        background-color: #26ABA5;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 9px 18px;
         font-weight: 700;
     }
 
-    input, select, textarea {
-        border-radius: 8px !important;
-        border: 1px solid #b5b5b5 !important;
-        padding: 6px 10px !important;
+    .btn-sonrisar:hover {
+        background-color: #1d918c;
+        color: white;
     }
 
-    .card {
-        border-radius: 12px;
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-outline-secondary {
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .protesis-form-card {
+            padding: 16px;
+        }
+
+        .form-actions {
+            justify-content: stretch;
+            flex-direction: column;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+        }
     }
 </style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (window.jQuery && $("#id_paciente").length) {
+            $("#id_paciente").select2({
+                placeholder: "Buscar paciente por nombre o apellido...",
+                width: "100%",
+                allowClear: true,
+                language: {
+                    noResults: function () {
+                        return "No se encontraron pacientes";
+                    },
+                    searching: function () {
+                        return "Buscando...";
+                    }
+                }
+            });
+        }
+    });
+</script>
+
 {% endblock %}

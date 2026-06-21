@@ -327,23 +327,238 @@ class Payment(models.Model):
 # 🦷 PRÓTESIS
 class Prosthesis(models.Model):
 
+    TIPOS_PROTESIS = [
+        ("removible", "Prótesis removible"),
+        ("fija", "Rehabilitación fija"),
+        ("ortodoncia", "Ortodoncia y otros"),
+        ("reparacion", "Reparación / Rebase"),
+        ("otro", "Otro"),
+    ]
+
     ETAPAS_PROTESIS = [
+        ("impresion", "Impresión / toma de impresión"),
         ("cubeta", "Cubeta individual"),
-        ("placa", "Placa articular (rodete)"),
+        ("rodete", "Rodete / placa articular"),
+        ("prueba_dientes", "Prueba de dientes"),
         ("enfilado", "Enfilado"),
         ("terminacion", "Terminación"),
+        ("entrega", "Entrega"),
+    ]
+
+    ESTADOS_PROTESIS = [
+        ("laboratorio", "En laboratorio"),
+        ("proceso", "En proceso"),
+        ("prueba", "Lista para prueba"),
+        ("entrega", "Lista para entrega"),
+        ("entregada", "Entregada"),
     ]
 
     paciente = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    trabajo = models.CharField(max_length=200)
-    etapa = models.CharField(max_length=200, choices=ETAPAS_PROTESIS)
+
+    tipo_protesis = models.CharField(
+        "Tipo de prótesis",
+        max_length=50,
+        choices=TIPOS_PROTESIS,
+        default="otro"
+    )
+
+    trabajo = models.CharField(
+        "Trabajo solicitado",
+        max_length=200,
+        blank=True
+    )
+
+    monto_total = models.DecimalField(
+        "Monto total",
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=0
+    )
+
+    fecha_inicio = models.DateField(
+        "Fecha de inicio / toma de impresión",
+        blank=True,
+        null=True
+    )
+
+    etapa = models.CharField(
+        "Etapa actual",
+        max_length=50,
+        choices=ETAPAS_PROTESIS,
+        default="impresion"
+    )
+
+    estado = models.CharField(
+        "Estado",
+        max_length=20,
+        choices=ESTADOS_PROTESIS,
+        default="laboratorio"
+    )
+
+    # Se mantiene para no romper órdenes o pantallas anteriores.
     fecha_envio = models.DateField(blank=True, null=True)
     fecha_retorno = models.DateField(blank=True, null=True)
 
     observaciones = models.TextField(blank=True)
 
+    @property
+    def total_pagado(self):
+        import json
+        from urllib.request import urlopen
+        from urllib.error import URLError, HTTPError
+        from django.conf import settings
+
+        cobros_base_url = getattr(
+            settings,
+            "SONRISAR_COBROS_BASE_URL",
+            "http://127.0.0.1:8001"
+        ).rstrip("/")
+
+        api_url = (
+            f"{cobros_base_url}"
+            f"/pagos/api/por-protesis/"
+            f"?protesis_id={self.id}"
+        )
+
+        try:
+            with urlopen(api_url, timeout=4) as response:
+                data = json.loads(response.read().decode("utf-8"))
+
+            if data.get("ok"):
+                return Decimal(str(data.get("total_pagado", "0")))
+
+        except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+            return Decimal("0.00")
+
+        return Decimal("0.00")
+
+
+    @property
+    def saldo_pendiente(self):
+        total = self.monto_total or Decimal("0.00")
+        saldo = total - self.total_pagado
+
+        if saldo < Decimal("0.00"):
+            return Decimal("0.00")
+
+        return saldo
+
     def __str__(self):
-        return f"{self.trabajo} - {self.paciente}"
+        return f"{self.get_tipo_protesis_display()} - {self.paciente}"
+
+class OrdenLaboratorio(models.Model):
+
+    ESTADOS = [
+        ("pendiente", "Pendiente"),
+        ("laboratorio", "En laboratorio"),
+        ("lista", "Lista para retirar"),
+        ("entregada", "Entregada"),
+    ]
+
+    protesis = models.ForeignKey(
+        Prosthesis,
+        on_delete=models.CASCADE,
+        related_name="ordenes_laboratorio"
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="pendiente"
+    )
+
+    fecha = models.DateField(auto_now_add=True)
+
+    # =========================
+    # PRÓTESIS REMOVIBLE
+    # =========================
+    protesis_completa = models.BooleanField(default=False)
+    protesis_completa_sup = models.BooleanField(default=False)
+    protesis_completa_inf = models.BooleanField(default=False)
+
+    protesis_parcial = models.BooleanField(default=False)
+    protesis_parcial_sup = models.BooleanField(default=False)
+    protesis_parcial_inf = models.BooleanField(default=False)
+
+    protesis_flexible = models.BooleanField(default=False)
+    protesis_flexible_sup = models.BooleanField(default=False)
+    protesis_flexible_inf = models.BooleanField(default=False)
+
+    cromo = models.BooleanField(default=False)
+    cromo_sup = models.BooleanField(default=False)
+    cromo_inf = models.BooleanField(default=False)
+
+    provisorio_placa = models.BooleanField(default=False)
+    provisorio_placa_sup = models.BooleanField(default=False)
+    provisorio_placa_inf = models.BooleanField(default=False)
+
+    reparacion = models.BooleanField(default=False)
+    rebasado = models.BooleanField(default=False)
+    cubeta_individual = models.BooleanField(default=False)
+    placa_articular = models.BooleanField(default=False)
+    enfilado = models.BooleanField(default=False)
+    terminacion = models.BooleanField(default=False)
+    removible_otros = models.BooleanField(default=False)
+    removible_otros_texto = models.CharField(max_length=255, blank=True)
+
+    # =========================
+    # REHABILITACIÓN FIJA
+    # =========================
+    perno_metalico = models.BooleanField(default=False)
+    incrustacion = models.BooleanField(default=False)
+    jacket = models.BooleanField(default=False)
+    corona = models.BooleanField(default=False)
+    puente_fijo = models.BooleanField(default=False)
+
+    # =========================
+    # ORTODONCIA Y OTROS
+    # =========================
+    contencion = models.BooleanField(default=False)
+    contencion_sup = models.BooleanField(default=False)
+    contencion_inf = models.BooleanField(default=False)
+
+    placa_relajacion = models.BooleanField(default=False)
+    placa_relajacion_sup = models.BooleanField(default=False)
+    placa_relajacion_inf = models.BooleanField(default=False)
+
+    ortodoncia_otros = models.BooleanField(default=False)
+    ortodoncia_otros_texto = models.CharField(max_length=255, blank=True)
+
+    # =========================
+    # MATERIAL ENVIADO
+    # =========================
+    impresion_inicial = models.BooleanField(default=False)
+    impresion_inicial_sup = models.BooleanField(default=False)
+    impresion_inicial_inf = models.BooleanField(default=False)
+
+    impresion_definitiva = models.BooleanField(default=False)
+    impresion_definitiva_sup = models.BooleanField(default=False)
+    impresion_definitiva_inf = models.BooleanField(default=False)
+
+    modelo = models.BooleanField(default=False)
+    modelo_sup = models.BooleanField(default=False)
+    modelo_inf = models.BooleanField(default=False)
+
+    registro_mordida = models.BooleanField(default=False)
+    protesis_a_reparar = models.BooleanField(default=False)
+
+    material_otros = models.BooleanField(default=False)
+    material_otros_texto = models.CharField(max_length=255, blank=True)
+
+    # =========================
+    # INDICACIONES Y FECHAS
+    # =========================
+    indicaciones = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True)
+
+    fecha_envio = models.DateField(null=True, blank=True)
+    fecha_entrega_prometida = models.DateField(null=True, blank=True)
+    fecha_recepcion = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Orden #{self.id} - {self.protesis.paciente}"
 
 
 class Inventory(models.Model):
