@@ -1964,18 +1964,86 @@ def obtener_saldo_tratamiento(cita_actual):
     )
 
 
+def _obtener_pagos_cobros_citas_bulk(appointment_ids):
+    """
+    Consulta Sonrisar Cobros una sola vez para varias citas.
+    Si falla, devuelve None para que se use el método viejo.
+    """
+
+    appointment_ids_limpios = []
+
+    for appointment_id in appointment_ids:
+        try:
+            appointment_id_int = int(appointment_id)
+        except (TypeError, ValueError):
+            continue
+
+        if appointment_id_int not in appointment_ids_limpios:
+            appointment_ids_limpios.append(appointment_id_int)
+
+    if not appointment_ids_limpios:
+        return {}
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "http://127.0.0.1:8001"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_RESUMEN_CITAS_PATH",
+        "/pagos/api/resumen-citas/"
+    )
+
+    api_url = (
+        f"{cobros_base_url}"
+        f"{cobros_api_path}"
+        f"?{urlencode({'appointment_ids': ','.join(str(x) for x in appointment_ids_limpios)})}"
+    )
+
+    try:
+        response = requests.get(api_url, timeout=6)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data.get("ok"):
+            return None
+
+        resumenes = {}
+
+        for item in data.get("citas", []):
+            appointment_id = item.get("appointment_id")
+
+            try:
+                appointment_id = int(appointment_id)
+            except (TypeError, ValueError):
+                continue
+
+            resumenes[appointment_id] = {
+                "tiene_pago": _decimal_seguro(item.get("total_pagado", 0)) > 0,
+                "total_pagado": str(item.get("total_pagado", "0")),
+                "tipo_pago": item.get("tipo_pago", "pagado"),
+                "pagos": item.get("pagos", []),
+                "error": None,
+            }
+
+        return resumenes
+
+    except Exception as e:
+        print("ERROR COBROS BULK CITAS:", str(e))
+        return None
+
+
 def _obtener_contexto_financiero_citas(citas_dia, fecha):
     """
     Calcula pagos, deuda y saldo a favor de forma cronológica por paciente.
-
-    Regla correcta:
-    - Cada cita muestra solo el pago registrado para ESA cita.
-    - Si el paciente paga menos que el total acumulado, queda deuda.
-    - Si paga de más, queda saldo a favor.
-    - El saldo a favor se consume en próximas citas.
-    - La deuda mostrada es la deuda real acumulada hasta esa cita.
+    Usa consulta rápida a Cobros. Si falla, vuelve al método anterior cita por cita.
     """
+
     contextos = {}
+
+    total_citas_procesadas = 0
 
     pacientes_ids = []
     pacientes_por_id = {}
@@ -1984,6 +2052,9 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
         if cita.paciente_id not in pacientes_ids:
             pacientes_ids.append(cita.paciente_id)
             pacientes_por_id[cita.paciente_id] = cita.paciente
+
+    citas_por_paciente = {}
+    appointment_ids = []
 
     for patient_id in pacientes_ids:
         paciente = pacientes_por_id[patient_id]
@@ -2000,16 +2071,37 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
             .order_by("fecha", "hora", "id")
         )
 
+        total_citas_procesadas += len(citas_paciente)
+
+        citas_por_paciente[patient_id] = citas_paciente
+
+        for cita in citas_paciente:
+            appointment_ids.append(cita.id)
+
+
+    pagos_bulk = _obtener_pagos_cobros_citas_bulk(appointment_ids)
+
+    for patient_id, citas_paciente in citas_por_paciente.items():
+
         deuda_acumulada = Decimal("0")
         saldo_a_favor_disponible = Decimal("0")
 
         for cita in citas_paciente:
             monto_cita = _decimal_seguro(cita.monto_total)
 
-            pago_info = obtener_pago_cobros_cita(
-                appointment_id=cita.id,
-                patient_id=patient_id
-            )
+            if pagos_bulk is not None:
+                pago_info = pagos_bulk.get(cita.id, {
+                    "tiene_pago": False,
+                    "total_pagado": "0",
+                    "tipo_pago": "pagado",
+                    "pagos": [],
+                    "error": None,
+                })
+            else:
+                pago_info = obtener_pago_cobros_cita(
+                    appointment_id=cita.id,
+                    patient_id=patient_id
+                )
 
             pago_cita = _decimal_seguro(
                 pago_info.get("total_pagado", 0)
@@ -2017,14 +2109,12 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
 
             tiene_pago_cita = pago_cita > 0
 
-            deuda_cita = Decimal("0")
             saldo_usado = Decimal("0")
             saldo_generado = Decimal("0")
 
             if monto_cita > 0:
                 deuda_acumulada += monto_cita
 
-            # Primero aplicamos saldo a favor anterior, si existe
             if deuda_acumulada > 0 and saldo_a_favor_disponible > 0:
                 saldo_usado = min(
                     saldo_a_favor_disponible,
@@ -2033,7 +2123,6 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
                 deuda_acumulada -= saldo_usado
                 saldo_a_favor_disponible -= saldo_usado
 
-            # Después aplicamos pago de esta cita
             if pago_cita > 0:
                 if deuda_acumulada > 0:
                     if pago_cita >= deuda_acumulada:
@@ -2049,13 +2138,11 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
                     saldo_generado = pago_cita
                     saldo_a_favor_disponible += pago_cita
 
-            deuda_cita = deuda_acumulada
-
             contextos[cita.id] = {
                 "pago_cita": pago_cita,
                 "tiene_pago_cita": tiene_pago_cita,
                 "tipo_pago": pago_info.get("tipo_pago", "pagado"),
-                "deuda_cita": deuda_cita,
+                "deuda_cita": deuda_acumulada,
                 "saldo_usado": saldo_usado,
                 "saldo_generado": saldo_generado,
                 "saldo_a_favor_restante": saldo_a_favor_disponible,
