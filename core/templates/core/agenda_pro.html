@@ -45,6 +45,68 @@
                         </table>
                     </div>
                 </div>
+
+                <div class="agenda-pro-sidebar-card agenda-reminders-card">
+                    <div class="agenda-pro-sidebar-header agenda-pro-sidebar-header-flex">
+                        <button type="button" class="agenda-reminder-title-open" data-bs-toggle="modal" data-bs-target="#agendaReminderAllModal" title="Ver todos los recordatorios">📝 Recordatorios</button>
+                        <button type="button" class="agenda-reminder-new-btn" data-bs-toggle="modal" data-bs-target="#agendaReminderNewModal">+ Nuevo</button>
+                    </div>
+
+                    <div class="agenda-reminders-date">
+                        Todos los recordatorios cargados
+                    </div>
+
+                    <div class="agenda-reminders-list">
+                        {% for recordatorio in recordatorios %}
+                            <div class="agenda-reminder-item prioridad-{{ recordatorio.prioridad }}{% if recordatorio.realizado %} realizado{% endif %}{% if recordatorio.fecha == fecha_base %} recordatorio-del-dia{% endif %}">
+                                <div class="agenda-reminder-topline">
+                                    <span class="agenda-reminder-date-badge{% if recordatorio.fecha == fecha_base %} today{% endif %}">
+                                        {{ recordatorio.fecha|date:"d/m" }}
+                                    </span>
+                                    {% if recordatorio.fecha == fecha_base %}
+                                        <span class="agenda-reminder-today-label">Día seleccionado</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="agenda-reminder-main">
+                                    <form method="POST" action="{% url 'agenda_reminder_toggle' recordatorio.id %}" class="agenda-reminder-check-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}">
+                                        <button type="submit" class="agenda-reminder-check" title="Marcar como realizado">{% if recordatorio.realizado %}☑{% else %}☐{% endif %}</button>
+                                    </form>
+
+                                    <div class="agenda-reminder-text">
+                                        <div class="agenda-reminder-title">{{ recordatorio.titulo }}</div>
+
+                                        {% if recordatorio.descripcion %}
+                                            <div class="agenda-reminder-desc">{{ recordatorio.descripcion|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if recordatorio.paciente %}
+                                            <a class="agenda-reminder-patient" href="{% url 'patient_detail' recordatorio.paciente.id %}?next={% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}">
+                                                👤 {{ recordatorio.paciente.apellido }}, {{ recordatorio.paciente.nombre }}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="agenda-reminder-actions">
+                                    <span class="agenda-reminder-priority-label">{{ recordatorio.get_prioridad_display }}</span>
+                                    <button type="button" class="agenda-reminder-action" data-bs-toggle="modal" data-bs-target="#agendaReminderEditModal{{ recordatorio.id }}">Editar</button>
+                                    <form method="POST" action="{% url 'agenda_reminder_delete' recordatorio.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}">
+                                        <button type="submit" class="agenda-reminder-action delete" onclick="return confirm('¿Eliminar este recordatorio?')">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="agenda-reminders-empty">
+                                No hay recordatorios cargados.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </aside>
 
@@ -315,6 +377,197 @@
         </main>
     </div>
 </div>
+
+
+<!-- =============================
+     📝 MODALES RECORDATORIOS
+     ============================= -->
+<div class="modal fade agenda-reminder-modal" id="agendaReminderAllModal" tabindex="-1" aria-labelledby="agendaReminderAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg agenda-reminder-all-dialog">
+        <div class="modal-content">
+            <div class="modal-header agenda-reminder-all-header">
+                <div>
+                    <h5 class="modal-title" id="agendaReminderAllModalLabel">📝 Todos los recordatorios</h5>
+                    <div class="agenda-reminder-all-subtitle">Puedes revisar todos los recordatorios cargados sin ir día por día.</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body agenda-reminder-all-body">
+                <div class="agenda-reminder-all-list">
+                    {% for recordatorio in recordatorios %}
+                        <div class="agenda-reminder-all-item prioridad-{{ recordatorio.prioridad }}{% if recordatorio.realizado %} realizado{% endif %}{% if recordatorio.fecha == fecha_base %} recordatorio-del-dia{% endif %}">
+                            <div class="agenda-reminder-all-date">
+                                <span>{{ recordatorio.fecha|date:"d/m/Y" }}</span>
+                                {% if recordatorio.fecha == fecha_base %}
+                                    <small>Día seleccionado</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="agenda-reminder-all-content">
+                                <div class="agenda-reminder-all-title-row">
+                                    <form method="POST" action="{% url 'agenda_reminder_toggle' recordatorio.id %}" class="agenda-reminder-check-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}">
+                                        <button type="submit" class="agenda-reminder-check" title="Marcar como realizado">{% if recordatorio.realizado %}☑{% else %}☐{% endif %}</button>
+                                    </form>
+
+                                    <div class="agenda-reminder-all-text">
+                                        <div class="agenda-reminder-all-title">{{ recordatorio.titulo }}</div>
+
+                                        {% if recordatorio.descripcion %}
+                                            <div class="agenda-reminder-all-desc">{{ recordatorio.descripcion|linebreaksbr }}</div>
+                                        {% endif %}
+
+                                        {% if recordatorio.paciente %}
+                                            <a class="agenda-reminder-patient" href="{% url 'patient_detail' recordatorio.paciente.id %}?next={% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}">
+                                                👤 {{ recordatorio.paciente.apellido }}, {{ recordatorio.paciente.nombre }}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="agenda-reminder-all-actions">
+                                    <span class="agenda-reminder-priority-label">{{ recordatorio.get_prioridad_display }}</span>
+                                    <button type="button" class="agenda-reminder-action" data-bs-toggle="modal" data-bs-target="#agendaReminderEditModal{{ recordatorio.id }}">Editar</button>
+                                    <form method="POST" action="{% url 'agenda_reminder_delete' recordatorio.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}">
+                                        <button type="submit" class="agenda-reminder-action delete" onclick="return confirm('¿Eliminar este recordatorio?')">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="agenda-reminders-empty">
+                            No hay recordatorios cargados.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="modal-footer agenda-reminder-all-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#agendaReminderNewModal">+ Nuevo recordatorio</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade agenda-reminder-modal" id="agendaReminderNewModal" tabindex="-1" aria-labelledby="agendaReminderNewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'agenda_reminder_create' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agendaReminderNewModalLabel">Nuevo recordatorio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Título</label>
+                        <input type="text" name="titulo" class="form-control form-control-sm" required placeholder="Ej: Probar prótesis superior">
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Descripción opcional</label>
+                        <textarea name="descripcion" class="form-control form-control-sm" rows="3" placeholder="Detalles del recordatorio..."></textarea>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Mostrar el día</label>
+                        <input type="date" name="fecha" class="form-control form-control-sm" value="{{ fecha_base|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Prioridad</label>
+                        <select name="prioridad" class="form-select form-select-sm">
+                            <option value="normal" selected>Normal</option>
+                            <option value="importante">Importante</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="agenda-reminder-label">Paciente opcional</label>
+                        <select name="paciente" class="form-select form-select-sm">
+                            <option value="">Sin paciente</option>
+                            {% for paciente in pacientes_recordatorios %}
+                                <option value="{{ paciente.id }}">{{ paciente.apellido }}, {{ paciente.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% for recordatorio in recordatorios %}
+<div class="modal fade agenda-reminder-modal" id="agendaReminderEditModal{{ recordatorio.id }}" tabindex="-1" aria-labelledby="agendaReminderEditModalLabel{{ recordatorio.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'agenda_reminder_edit' recordatorio.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'agenda_pro' %}?fecha={{ fecha_base|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}{% if q %}&q={{ q }}{% endif %}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agendaReminderEditModalLabel{{ recordatorio.id }}">Editar recordatorio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Título</label>
+                        <input type="text" name="titulo" class="form-control form-control-sm" value="{{ recordatorio.titulo }}" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Descripción opcional</label>
+                        <textarea name="descripcion" class="form-control form-control-sm" rows="3">{{ recordatorio.descripcion }}</textarea>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Mostrar el día</label>
+                        <input type="date" name="fecha" class="form-control form-control-sm" value="{{ recordatorio.fecha|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="agenda-reminder-label">Prioridad</label>
+                        <select name="prioridad" class="form-select form-select-sm">
+                            <option value="normal" {% if recordatorio.prioridad == 'normal' %}selected{% endif %}>Normal</option>
+                            <option value="importante" {% if recordatorio.prioridad == 'importante' %}selected{% endif %}>Importante</option>
+                            <option value="urgente" {% if recordatorio.prioridad == 'urgente' %}selected{% endif %}>Urgente</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="agenda-reminder-label">Paciente opcional</label>
+                        <select name="paciente" class="form-select form-select-sm">
+                            <option value="">Sin paciente</option>
+                            {% for paciente in pacientes_recordatorios %}
+                                <option value="{{ paciente.id }}" {% if recordatorio.paciente and recordatorio.paciente.id == paciente.id %}selected{% endif %}>{{ paciente.apellido }}, {{ paciente.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <style>
 :root{
@@ -962,6 +1215,337 @@ table.agenda-pro-results-table thead th {
 
 thead th {
     color: #111827 !important;
+}
+
+.agenda-reminders-card{
+    margin-top: 12px;
+}
+
+.agenda-reminder-title-open{
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    padding: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.agenda-reminder-title-open:hover{
+    color: var(--sonrisar-dark);
+    text-decoration: underline;
+}
+
+.agenda-reminder-new-btn{
+    border: 1px solid var(--sonrisar);
+    background: #ffffff;
+    color: var(--sonrisar-dark);
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 9px;
+}
+
+.agenda-reminders-date{
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 2px 0 8px;
+    text-transform: capitalize;
+}
+
+.agenda-reminders-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.agenda-reminders-empty{
+    border: 1px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    background: #f9fafb;
+}
+
+.agenda-reminder-item{
+    border: 1px solid var(--line);
+    border-left: 5px solid #22c55e;
+    border-radius: 12px;
+    padding: 8px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.agenda-reminder-item.recordatorio-del-dia{
+    background: #f0fdfa;
+    border-color: rgba(38, 171, 165, 0.35);
+}
+
+.agenda-reminder-topline{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+    padding-left: 26px;
+}
+
+.agenda-reminder-date-badge{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.68rem;
+    font-weight: 600
+    padding: 2px 7px;
+}
+
+.agenda-reminder-date-badge.today{
+    background: var(--sonrisar);
+    color: #ffffff;
+}
+
+.agenda-reminder-today-label{
+    font-size: 0.66rem;
+    color: var(--sonrisar-dark);
+    font-weight: 500;
+}
+
+.agenda-reminder-item.prioridad-importante{
+    border-left-color: #f59e0b;
+}
+
+.agenda-reminder-item.prioridad-urgente{
+    border-left-color: #dc2626;
+}
+
+.agenda-reminder-item.realizado{
+    opacity: 0.62;
+    background: #f9fafb;
+}
+
+.agenda-reminder-main{
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.agenda-reminder-check-form{
+    margin: 0;
+}
+
+.agenda-reminder-check{
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1.1;
+    color: var(--sonrisar-dark);
+}
+
+.agenda-reminder-text{
+    flex: 1;
+    min-width: 0;
+}
+
+.agenda-reminder-title{
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.agenda-reminder-item.realizado .agenda-reminder-title{
+    text-decoration: line-through;
+}
+
+.agenda-reminder-desc{
+    margin-top: 3px;
+    font-size: 0.78rem;
+    color: #374151;
+    line-height: 1.25;
+}
+
+.agenda-reminder-patient{
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: var(--sonrisar-dark);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.agenda-reminder-actions{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 7px;
+    padding-left: 26px;
+}
+
+.agenda-reminder-priority-label{
+    font-size: 0.68rem;
+    color: var(--muted);
+    background: #f3f4f6;
+    border-radius: 999px;
+    padding: 2px 7px;
+}
+
+.agenda-reminder-action{
+    border: 0;
+    background: transparent;
+    color: var(--sonrisar-dark);
+    padding: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.agenda-reminder-action.delete{
+    color: #dc2626;
+}
+
+.agenda-reminder-label{
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #374151;
+}
+
+.agenda-reminder-modal .modal-title{
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.agenda-reminder-all-dialog{
+    max-width: 760px;
+}
+
+.agenda-reminder-all-header{
+    border-bottom: 1px solid var(--line);
+}
+
+.agenda-reminder-all-subtitle{
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.agenda-reminder-all-body{
+    max-height: 62vh;
+    overflow-y: auto;
+    background: #f9fafb;
+}
+
+.agenda-reminder-all-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.agenda-reminder-all-item{
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-left: 6px solid #22c55e;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 10px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.agenda-reminder-all-item.prioridad-importante{
+    border-left-color: #f59e0b;
+}
+
+.agenda-reminder-all-item.prioridad-urgente{
+    border-left-color: #dc2626;
+}
+
+.agenda-reminder-all-item.recordatorio-del-dia{
+    background: #f0fdfa;
+    border-color: rgba(38, 171, 165, 0.35);
+}
+
+.agenda-reminder-all-item.realizado{
+    opacity: 0.65;
+}
+
+.agenda-reminder-all-date{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    color: var(--sonrisar-dark);
+    font-weight: 700;
+    font-size: 0.84rem;
+    padding-top: 4px;
+}
+
+.agenda-reminder-all-date small{
+    color: #0f766e;
+    background: #ccfbf1;
+    border-radius: 999px;
+    padding: 2px 6px;
+    font-size: 0.62rem;
+    text-align: center;
+}
+
+.agenda-reminder-all-title-row{
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.agenda-reminder-all-text{
+    flex: 1;
+    min-width: 0;
+}
+
+.agenda-reminder-all-title{
+    color: var(--text);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.agenda-reminder-all-item.realizado .agenda-reminder-all-title{
+    text-decoration: line-through;
+}
+
+.agenda-reminder-all-desc{
+    color: #374151;
+    font-size: 0.84rem;
+    margin-top: 4px;
+    line-height: 1.35;
+}
+
+.agenda-reminder-all-actions{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    padding-left: 26px;
+}
+
+.agenda-reminder-all-footer{
+    border-top: 1px solid var(--line);
+}
+
+@media (max-width: 700px){
+    .agenda-reminder-all-item{
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-reminder-all-date{
+        align-items: flex-start;
+    }
 }
 
 @media (max-width: 1200px){

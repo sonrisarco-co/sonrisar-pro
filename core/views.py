@@ -60,6 +60,7 @@ from .models import (
     OdontogramTooth,
     OdontogramaCara,
     DayBlock,
+    AgendaReminder,
 )
 
 from .forms import (
@@ -3883,6 +3884,17 @@ def agenda_pro(request):
         "weeks": mini_weeks,
     }
 
+    # 📝 Recordatorios: mostrar TODOS para no tener que ir día por día.
+    # Se ordenan primero los pendientes, luego por fecha.
+    recordatorios = (
+        AgendaReminder.objects
+        .all()
+        .select_related("paciente")
+        .order_by("realizado", "fecha", "-id")
+    )
+
+    pacientes_recordatorios = Patient.objects.all().order_by("apellido", "nombre")
+
     return render(
         request,
         "core/agenda_pro.html",
@@ -3902,8 +3914,116 @@ def agenda_pro(request):
             "mini_mes_actual": mini_mes_actual,
             "bloqueos_por_dia": bloqueos_por_dia,
             "bloqueos_por_dia_str": bloqueos_por_dia_str,
+            "recordatorios": recordatorios,
+            "pacientes_recordatorios": pacientes_recordatorios,
         }
     )
+
+
+
+# =============================
+# 📝 RECORDATORIOS DE AGENDA
+# =============================
+
+def _agenda_reminder_redirect(request, fecha=None):
+    next_url = request.POST.get("next") or request.GET.get("next")
+
+    if next_url:
+        return redirect(next_url)
+
+    if fecha:
+        return redirect(f"{reverse('agenda_pro')}?fecha={fecha.strftime('%Y-%m-%d')}")
+
+    return redirect("agenda_pro")
+
+
+def _agenda_reminder_fecha(fecha_str):
+    if fecha_str:
+        try:
+            return datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+    return timezone.localdate()
+
+
+@require_POST
+def agenda_reminder_create(request):
+    titulo = request.POST.get("titulo", "").strip()
+    descripcion = request.POST.get("descripcion", "").strip()
+    prioridad = request.POST.get("prioridad", "normal").strip()
+    fecha = _agenda_reminder_fecha(request.POST.get("fecha"))
+    paciente_id = request.POST.get("paciente") or None
+
+    prioridades_validas = {"normal", "importante", "urgente"}
+    if prioridad not in prioridades_validas:
+        prioridad = "normal"
+
+    if not titulo:
+        messages.error(request, "El recordatorio necesita un título.")
+        return _agenda_reminder_redirect(request, fecha)
+
+    paciente = None
+    if paciente_id:
+        paciente = Patient.objects.filter(id=paciente_id).first()
+
+    AgendaReminder.objects.create(
+        fecha=fecha,
+        titulo=titulo,
+        descripcion=descripcion,
+        prioridad=prioridad,
+        paciente=paciente,
+    )
+
+    messages.success(request, "Recordatorio creado correctamente.")
+    return _agenda_reminder_redirect(request, fecha)
+
+
+@require_POST
+def agenda_reminder_edit(request, id):
+    recordatorio = get_object_or_404(AgendaReminder, id=id)
+
+    titulo = request.POST.get("titulo", "").strip()
+    descripcion = request.POST.get("descripcion", "").strip()
+    prioridad = request.POST.get("prioridad", "normal").strip()
+    fecha = _agenda_reminder_fecha(request.POST.get("fecha"))
+    paciente_id = request.POST.get("paciente") or None
+
+    prioridades_validas = {"normal", "importante", "urgente"}
+    if prioridad not in prioridades_validas:
+        prioridad = "normal"
+
+    if not titulo:
+        messages.error(request, "El recordatorio necesita un título.")
+        return _agenda_reminder_redirect(request, fecha)
+
+    recordatorio.titulo = titulo
+    recordatorio.descripcion = descripcion
+    recordatorio.prioridad = prioridad
+    recordatorio.fecha = fecha
+    recordatorio.paciente = Patient.objects.filter(id=paciente_id).first() if paciente_id else None
+    recordatorio.save()
+
+    messages.success(request, "Recordatorio actualizado.")
+    return _agenda_reminder_redirect(request, fecha)
+
+
+@require_POST
+def agenda_reminder_toggle(request, id):
+    recordatorio = get_object_or_404(AgendaReminder, id=id)
+    recordatorio.realizado = not recordatorio.realizado
+    recordatorio.save(update_fields=["realizado", "actualizado"])
+
+    return _agenda_reminder_redirect(request, recordatorio.fecha)
+
+
+@require_POST
+def agenda_reminder_delete(request, id):
+    recordatorio = get_object_or_404(AgendaReminder, id=id)
+    fecha = recordatorio.fecha
+    recordatorio.delete()
+
+    messages.success(request, "Recordatorio eliminado.")
+    return _agenda_reminder_redirect(request, fecha)
 
 
 

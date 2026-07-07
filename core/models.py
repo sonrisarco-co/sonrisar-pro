@@ -86,6 +86,44 @@ class DayBlock(models.Model):
         return f"{self.fecha} - {self.motivo}"
 
 
+
+
+# 📝 RECORDATORIOS DE AGENDA
+class AgendaReminder(models.Model):
+
+    PRIORIDADES = [
+        ("normal", "Normal"),
+        ("importante", "Importante"),
+        ("urgente", "Urgente"),
+    ]
+
+    fecha = models.DateField()
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    prioridad = models.CharField(
+        max_length=20,
+        choices=PRIORIDADES,
+        default="normal"
+    )
+    paciente = models.ForeignKey(
+        Patient,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="agenda_recordatorios"
+    )
+    realizado = models.BooleanField(default=False)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["realizado", "fecha", "-id"]
+        verbose_name = "Recordatorio de agenda"
+        verbose_name_plural = "Recordatorios de agenda"
+
+    def __str__(self):
+        return f"{self.fecha} - {self.titulo}"
+
 # 📋 HISTORIA CLÍNICA
 
 class ClinicalRecord(models.Model):

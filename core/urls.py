@@ -86,6 +86,12 @@ urlpatterns = [
 
     path("agenda/mover/<int:id>/", views.appointment_move_time, name="appointment_move_time"),
 
+    # 📝 RECORDATORIOS DE AGENDA
+    path("agenda/recordatorios/nuevo/", views.agenda_reminder_create, name="agenda_reminder_create"),
+    path("agenda/recordatorios/<int:id>/editar/", views.agenda_reminder_edit, name="agenda_reminder_edit"),
+    path("agenda/recordatorios/<int:id>/realizado/", views.agenda_reminder_toggle, name="agenda_reminder_toggle"),
+    path("agenda/recordatorios/<int:id>/eliminar/", views.agenda_reminder_delete, name="agenda_reminder_delete"),
+
     # NUEVO: pacientes deudores
     path("deudores/", views.deudores_general, name="deudores_general"),
 
