@@ -196,9 +196,134 @@ def patient_list(request):
 
 
 
+def _obtener_resumen_financiero_ficha(paciente):
+    """
+    Obtiene la información financiera para la ficha del paciente.
+
+    Primero consulta por patient_id. Si no encuentra pagos, intenta por los
+    formatos de nombre usados históricamente en Sonrisar Cobros.
+    Esta consulta se ejecuta solamente al abrir la ficha del paciente.
+    """
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros-1.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_PACIENTE_PATH",
+        "/pagos/api/por-paciente/"
+    )
+
+    consultas = [
+        {"patient_id": paciente.id},
+        {"paciente": f"{paciente.apellido}, {paciente.nombre}".strip(", ")},
+        {"paciente": f"{paciente.nombre} {paciente.apellido}".strip()},
+    ]
+
+    pagos = []
+    error = None
+
+    for params in consultas:
+        try:
+            response = requests.get(
+                f"{cobros_base_url}{cobros_api_path}",
+                params=params,
+                timeout=6,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("ok") and data.get("pagos"):
+                pagos = data.get("pagos", [])
+                error = None
+                break
+
+        except Exception:
+            error = "No fue posible consultar Sonrisar Cobros."
+
+    total_pagado = sum(
+        (_decimal_seguro(pago.get("monto", 0)) for pago in pagos),
+        Decimal("0")
+    )
+
+    total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
+    deuda = total_cobrable - total_pagado
+
+    if deuda < 0:
+        deuda = Decimal("0")
+
+    ultimo_pago = pagos[0] if pagos else None
+    recibo_url = ""
+
+    if ultimo_pago and ultimo_pago.get("id"):
+        recibo_url = (
+            f"{cobros_base_url}/pagos/{ultimo_pago['id']}/recibo/"
+        )
+
+        ci_paciente = (paciente.ci or "").strip()
+        if ci_paciente:
+            recibo_url += "?" + urlencode({"ci": ci_paciente})
+
+    return {
+        "disponible": error is None,
+        "error": error,
+        "deuda": deuda,
+        "sin_deuda": deuda <= 0,
+        "total_pagado": total_pagado,
+        "ultimo_pago": ultimo_pago,
+        "recibo_url": recibo_url,
+    }
+
+
 def patient_detail(request, id):
     paciente = get_object_or_404(Patient, id=id)
-    return render(request, "core/patient_detail.html", {"paciente": paciente})
+
+    hoy = timezone.localdate()
+    hora_actual = timezone.localtime().time()
+    edad = calcular_edad(paciente.fecha_nacimiento)
+
+    citas_paciente = (
+        Appointment.objects
+        .filter(paciente=paciente)
+        .exclude(estado="cancelado")
+        .prefetch_related("procedimientos")
+    )
+
+    ultima_cita = (
+        citas_paciente
+        .filter(
+            Q(fecha__lt=hoy) |
+            Q(fecha=hoy, hora__lte=hora_actual)
+        )
+        .order_by("-fecha", "-hora")
+        .first()
+    )
+
+    proxima_cita = (
+        citas_paciente
+        .filter(
+            Q(fecha__gt=hoy) |
+            Q(fecha=hoy, hora__gt=hora_actual)
+        )
+        .order_by("fecha", "hora")
+        .first()
+    )
+
+    resumen_financiero = _obtener_resumen_financiero_ficha(paciente)
+
+    return render(
+        request,
+        "core/patient_detail.html",
+        {
+            "paciente": paciente,
+            "edad": edad,
+            "ultima_cita": ultima_cita,
+            "proxima_cita": proxima_cita,
+            "resumen_financiero": resumen_financiero,
+        },
+    )
 
 
 def patient_appointments(request, patient_id):

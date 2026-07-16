@@ -5,180 +5,516 @@
 {% block content %}
 
 <style>
-/* === SONRISAR PRO – FICHA PACIENTE === */
-
-.ficha-container {
-    max-width: 900px;
-    margin: 30px auto;
-}
-
-.ficha-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.ficha-header h2 {
-    color: #107361;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.ficha-header h2 i {
-    color: #26ABA5;
-}
-
-.ficha-actions a {
-    margin-left: 10px;
-}
-
-.card-sonrisar {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-}
-
-.datos-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px 30px;
-}
-
-.dato {
-    font-size: 0.95rem;
-}
-
-.dato span {
-    display: block;
-    font-size: 0.8rem;
-    color: #6c757d;
-    margin-bottom: 3px;
-}
-
-.dato strong {
-    font-size: 1.05rem;
-    color: #212529;
-}
-
-.acciones-paciente {
-    margin-top: 30px;
-}
-
-.acciones-paciente h4 {
-    color: #107361;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
-
-.acciones-paciente a {
-    margin-right: 10px;
-    margin-bottom: 10px;
-}
-
-@media (max-width: 768px) {
-    .datos-grid {
-        grid-template-columns: 1fr;
+    .ficha-inteligente {
+        max-width: 1180px;
+        margin: 24px auto 40px;
     }
-}
+
+    .ficha-volver {
+        margin-bottom: 14px;
+    }
+
+    .ficha-hero {
+        background: linear-gradient(135deg, #ffffff 0%, #f0fbfa 100%);
+        border: 1px solid #d9eeee;
+        border-left: 7px solid #26ABA5;
+        border-radius: 18px;
+        padding: 24px 26px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .ficha-identidad {
+        min-width: 0;
+    }
+
+    .ficha-etiqueta {
+        color: #168a85;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .ficha-nombre {
+        margin: 0;
+        color: #173f3d;
+        font-size: clamp(1.45rem, 2.4vw, 1.95rem);
+        font-weight: 750;
+        line-height: 1.2;
+    }
+
+    .ficha-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 13px;
+    }
+
+    .ficha-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 1px solid #d9e7e7;
+        color: #425466;
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+
+    .ficha-acciones-principales {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-width: 470px;
+    }
+
+    .ficha-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 38px;
+        padding: 7px 13px;
+        border-radius: 9px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .ficha-btn-principal {
+        background: #26ABA5;
+        border: 1px solid #26ABA5;
+        color: #ffffff;
+    }
+
+    .ficha-btn-principal:hover {
+        background: #1f918c;
+        border-color: #1f918c;
+        color: #ffffff;
+    }
+
+    .ficha-btn-claro {
+        background: #ffffff;
+        border: 1px solid #b8d7d5;
+        color: #187a76;
+    }
+
+    .ficha-btn-claro:hover {
+        background: #eef9f8;
+        color: #126d69;
+    }
+
+    .resumen-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+    }
+
+    .resumen-card {
+        background: #ffffff;
+        border: 1px solid #e3eaee;
+        border-radius: 15px;
+        padding: 17px;
+        box-shadow: 0 5px 16px rgba(15, 23, 42, 0.045);
+        min-height: 132px;
+    }
+
+    .resumen-icono {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eaf8f7;
+        font-size: 1.15rem;
+        margin-bottom: 11px;
+    }
+
+    .resumen-titulo {
+        color: #6b7280;
+        font-size: 0.77rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .resumen-valor {
+        color: #1f2937;
+        font-size: 1.03rem;
+        font-weight: 800;
+        line-height: 1.28;
+    }
+
+    .resumen-detalle {
+        color: #667085;
+        font-size: 0.84rem;
+        margin-top: 5px;
+        line-height: 1.3;
+    }
+
+    .ficha-seccion {
+        background: #ffffff;
+        border: 1px solid #e3eaee;
+        border-radius: 16px;
+        padding: 22px;
+        margin-top: 18px;
+        box-shadow: 0 5px 16px rgba(15, 23, 42, 0.045);
+    }
+
+    .ficha-seccion-titulo {
+        margin: 0 0 17px;
+        color: #173f3d;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .datos-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px 22px;
+    }
+
+    .dato-item {
+        min-width: 0;
+    }
+
+    .dato-label {
+        display: block;
+        color: #7b8794;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+    }
+
+    .dato-valor {
+        color: #202938;
+        font-size: 0.98rem;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .dato-ancho-completo {
+        grid-column: 1 / -1;
+    }
+
+    .modulos-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 11px;
+    }
+
+    .modulo-link {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-height: 88px;
+        padding: 14px;
+        border-radius: 13px;
+        border: 1px solid #dfe9e9;
+        background: #f9fcfc;
+        color: #22313f;
+        text-decoration: none;
+        transition: 0.18s ease;
+    }
+
+    .modulo-link:hover {
+        transform: translateY(-2px);
+        border-color: #26ABA5;
+        background: #f0fbfa;
+        color: #173f3d;
+        box-shadow: 0 5px 12px rgba(38, 171, 165, 0.10);
+    }
+
+    .modulo-icono {
+        font-size: 1.25rem;
+    }
+
+    .modulo-titulo {
+        font-weight: 800;
+        font-size: 0.93rem;
+    }
+
+    .modulo-subtitulo {
+        color: #74808d;
+        font-size: 0.76rem;
+        line-height: 1.25;
+    }
+
+    @media (max-width: 991px) {
+        .ficha-hero {
+            flex-direction: column;
+        }
+
+        .ficha-acciones-principales {
+            justify-content: flex-start;
+            max-width: none;
+        }
+
+        .resumen-grid,
+        .modulos-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .datos-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 576px) {
+        .ficha-inteligente {
+            margin-top: 12px;
+        }
+
+        .ficha-hero,
+        .ficha-seccion {
+            padding: 17px;
+            border-radius: 13px;
+        }
+
+        .resumen-grid,
+        .modulos-grid,
+        .datos-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ficha-acciones-principales,
+        .ficha-btn {
+            width: 100%;
+        }
+
+        .dato-ancho-completo {
+            grid-column: auto;
+        }
+    }
 </style>
 
-<div class="ficha-container">
+<div class="ficha-inteligente">
 
     {% if request.GET.next %}
-        <a href="{{ request.GET.next }}"
-           class="btn btn-light mb-3">
-            ← Volver
-        </a>
+        <div class="ficha-volver">
+            <a href="{{ request.GET.next }}" class="btn btn-light btn-sm">← Volver</a>
+        </div>
     {% endif %}
 
-    <div class="ficha-header">
-        <h2>
-            📄 Ficha del Paciente
-        </h2>
-
-        <div class="ficha-actions">
-            <a href="{% url 'patient_edit' paciente.id %}?next={{ request.GET.next|urlencode }}"
-                class="btn btn-outline-primary">
-                ✏️ Editar
-            </a>
-
-            <a href="{% url 'patient_delete' paciente.id %}"
-               class="btn btn-outline-danger"
-               onclick="return confirm('¿Seguro que deseas eliminar este paciente?');">
-                🗑️ Eliminar
-            </a>
+    <section class="ficha-hero">
+        <div class="ficha-identidad">
+            <div class="ficha-etiqueta">Ficha inteligente del paciente</div>
+            <h1 class="ficha-nombre">{{ paciente.nombre }} {{ paciente.apellido }}</h1>
         </div>
-    </div>
 
-    <!-- DATOS -->
-    <div class="card-sonrisar">
+        <div class="ficha-acciones-principales">
+            <a href="{% url 'appointment_new' %}?paciente_id={{ paciente.id }}&next={{ request.get_full_path|urlencode }}"
+               class="ficha-btn ficha-btn-principal">📅 Nueva cita</a>
+
+            <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.get_full_path|urlencode }}"
+               class="ficha-btn ficha-btn-principal">💳 Cobrar</a>
+
+            <a href="{% url 'abrir_historia_desde_cita' paciente.id %}?next={{ request.get_full_path|urlencode }}"
+               class="ficha-btn ficha-btn-claro">🦷 Historia clínica</a>
+
+            <a href="{% url 'patient_edit' paciente.id %}?next={{ request.get_full_path|urlencode }}"
+               class="ficha-btn ficha-btn-claro">✏️ Editar</a>
+        </div>
+    </section>
+
+    <section class="resumen-grid">
+        <article class="resumen-card">
+            <div class="resumen-icono">📅</div>
+            <div class="resumen-titulo">Próxima cita</div>
+            {% if proxima_cita %}
+                <div class="resumen-valor">{{ proxima_cita.fecha|date:"d/m/Y" }} · {{ proxima_cita.hora|time:"H:i" }}</div>
+                <div class="resumen-detalle">{{ proxima_cita.motivo }}</div>
+            {% else %}
+                <div class="resumen-valor">Sin cita agendada</div>
+                <div class="resumen-detalle">No hay próximas citas activas.</div>
+            {% endif %}
+        </article>
+
+        <article class="resumen-card">
+            <div class="resumen-icono">🦷</div>
+            <div class="resumen-titulo">Última cita</div>
+            {% if ultima_cita %}
+                <div class="resumen-valor">{{ ultima_cita.fecha|date:"d/m/Y" }} · {{ ultima_cita.hora|time:"H:i" }}</div>
+                <div class="resumen-detalle">{{ ultima_cita.motivo }}</div>
+            {% else %}
+                <div class="resumen-valor">Sin antecedentes</div>
+                <div class="resumen-detalle">Todavía no registra citas anteriores.</div>
+            {% endif %}
+        </article>
+
+        <article class="resumen-card">
+            <div class="resumen-icono">💳</div>
+            <div class="resumen-titulo">Estado financiero</div>
+
+            {% if resumen_financiero.disponible %}
+                {% if resumen_financiero.sin_deuda %}
+                    <div class="resumen-valor" style="color:#168a55;">Sin deuda</div>
+                {% else %}
+                    <div class="resumen-valor" style="color:#c0392b;">
+                        Debe ${{ resumen_financiero.deuda|floatformat:0 }}
+                    </div>
+                {% endif %}
+
+                {% if resumen_financiero.ultimo_pago %}
+                    <div class="resumen-detalle">
+                        Último pago: ${{ resumen_financiero.ultimo_pago.monto|floatformat:0 }}
+                        · {{ resumen_financiero.ultimo_pago.fecha }}
+                    </div>
+
+                    {% if resumen_financiero.recibo_url %}
+                        <div style="margin-top:8px;">
+                            <a href="{{ resumen_financiero.recibo_url }}"
+                               target="_blank"
+                               rel="noopener"
+                               style="font-size:.82rem;font-weight:800;color:#187a76;text-decoration:none;">
+                                🧾 Ver recibo
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="resumen-detalle">No hay pagos registrados.</div>
+                {% endif %}
+            {% else %}
+                <div class="resumen-valor">No disponible</div>
+                <div class="resumen-detalle">No fue posible consultar Cobros.</div>
+            {% endif %}
+        </article>
+
+        <article class="resumen-card">
+            <div class="resumen-icono">📞</div>
+            <div class="resumen-titulo">Contacto</div>
+            <div class="resumen-valor">{{ paciente.telefono|default:"Sin teléfono" }}</div>
+            <div class="resumen-detalle">{{ paciente.email|default:"Sin correo electrónico" }}</div>
+        </article>
+    </section>
+
+    <section class="ficha-seccion">
+        <h2 class="ficha-seccion-titulo">Datos personales</h2>
 
         <div class="datos-grid">
-
-            <div class="dato">
-                <span>Nombre</span>
-                <strong>{{ paciente.nombre }}</strong>
+<div class="dato-item">
+                <span class="dato-label">Cédula de identidad</span>
+                <div class="dato-valor">{{ paciente.ci|default:"—" }}</div>
             </div>
 
-            <div class="dato">
-                <span>Apellido</span>
-                <strong>{{ paciente.apellido }}</strong>
+            <div class="dato-item">
+                <span class="dato-label">Fecha de nacimiento</span>
+                <div class="dato-valor">{{ paciente.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</div>
             </div>
 
-            <div class="dato">
-                <span>C.I.</span>
-                <strong>{{ paciente.ci }}</strong>
+            <div class="dato-item">
+                <span class="dato-label">Teléfono</span>
+                <div class="dato-valor">{{ paciente.telefono|default:"—" }}</div>
             </div>
 
-            <div class="dato">
-                <span>Fecha de nacimiento</span>
-                <strong>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</strong>
+            <div class="dato-item">
+                <span class="dato-label">Email</span>
+                <div class="dato-valor">{{ paciente.email|default:"—" }}</div>
             </div>
 
-            <div class="dato">
-                <span>Teléfono</span>
-                <strong>{{ paciente.telefono|default:"—" }}</strong>
+            <div class="dato-item dato-ancho-completo">
+                <span class="dato-label">Dirección</span>
+                <div class="dato-valor">{{ paciente.direccion|default:"—" }}</div>
             </div>
-
-            <div class="dato">
-                <span>Email</span>
-                <strong>{{ paciente.email|default:"—" }}</strong>
-            </div>
-
-            <div class="dato" style="grid-column: span 2;">
-                <span>Dirección</span>
-                <strong>{{ paciente.direccion|default:"—" }}</strong>
-            </div>
-
         </div>
-    </div>
+    </section>
 
-    <!-- ACCIONES -->
-    <div class="acciones-paciente">
-        <h4>Módulos del paciente</h4>
+    <section class="ficha-seccion">
+        <h2 class="ficha-seccion-titulo">Módulos del paciente</h2>
 
-        <a href="{% url 'patient_appointments' paciente.id %}" class="btn btn-sonrisar">
-            Citas
-        </a>
+        <div class="modulos-grid">
+            <a href="{% url 'patient_appointments' paciente.id %}" class="modulo-link">
+                <span class="modulo-icono">📅</span>
+                <span class="modulo-titulo">Citas</span>
+                <span class="modulo-subtitulo">Historial completo de turnos.</span>
+            </a>
 
-        <a href="{% url 'patient_budgets' paciente.id %}" class="btn btn-sonrisar">
-            Presupuestos
-        </a>
+            <a href="{% url 'clinical_records_list' paciente.id %}" class="modulo-link">
+                <span class="modulo-icono">🦷</span>
+                <span class="modulo-titulo">Historia clínica</span>
+                <span class="modulo-subtitulo">Registros y evoluciones clínicas.</span>
+            </a>
 
-        <a href="{% url 'patient_finances' paciente.id %}" class="btn btn-sonrisar">
-            💳 Finanzas
-        </a>
+            <a href="{% url 'patient_budgets' paciente.id %}" class="modulo-link">
+                <span class="modulo-icono">📋</span>
+                <span class="modulo-titulo">Presupuestos</span>
+                <span class="modulo-subtitulo">Planes y presupuestos emitidos.</span>
+            </a>
 
-        <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}" class="btn btn-sonrisar">
-            🩻 Rayos X
-        </a>
+            <a href="{% url 'patient_finances' paciente.id %}" class="modulo-link">
+                <span class="modulo-icono">💳</span>
+                <span class="modulo-titulo">Finanzas</span>
+                <span class="modulo-subtitulo">Pagos, deuda y movimientos.</span>
+            </a>
 
-    </div>
+            <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}" class="modulo-link">
+                <span class="modulo-icono">🩻</span>
+                <span class="modulo-titulo">Rayos X</span>
+                <span class="modulo-subtitulo">Imágenes radiográficas del paciente.</span>
+            </a>
+
+            <a href="{% url 'odontograma_profesional' patient_id=paciente.id %}?next={{ request.get_full_path|urlencode }}" class="modulo-link">
+                <span class="modulo-icono">🦷</span>
+                <span class="modulo-titulo">Odontograma</span>
+                <span class="modulo-subtitulo">Estado dental y tratamientos.</span>
+            </a>
+
+            <a href="{% url 'budget_new' paciente.id %}" class="modulo-link">
+                <span class="modulo-icono">➕</span>
+                <span class="modulo-titulo">Nuevo presupuesto</span>
+                <span class="modulo-subtitulo">Crear un presupuesto para este paciente.</span>
+            </a>
+
+            <a href="#" class="modulo-link js-whatsapp-paciente" data-telefono="{{ paciente.telefono|default:'' }}">
+                <span class="modulo-icono">💬</span>
+                <span class="modulo-titulo">WhatsApp</span>
+                <span class="modulo-subtitulo">Abrir un mensaje para el paciente.</span>
+            </a>
+        </div>
+    </section>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const enlace = document.querySelector(".js-whatsapp-paciente");
+    if (!enlace) return;
+
+    enlace.addEventListener("click", function (event) {
+        event.preventDefault();
+
+        let telefono = (enlace.dataset.telefono || "").replace(/\D/g, "");
+
+        if (!telefono) {
+            alert("Este paciente no tiene teléfono registrado.");
+            return;
+        }
+
+        if (telefono.startsWith("0")) {
+            telefono = telefono.substring(1);
+        }
+
+        if (!telefono.startsWith("598")) {
+            telefono = "598" + telefono;
+        }
+
+        window.open("https://wa.me/" + telefono, "_blank", "noopener");
+    });
+});
+</script>
 
 {% endblock %}

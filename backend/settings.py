@@ -175,7 +175,7 @@ CRONJOBS = [
 # ==========================================
 SONRISAR_COBROS_BASE_URL = os.getenv(
     "SONRISAR_COBROS_BASE_URL",
-    "http://127.0.0.1:8001"
+    "https://sonrisar-cobros-1.onrender.com"
 ).rstrip("/")
 SONRISAR_COBROS_NUEVO_PATH = "/pagos/nuevo/"
 SONRISAR_COBROS_API_PACIENTE_PATH = "/pagos/api/por-paciente/"
