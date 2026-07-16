@@ -2139,10 +2139,14 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
                     saldo_generado = pago_cita
                     saldo_a_favor_disponible += pago_cita
 
+            pagos_cita = pago_info.get("pagos", []) or []
+            ultimo_pago_id = pagos_cita[0].get("id") if pagos_cita else None
+
             contextos[cita.id] = {
                 "pago_cita": pago_cita,
                 "tiene_pago_cita": tiene_pago_cita,
                 "tipo_pago": pago_info.get("tipo_pago", "pagado"),
+                "ultimo_pago_id": ultimo_pago_id,
                 "deuda_cita": deuda_acumulada,
                 "saldo_usado": saldo_usado,
                 "saldo_generado": saldo_generado,
@@ -2197,6 +2201,22 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
     else:
         tipo_pago_visual = "pendiente"
 
+    ultimo_pago_id = contexto_financiero.get("ultimo_pago_id")
+    # El recibo se abre en Sonrisar Cobros LOCAL, sin modificar la URL
+    # usada por las APIs ni el flujo actual del botón Cobrar.
+    cobros_recibos_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_RECIBOS_BASE_URL",
+        "http://127.0.0.1:8001"
+    ).rstrip("/")
+    recibo_url = ""
+    if ultimo_pago_id:
+        recibo_url = f"{cobros_recibos_base_url}/pagos/{ultimo_pago_id}/recibo/"
+
+        ci_paciente = (cita.paciente.ci or "").strip()
+        if ci_paciente:
+            recibo_url += "?" + urlencode({"ci": ci_paciente})
+
     return {
         "id": cita.id,
         "patient_id": cita.paciente.id,
@@ -2223,6 +2243,8 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "tiene_saldo_a_favor": tiene_saldo_generado,
         "usa_saldo_a_favor": usa_saldo_a_favor,
         "cobros_error": contexto_financiero.get("cobros_error"),
+        "ultimo_pago_id": ultimo_pago_id,
+        "recibo_url": recibo_url,
     }
 
 

@@ -167,9 +167,7 @@
 
                                                 {% if cita.tiene_saldo_a_favor %}
 
-                                                    <span class="badge badge-pagado">
-                                                        Pagó $ {{ cita.total_pagado }}
-                                                    </span>
+                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
 
                                                     <span class="badge badge-saldo-favor">
                                                         💰 Saldo a favor $ {{ cita.saldo_a_favor|floatformat:0 }}
@@ -178,13 +176,9 @@
                                                 {% elif cita.debe > 0 %}
 
                                                     {% if cita.tipo_pago == "sena" %}
-                                                        <span class="badge badge-sena">
-                                                            Seña $ {{ cita.total_pagado }}
-                                                        </span>
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-sena badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Seña $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-sena">Seña $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% else %}
-                                                        <span class="badge badge-pagado">
-                                                            Pagado $ {{ cita.total_pagado }}
-                                                        </span>
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagado $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% endif %}
 
                                                     <span class="badge badge-debe">
@@ -207,9 +201,7 @@
 
                                                     {% else %}
 
-                                                        <span class="badge badge-pagado">
-                                                            Pagado
-                                                        </span>
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado 🧾</a>{% else %}<span class="badge badge-pagado">Pagado</span>{% endif %}
 
                                                     {% endif %}
 
@@ -395,9 +387,7 @@
 
                                                 {% if cita.tiene_saldo_a_favor %}
 
-                                                    <span class="badge badge-pagado">
-                                                        Pagó $ {{ cita.total_pagado }}
-                                                    </span>
+                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
 
                                                     <span class="badge badge-saldo-favor">
                                                         💰 Saldo a favor $ {{ cita.saldo_a_favor|floatformat:0 }}
@@ -406,13 +396,9 @@
                                                 {% elif cita.debe > 0 %}
 
                                                     {% if cita.tipo_pago == "sena" %}
-                                                        <span class="badge badge-sena">
-                                                            Seña $ {{ cita.total_pagado }}
-                                                        </span>
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-sena badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Seña $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-sena">Seña $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% else %}
-                                                        <span class="badge badge-pagado">
-                                                            Pagado $ {{ cita.total_pagado }}
-                                                        </span>
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagado $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% endif %}
 
                                                     <span class="badge badge-debe">
@@ -421,9 +407,7 @@
 
                                                 {% else %}
 
-                                                    <span class="badge badge-pagado">
-                                                        Pagado
-                                                    </span>
+                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado 🧾</a>{% else %}<span class="badge badge-pagado">Pagado</span>{% endif %}
 
                                                 {% endif %}
 
@@ -581,6 +565,18 @@
     background: #f8f9fa !important;
     color: #6c757d !important;
     border: 1px solid #ced4da;
+}
+
+.badge-recibo-link {
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.badge-recibo-link:hover {
+    color: inherit !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,.16);
 }
 
 .panel-deudores-dia {
