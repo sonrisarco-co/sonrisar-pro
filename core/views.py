@@ -3666,6 +3666,21 @@ def color_cita_por_motivo(motivo):
     if "segunda colocación" in m or "segunda colocacion" in m:
         return "#2e7d32"  # verde fuerte
 
+    if "provisorio" in m:
+        return "#e67e22"  # naranja
+
+    if "contenciones" in m or "contención" in m or "contencion" in m:
+        return "#287c8e"  # azul petróleo
+
+    if "placa nmr" in m:
+        return "#8e6bbe"  # violeta suave
+
+    if "control" in m:
+        return "#607d8b"  # gris azulado
+
+    if "corona" in m:
+        return "#a66a00"  # dorado oscuro
+
     if "colocación nueva" in m or "colocacion nueva" in m:
         return "#2563eb"  # azul
 

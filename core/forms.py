@@ -72,22 +72,30 @@ class AppointmentForm(forms.ModelForm):
         })
     )
 
-    MOTIVOS = [
-        ("Consulta / diagnóstico", "Consulta / diagnóstico"),
-        ("Limpieza", "Limpieza"),
-        ("Resina", "Resina"),
-        ("Ajuste (ortodoncia)", "Ajuste (ortodoncia)"),
-        ("Segunda colocación + ajuste", "Segunda colocación + ajuste"),
-        ("Colocación nueva", "Colocación nueva"),
-        ("Despegados", "Despegados"),
-        ("Blanqueamiento", "Blanqueamiento"),
-        ("Retiro de brackets", "Retiro de brackets"),
-        ("Ajuste + limpieza", "Ajuste + limpieza"),
-        ("Endodoncia", "Endodoncia"),
-        ("Extracción", "Extracción"),
-        ("Prótesis", "Prótesis"),
-        ("Urgencia", "Urgencia"),
+    MOTIVOS_NOMBRES = [
+        "Consulta / diagnóstico",
+        "Limpieza",
+        "Resina",
+        "Ajuste (ortodoncia)",
+        "Segunda colocación + ajuste",
+        "Segunda colocación",
+        "Colocación nueva",
+        "Provisorio",
+        "Contenciones",
+        "Placa NMR",
+        "Control",
+        "Corona",
+        "Despegados",
+        "Blanqueamiento",
+        "Retiro de brackets",
+        "Ajuste + limpieza",
+        "Endodoncia",
+        "Extracción",
+        "Prótesis",
+        "Urgencia",
     ]
+
+    MOTIVOS = [(nombre, nombre) for nombre in MOTIVOS_NOMBRES]
 
     motivo = forms.ChoiceField(
         choices=MOTIVOS,
@@ -154,7 +162,16 @@ class AppointmentForm(forms.ModelForm):
             self.instance.paciente_id if self.instance.pk else ""
         )
 
-        self.fields["procedimientos"].queryset = Procedure.objects.all().order_by("nombre")
+        # Mantiene Motivo principal y Procedimientos adicionales con
+        # exactamente las mismas opciones, sin requerir migraciones.
+        for nombre in self.MOTIVOS_NOMBRES:
+            Procedure.objects.get_or_create(nombre=nombre)
+
+        self.fields["procedimientos"].queryset = (
+            Procedure.objects
+            .filter(nombre__in=self.MOTIVOS_NOMBRES)
+            .order_by("nombre")
+        )
 
         self.fields["fecha"].input_formats = ["%Y-%m-%d"]
         self.fields["hora"].input_formats = ["%H:%M", "%H:%M:%S"]

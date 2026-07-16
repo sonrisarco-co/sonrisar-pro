@@ -81,6 +81,31 @@
                                                         {{ cita.motivo }}
                                                     </span>
 
+                                                {% elif "provisorio" in motivo %}
+                                                    <span class="badge" style="background:#e67e22;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "contencion" in motivo %}
+                                                    <span class="badge" style="background:#287c8e;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "placa-nmr" in motivo %}
+                                                    <span class="badge" style="background:#8e6bbe;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "control" in motivo %}
+                                                    <span class="badge" style="background:#607d8b;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "corona" in motivo %}
+                                                    <span class="badge" style="background:#a66a00;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
                                                 {% elif "ajuste" in motivo and "limpieza" in motivo %}
                                                     <span class="badge" style="background:#00BFA5;">
                                                         {{ cita.motivo }}
@@ -308,6 +333,31 @@
 
                                                 {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
                                                     <span class="badge" style="background:#198754;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "provisorio" in motivo %}
+                                                    <span class="badge" style="background:#e67e22;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "contencion" in motivo %}
+                                                    <span class="badge" style="background:#287c8e;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "placa-nmr" in motivo %}
+                                                    <span class="badge" style="background:#8e6bbe;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "control" in motivo %}
+                                                    <span class="badge" style="background:#607d8b;">
+                                                        {{ cita.motivo }}
+                                                    </span>
+
+                                                {% elif "corona" in motivo %}
+                                                    <span class="badge" style="background:#a66a00;">
                                                         {{ cita.motivo }}
                                                     </span>
 
