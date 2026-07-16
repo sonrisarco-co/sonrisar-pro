@@ -2206,7 +2206,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
     # usada por las APIs ni el flujo actual del botón Cobrar.
     cobros_recibos_base_url = getattr(
         settings,
-        "SONRISAR_COBROS_RECIBOS_BASE_URL",
+        "SONRISAR_COBROS_BASE_URL",
         "http://127.0.0.1:8001"
     ).rstrip("/")
     recibo_url = ""
