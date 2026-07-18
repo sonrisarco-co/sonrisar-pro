@@ -39,7 +39,7 @@
 <p>No hay placas cargadas.</p>
 {% endif %}
 
-<a href="{% url 'patient_detail' paciente.id %}"
+<a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
    class="btn-sonrisar btn-volver">
    ⬅ Volver a ficha
 </a>

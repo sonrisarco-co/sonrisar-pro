@@ -10,7 +10,7 @@
             Presupuestos — {{ paciente.apellido }}, {{ paciente.nombre }}
         </h3>
 
-        <a href="{% url 'patient_detail' paciente.id %}" class="btn btn-outline-secondary btn-sm">
+        <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-secondary btn-sm">
             ← Volver a ficha
         </a>
     </div>

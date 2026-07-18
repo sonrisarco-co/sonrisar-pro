@@ -12,7 +12,7 @@
         ← Volver a Historia Clínica
     </a>
     {% else %}
-    <a href="{% url 'patient_detail' paciente.id %}"
+    <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
         class="btn btn-light odonto-back">
         ← Volver a ficha
     </a>
@@ -24,6 +24,9 @@
         <form method="post" id="odontogramaForm" class="odonto-body">
             {% csrf_token %}
             <input type="hidden" name="odontograma_data" id="odontogramaData">
+            {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
 
             <div class="tools-bar">
                 <button type="button" class="tool active" data-estado="caries"><span class="dot red"></span>Caries</button>

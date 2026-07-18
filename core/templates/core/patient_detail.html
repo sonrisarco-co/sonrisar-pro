@@ -437,43 +437,43 @@
         <h2 class="ficha-seccion-titulo">Módulos del paciente</h2>
 
         <div class="modulos-grid">
-            <a href="{% url 'patient_appointments' paciente.id %}" class="modulo-link">
+            <a href="{% url 'patient_appointments' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">📅</span>
                 <span class="modulo-titulo">Citas</span>
                 <span class="modulo-subtitulo">Historial completo de turnos.</span>
             </a>
 
-            <a href="{% url 'clinical_records_list' paciente.id %}" class="modulo-link">
+            <a href="{% url 'clinical_records_list' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">🦷</span>
                 <span class="modulo-titulo">Historia clínica</span>
                 <span class="modulo-subtitulo">Registros y evoluciones clínicas.</span>
             </a>
 
-            <a href="{% url 'patient_budgets' paciente.id %}" class="modulo-link">
+            <a href="{% url 'patient_budgets' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">📋</span>
                 <span class="modulo-titulo">Presupuestos</span>
                 <span class="modulo-subtitulo">Planes y presupuestos emitidos.</span>
             </a>
 
-            <a href="{% url 'patient_finances' paciente.id %}" class="modulo-link">
+            <a href="{% url 'patient_finances' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">💳</span>
                 <span class="modulo-titulo">Finanzas</span>
                 <span class="modulo-subtitulo">Pagos, deuda y movimientos.</span>
             </a>
 
-            <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}" class="modulo-link">
+            <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">🩻</span>
                 <span class="modulo-titulo">Rayos X</span>
                 <span class="modulo-subtitulo">Imágenes radiográficas del paciente.</span>
             </a>
 
-            <a href="{% url 'odontograma_profesional' patient_id=paciente.id %}?next={{ request.get_full_path|urlencode }}" class="modulo-link">
+            <a href="{% url 'odontograma_profesional' patient_id=paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">🦷</span>
                 <span class="modulo-titulo">Odontograma</span>
                 <span class="modulo-subtitulo">Estado dental y tratamientos.</span>
             </a>
 
-            <a href="{% url 'budget_new' paciente.id %}" class="modulo-link">
+            <a href="{% url 'budget_new' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">➕</span>
                 <span class="modulo-titulo">Nuevo presupuesto</span>
                 <span class="modulo-subtitulo">Crear un presupuesto para este paciente.</span>

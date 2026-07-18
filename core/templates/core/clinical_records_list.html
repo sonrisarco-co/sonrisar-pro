@@ -149,7 +149,7 @@
 </div>
 
 <div class="volver-box">
-    <a href="{% url 'patient_detail' paciente.id %}" class="btn btn-outline-edit btn-sm">
+    <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-edit btn-sm">
         ← Volver a ficha del paciente
     </a>
 </div>
@@ -162,7 +162,7 @@
         Cobrar
     </a>
 
-    <a href="{% url 'patient_detail' paciente.id %}" class="btn btn-outline-edit btn-sm">
+    <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-edit btn-sm">
         ← Volver a ficha del paciente
     </a>
 </div>
