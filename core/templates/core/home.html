@@ -6,174 +6,493 @@
 
 <style>
     .panel-sonrisar {
-        max-width: 1100px;
+        max-width: 1240px;
         margin: 0 auto;
-        padding: 5px;
+        padding: 18px 18px 34px;
+    }
+
+    .hero-inicio {
+        text-align: center;
+        margin: 14px 0 34px;
+    }
+
+    .hero-inicio h2 {
+        margin: 0;
+        color: #364152;
+        font-size: 2rem;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+    }
+
+    .hero-linea {
+        width: 74px;
+        height: 3px;
+        margin: 18px auto 24px;
+        border-radius: 999px;
+        background: #26ABA5;
+    }
+
+    .hero-inicio p {
+        margin: 0;
+        color: #7a8494;
+        font-size: 1rem;
+        font-weight: 400;
+    }
+
+    .accesos-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .acceso-grupo {
+        background: #ffffff;
+        border: 1px solid #e2e8ee;
+        border-radius: 18px;
+        padding: 26px 28px 28px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+        min-height: 320px;
+    }
+
+    .grupo-encabezado {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 26px;
+    }
+
+    .grupo-icono {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eaf8f7;
+        color: #26ABA5;
+        font-size: 1.8rem;
+        flex: 0 0 auto;
     }
 
     .titulo-columna {
-        font-size: 22px;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 12px;
-        color: #146B6C;
+        margin: 0;
+        color: #374151;
+        font-size: 1.32rem;
+        font-weight: 500;
+    }
+
+    .botones-grupo {
+        display: grid;
+        gap: 13px;
     }
 
     .btn-sonrisar {
-        display: block;
+        display: flex;
         width: 100%;
-        background-color: #26ABA5;
-        color: white;
+        min-height: 56px;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 12px 18px;
+        border: 0;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #31b9b2, #219a95);
+        color: #ffffff;
         text-decoration: none;
-        padding: 5px 0;
-        margin-bottom: 10px;
-        border-radius: 18px;
-        font-size: 16px;
-        text-align: center;
-        transition: 0.2s;
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(38, 171, 165, 0.15);
+        transition: 0.18s ease;
     }
 
     .btn-sonrisar:hover {
-        background-color: #1f8f8a;
-        color: white;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 7px 14px rgba(38, 171, 165, 0.22);
+        filter: brightness(0.98);
     }
 
-    .columna {
-        padding: 10px 20px;
+    .btn-icono {
+        width: 24px;
+        text-align: center;
+        font-size: 1.12rem;
+    }
+
+    .dashboard-seccion {
+        margin-top: 42px;
+        padding-top: 22px;
+        border-top: 1px solid #e5eaee;
+    }
+
+    .resumen-titulo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+        color: #374151;
+        font-size: 1.22rem;
+        font-weight: 500;
+    }
+
+    .resumen-icono {
+        color: #26ABA5;
+        font-size: 1.25rem;
+    }
+
+    .mes-boton {
+        display: inline-flex;
+        width: 38px;
+        height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid #d6e0e5;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #26ABA5;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .mes-boton:hover {
+        background: #eef9f8;
+        color: #1d8f89;
+    }
+
+    .mes-actual {
+        min-width: 76px;
+        text-align: center;
+        color: #374151;
+        font-size: 1.05rem;
+        font-weight: 500;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 18px;
     }
 
     .dashboard-card {
-        border-radius: 12px;
-        padding: 15px;
-        text-align: center;
-        background: white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        min-height: 122px;
+        padding: 18px 16px;
+        border: 1px solid #e2e8ee;
+        border-radius: 15px;
+        background: #ffffff;
+        box-shadow: 0 5px 15px rgba(15, 23, 42, 0.045);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .dashboard-icono {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        font-size: 1.35rem;
+    }
+
+    .icono-azul { background: #e8f3ff; color: #2d7dd2; }
+    .icono-verde { background: #e9f8ef; color: #1ca05d; }
+    .icono-rojo { background: #fdecec; color: #dc3545; }
+    .icono-violeta { background: #f0eafd; color: #7546d8; }
+    .icono-rojo-suave { background: #fdecec; color: #dc3545; }
+
+    .dashboard-contenido {
+        min-width: 0;
+    }
+
+    .dashboard-label {
+        color: #687386;
+        font-size: 0.84rem;
+        font-weight: 400;
+        line-height: 1.25;
     }
 
     .dashboard-num {
-        font-size: 22px;
-        font-weight: bold;
+        margin-top: 5px;
+        color: #1f2937;
+        font-size: 1.65rem;
+        line-height: 1;
+        font-weight: 600;
     }
 
+    .ausentismo-info {
+        margin-top: 24px;
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border: 1px solid #bfe8e5;
+        border-radius: 14px;
+        background: #f0fbfa;
+    }
+
+    .ausentismo-info-icono {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #dff5f3;
+        color: #26ABA5;
+        font-size: 1.35rem;
+        flex: 0 0 auto;
+    }
+
+    .ausentismo-info-titulo {
+        color: #168a85;
+        font-size: 1.02rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .ausentismo-info-texto {
+        color: #536174;
+        font-size: 0.9rem;
+        font-weight: 400;
+    }
+
+    .grafico-box {
+        max-width: 520px;
+        margin: 38px auto 0;
+    }
+
+    .ranking-box {
+        max-width: 760px;
+        margin: 40px auto 0;
+    }
+
+    .ranking-box h5 {
+        margin-bottom: 16px;
+        text-align: center;
+        color: #374151;
+        font-size: 1.08rem;
+        font-weight: 500;
+    }
+
+    .ranking-box .table {
+        overflow: hidden;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.045);
+    }
+
+    .ranking-box thead th {
+        border: 0;
+        background: #26ABA5;
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    @media (max-width: 1000px) {
+        .accesos-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .acceso-grupo {
+            min-height: auto;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 600px) {
+        .panel-sonrisar {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .hero-inicio h2 {
+            font-size: 1.55rem;
+        }
+
+        .acceso-grupo {
+            padding: 20px;
+        }
+
+        .grupo-icono {
+            width: 56px;
+            height: 56px;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-card {
+            min-height: 104px;
+        }
+
+        .resumen-titulo {
+            flex-wrap: wrap;
+        }
+    }
 </style>
 
 <div class="panel-sonrisar">
 
-    <h2 class="text-center mb-4">Panel principal del sistema odontológico</h2>
-    <p class="text-center mb-5">
-        Acceso rápido a Agenda, Pacientes, Historia clínica, Presupuestos, Pagos, Inventario y Prótesis.
-    </p>
+    <div class="hero-inicio">
+        <h2>Panel principal del sistema odontológico</h2>
+        <div class="hero-linea"></div>
+        <p>Acceso rápido a las funciones principales de Sonrisar Pro.</p>
+    </div>
 
-    <div class="row">
+    <div class="accesos-grid">
 
-        <!-- AGENDA -->
-        <div class="col-md-4 columna">
-            <div class="titulo-columna">Agenda</div>
+        <section class="acceso-grupo">
+            <div class="grupo-encabezado">
+                <div class="grupo-icono">🗓️</div>
+                <h3 class="titulo-columna">Agenda</h3>
+            </div>
 
-            <a href="{% url 'agenda' %}" class="btn-sonrisar">🗓️ Agenda del día</a>
-            <a href="{% url 'agenda_week' %}" class="btn-sonrisar">📅 Agenda semanal</a>
-            <a href="{% url 'agenda_month' %}" class="btn-sonrisar">📆 Agenda mensual</a>
-            <a href="{% url 'agenda_pro' %}" class="btn-sonrisar">📅 Calendario</a>
-        </div>
+            <div class="botones-grupo">
+                <a href="{% url 'agenda' %}" class="btn-sonrisar">
+                    <span class="btn-icono">🗓️</span>
+                    <span>Agenda del día</span>
+                </a>
 
-        <!-- PACIENTES -->
-        <div class="col-md-4 columna">
-            <div class="titulo-columna">Pacientes</div>
+                <a href="{% url 'agenda_pro' %}" class="btn-sonrisar">
+                    <span class="btn-icono">📅</span>
+                    <span>Calendario</span>
+                </a>
+            </div>
+        </section>
 
-            <a href="{% url 'patient_list' %}" class="btn-sonrisar">👤 Pacientes</a>
-            <a href="{% url 'clinical_record_search' %}" class="btn-sonrisar">📋 Historia clínica</a>
-            <a href="{% url 'budgets_list' %}" class="btn-sonrisar">🧾 Presupuestos</a>
-        </div>
+        <section class="acceso-grupo">
+            <div class="grupo-encabezado">
+                <div class="grupo-icono">👥</div>
+                <h3 class="titulo-columna">Pacientes</h3>
+            </div>
 
-        <!-- ADMINISTRACIÓN -->
-        <div class="col-md-4 columna">
-            <div class="titulo-columna">Administración</div>
+            <div class="botones-grupo">
+                <a href="{% url 'patient_list' %}" class="btn-sonrisar">
+                    <span class="btn-icono">👤</span>
+                    <span>Pacientes</span>
+                </a>
 
-            <a href="{% url 'payments_list' %}" class="btn-sonrisar">💰 Pagos / Caja</a>
-            <a href="{% url 'whatsapp_reminders' %}" class="btn-sonrisar">💬 WhatsApp</a>
-            <a href="{% url 'inventory_list' %}" class="btn-sonrisar">📦 Inventario</a>
-            <a href="{% url 'protesis_list' %}" class="btn-sonrisar">🦷 Prótesis</a>
-        </div>
+                <a href="{% url 'clinical_record_search' %}" class="btn-sonrisar">
+                    <span class="btn-icono">📋</span>
+                    <span>Historia clínica</span>
+                </a>
+
+                <a href="{% url 'budgets_list' %}" class="btn-sonrisar">
+                    <span class="btn-icono">🧾</span>
+                    <span>Presupuestos</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="acceso-grupo">
+            <div class="grupo-encabezado">
+                <div class="grupo-icono">⚙️</div>
+                <h3 class="titulo-columna">Administración</h3>
+            </div>
+
+            <div class="botones-grupo">
+                <a href="{% url 'whatsapp_reminders' %}" class="btn-sonrisar">
+                    <span class="btn-icono">💬</span>
+                    <span>WhatsApp</span>
+                </a>
+
+                <a href="{% url 'inventory_list' %}" class="btn-sonrisar">
+                    <span class="btn-icono">📦</span>
+                    <span>Inventario</span>
+                </a>
+
+                <a href="{% url 'protesis_list' %}" class="btn-sonrisar">
+                    <span class="btn-icono">🦷</span>
+                    <span>Prótesis</span>
+                </a>
+            </div>
+        </section>
 
     </div>
 
-    <!-- =============================== -->
-    <!-- DASHBOARD ASISTENCIA -->
-    <!-- =============================== -->
+    <section class="dashboard-seccion">
 
-    <hr class="mt-5 mb-4">
+        <div class="resumen-titulo">
+            <span class="resumen-icono">📊</span>
+            <span>Resumen</span>
 
-    <h4 class="text-center mb-4">
-        📊 Resumen
-
-        <a href="?month={{ prev_month }}&year={{ prev_year }}" 
-        class="btn btn-sm btn-light ms-3">◀</a>
-
-        {{ month }}/{{ year }}
-
-        <a href="?month={{ next_month }}&year={{ next_year }}" 
-        class="btn btn-sm btn-light ms-3">▶</a>
-    </h4>
-
-
-    <div class="row g-3">
-
-        <div class="col-md-2">
-            <div class="dashboard-card">
-                Total turnos
-                <div class="dashboard-num">{{ total }}</div>
-            </div>
+            <a href="?month={{ prev_month }}&year={{ prev_year }}" class="mes-boton">‹</a>
+            <span class="mes-actual">{{ month }}/{{ year }}</span>
+            <a href="?month={{ next_month }}&year={{ next_year }}" class="mes-boton">›</a>
         </div>
 
-        <div class="col-md-2">
+        <div class="dashboard-grid">
+
             <div class="dashboard-card">
-                Asistieron
-                <div class="dashboard-num text-success">{{ asistieron }}</div>
+                <div class="dashboard-icono icono-azul">👥</div>
+                <div class="dashboard-contenido">
+                    <div class="dashboard-label">Total turnos</div>
+                    <div class="dashboard-num">{{ total }}</div>
+                </div>
             </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-icono icono-verde">✓</div>
+                <div class="dashboard-contenido">
+                    <div class="dashboard-label">Asistieron</div>
+                    <div class="dashboard-num text-success">{{ asistieron }}</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-icono icono-rojo">✕</div>
+                <div class="dashboard-contenido">
+                    <div class="dashboard-label">No asistieron</div>
+                    <div class="dashboard-num text-danger">{{ no_asistieron }}</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-icono icono-violeta">%</div>
+                <div class="dashboard-contenido">
+                    <div class="dashboard-label">% Asistencia</div>
+                    <div class="dashboard-num">{{ porcentaje }}%</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-icono icono-rojo-suave">↘</div>
+                <div class="dashboard-contenido">
+                    <div class="dashboard-label">Ausentismo real</div>
+                    <div class="dashboard-num text-danger">{{ ausentismo_real }}%</div>
+                </div>
+            </div>
+
         </div>
 
-        <div class="col-md-2">
-            <div class="dashboard-card">
-                No asistieron
-                <div class="dashboard-num text-danger">{{ no_asistieron }}</div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dashboard-card">
-                % Asistencia
-                <div class="dashboard-num">{{ porcentaje }}%</div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dashboard-card">
-                🔴 Ausentismo real
-                <div class="dashboard-num text-danger">
-                    {{ ausentismo_real }}%
+        <div class="ausentismo-info">
+            <div class="ausentismo-info-icono">📈</div>
+            <div>
+                <div class="ausentismo-info-titulo">
+                    Ausentismo real: {{ ausentismo_real }}%
+                </div>
+                <div class="ausentismo-info-texto">
+                    Porcentaje calculado sobre los turnos con resultado
+                    (asistieron + no asistieron).
                 </div>
             </div>
         </div>
 
-    </div>
-
-    <div class="row mt-5">
-        <div class="col-md-6 offset-md-3">
+        <div class="grafico-box">
             <canvas id="asistenciaChart"></canvas>
         </div>
-    </div>
 
-    <!-- =============================== -->
-    <!-- RANKING INASISTENCIAS -->
-    <!-- =============================== -->
+        <div class="ranking-box">
+            <h5>Pacientes con más inasistencias</h5>
 
-    <hr class="mt-5 mb-4">
-
-    <h5 class="text-center mb-3">🚨 Pacientes con más inasistencias</h5>
-
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <table class="table table-striped">
+            <table class="table table-striped align-middle">
                 <thead>
                     <tr>
                         <th>Paciente</th>
@@ -196,7 +515,8 @@
                 </tbody>
             </table>
         </div>
-    </div>
+
+    </section>
 
 </div>
 
