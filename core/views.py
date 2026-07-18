@@ -865,6 +865,8 @@ def odontograma_profesional(request, patient_id):
 def clinical_record_new(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
+    volver_url = request.GET.get("next") or request.POST.get("next")
+
     cita_id = request.GET.get("appointment_id") or request.POST.get("appointment_id")
     cita = None
 
@@ -883,6 +885,9 @@ def clinical_record_new(request, patient_id):
             registro.save()
 
             guardar_odontograma_desde_post(request, paciente)
+
+            if volver_url:
+                return redirect(volver_url)
 
             return redirect("clinical_record_detail", registro_id=registro.id)
 
@@ -903,8 +908,6 @@ def clinical_record_new(request, patient_id):
             texto_evolucion += "."
 
             form.initial["evolucion"] = texto_evolucion
-
-    volver_url = request.GET.get("next") or request.POST.get("next")
 
     if not volver_url:
         volver_url = reverse("clinical_records_list", args=[paciente.id])
@@ -972,6 +975,10 @@ def clinical_record_edit(request, registro_id):
         if form.is_valid():
             form.save()
             guardar_odontograma_desde_post(request, paciente)
+
+            if volver_url:
+                return redirect(volver_url)
+
             return redirect("clinical_record_detail", registro_id=registro.id)
 
     else:

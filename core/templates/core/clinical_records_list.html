@@ -115,7 +115,7 @@
             Cobrar
         </a>
 
-        <a href="{% url 'clinical_record_new' paciente.id %}" class="btn btn-sonrisar">
+        <a href="{% url 'clinical_record_new' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sonrisar">
             + Nuevo registro
         </a>
     </div>
@@ -139,8 +139,8 @@
         {% endif %}
 
         <div class="acciones">
-            <a href="{% url 'clinical_record_detail' registro.id %}" class="btn btn-outline-edit btn-sm">Ver</a>
-            <a href="{% url 'clinical_record_edit' registro.id %}" class="btn btn-outline-edit btn-sm">Editar</a>
+            <a href="{% url 'clinical_record_detail' registro.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-edit btn-sm">Ver</a>
+            <a href="{% url 'clinical_record_edit' registro.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-edit btn-sm">Editar</a>
             <a href="{% url 'clinical_record_delete' registro.id %}" class="btn btn-outline-delete btn-sm">Eliminar</a>
         </div>
 

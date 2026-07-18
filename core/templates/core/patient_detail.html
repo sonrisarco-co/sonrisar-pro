@@ -254,6 +254,160 @@
         line-height: 1.25;
     }
 
+    .timeline-cabecera {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .timeline-cabecera .ficha-seccion-titulo {
+        margin-bottom: 0;
+    }
+
+    .timeline-subtitulo {
+        color: #74808d;
+        font-size: 0.82rem;
+        text-align: right;
+    }
+
+    .timeline-lista {
+        position: relative;
+        margin-left: 8px;
+        padding: 4px 12px 4px 28px;
+        max-height: 560px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+
+    .timeline-lista::-webkit-scrollbar {
+        width: 9px;
+    }
+
+    .timeline-lista::-webkit-scrollbar-track {
+        background: #f1f7f7;
+        border-radius: 999px;
+    }
+
+    .timeline-lista::-webkit-scrollbar-thumb {
+        background: #b8d7d5;
+        border-radius: 999px;
+        border: 2px solid #f1f7f7;
+    }
+
+    .timeline-lista::-webkit-scrollbar-thumb:hover {
+        background: #86beb9;
+    }
+
+    .timeline-lista::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: #d9eeee;
+    }
+
+    .timeline-item {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        padding: 0 0 18px;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-punto {
+        position: absolute;
+        left: -28px;
+        top: 5px;
+        width: 16px;
+        height: 16px;
+        border: 3px solid #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 2px #b9dfdc;
+        background: #26ABA5;
+    }
+
+    .timeline-item-historia .timeline-punto {
+        background: #7d5cc6;
+        box-shadow: 0 0 0 2px #d8cdef;
+    }
+
+    .timeline-contenido {
+        min-width: 0;
+        border: 1px solid #e3eaee;
+        border-radius: 13px;
+        padding: 13px 15px;
+        background: #fbfdfd;
+    }
+
+    .timeline-fecha {
+        color: #168a85;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 5px;
+    }
+
+    .timeline-titulo {
+        color: #1f2937;
+        font-size: 0.95rem;
+        font-weight: 800;
+        margin-bottom: 3px;
+    }
+
+    .timeline-descripcion {
+        color: #344054;
+        font-size: 0.9rem;
+        font-weight: 650;
+        overflow-wrap: anywhere;
+    }
+
+    .timeline-detalle {
+        color: #74808d;
+        font-size: 0.79rem;
+        margin-top: 4px;
+    }
+
+    .timeline-accion {
+        align-self: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 6px 11px;
+        border: 1px solid #b8d7d5;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #187a76;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .timeline-accion:hover {
+        background: #eef9f8;
+        color: #126d69;
+    }
+
+    .timeline-vacia {
+        padding: 22px;
+        border: 1px dashed #cbdada;
+        border-radius: 13px;
+        background: #fbfdfd;
+        color: #667085;
+        text-align: center;
+    }
+
     @media (max-width: 991px) {
         .ficha-hero {
             flex-direction: column;
@@ -298,6 +452,24 @@
 
         .dato-ancho-completo {
             grid-column: auto;
+        }
+
+        .timeline-cabecera {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .timeline-subtitulo {
+            text-align: left;
+        }
+
+        .timeline-item {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .timeline-accion {
+            width: 100%;
         }
     }
 </style>
@@ -485,6 +657,72 @@
                 <span class="modulo-subtitulo">Abrir un mensaje para el paciente.</span>
             </a>
         </div>
+    </section>
+
+    <section class="ficha-seccion">
+        <div class="timeline-cabecera">
+            <h2 class="ficha-seccion-titulo">📖 Historia del paciente</h2>
+            <div class="timeline-subtitulo">Citas e historias clínicas registradas</div>
+        </div>
+
+        {% with citas=paciente.appointment_set.all historias=paciente.clinical_records.all %}
+            {% if citas or historias %}
+                <div class="timeline-lista">
+
+                    {% for cita in citas reversed %}
+                        <article class="timeline-item timeline-item-cita">
+                            <span class="timeline-punto" aria-hidden="true"></span>
+
+                            <div class="timeline-contenido">
+                                <div class="timeline-fecha">
+                                    {{ cita.fecha|date:"d/m/Y" }} · {{ cita.hora|time:"H:i" }}
+                                </div>
+                                <div class="timeline-titulo">📅 Cita</div>
+                                <div class="timeline-descripcion">{{ cita.motivo|default:"Cita odontológica" }}</div>
+                                <div class="timeline-detalle">
+                                    {{ cita.get_estado_display }}
+                                    {% if cita.procedimientos.all %}
+                                        · {% for procedimiento in cita.procedimientos.all %}{{ procedimiento.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                               class="timeline-accion">Ver cita →</a>
+                        </article>
+                    {% endfor %}
+
+                    {% for historia in historias reversed %}
+                        <article class="timeline-item timeline-item-historia">
+                            <span class="timeline-punto" aria-hidden="true"></span>
+
+                            <div class="timeline-contenido">
+                                <div class="timeline-fecha">{{ historia.fecha|date:"d/m/Y" }}</div>
+                                <div class="timeline-titulo">🦷 Historia clínica</div>
+                                <div class="timeline-descripcion">{{ historia.motivo|default:"Registro clínico" }}</div>
+                                <div class="timeline-detalle">
+                                    {% if historia.evolucion %}
+                                        {{ historia.evolucion|truncatechars:180 }}
+                                    {% elif historia.diagnostico %}
+                                        {{ historia.diagnostico|truncatechars:180 }}
+                                    {% else %}
+                                        Registro clínico
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <a href="{% url 'clinical_record_detail' historia.id %}?next={{ request.get_full_path|urlencode }}"
+                               class="timeline-accion">Ver historia →</a>
+                        </article>
+                    {% endfor %}
+
+                </div>
+            {% else %}
+                <div class="timeline-vacia">
+                    Este paciente todavía no tiene citas ni historias clínicas registradas.
+                </div>
+            {% endif %}
+        {% endwith %}
     </section>
 
 </div>
