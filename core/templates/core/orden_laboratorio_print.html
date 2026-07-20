@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <title>Orden de Laboratorio #{{ orden.id }}</title>
 <style>
-@page{size:A5 landscape;margin:0}
+@page{size:A4 portrait;margin:0}
 *{box-sizing:border-box}
 body{margin:0;background:#eee;font-family:Arial,Helvetica,sans-serif;color:#1f2933}
 :root{--v:#0b7774;--c:#26ABA5;--l:#d8eeee;--s:#f8ffff}
@@ -27,7 +27,12 @@ body{margin:0;background:#eee;font-family:Arial,Helvetica,sans-serif;color:#1f29
 .note{min-height:10mm;font-size:9.6px;line-height:1.35;white-space:pre-line}.work{flex:1 1 auto}.material{flex:0 0 auto;padding:2.5mm 3mm}.notes{flex:0 0 auto}
 .footer{margin-top:2mm;padding-top:2.3mm;border-top:2px solid var(--v);display:grid;grid-template-columns:1.25fr .9fr .85fr 1.25fr;gap:3mm;font-size:8px;color:#334155;line-height:1.15}
 .footer-item{display:grid;grid-template-columns:5.2mm 1fr;gap:1.4mm;align-items:center}.icon svg{width:4.4mm;height:4.4mm;stroke:var(--v);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-@media print{body{background:#fff}.no-print{display:none!important}.sheet{margin:0;width:210mm;height:148mm}}
+@media print{
+html,body{width:210mm;height:297mm;margin:0!important;padding:0!important;background:#fff}
+body{overflow:hidden}
+.no-print{display:none!important}
+.sheet{width:210mm;height:148.5mm;margin:0!important;padding:6mm 8mm 5mm;overflow:hidden;display:flex;flex-direction:column;transform:none!important;page-break-after:avoid;break-after:avoid}
+}
 </style>
 </head><body>
 <div class="no-print"><button onclick="window.print()" class="btn-print">Imprimir / Guardar PDF</button><a href="{% url 'orden_laboratorio_detalle' orden.id %}" class="btn-back">Volver</a></div>
