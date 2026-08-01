@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from datetime import date, time, timedelta, datetime
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from django.utils.text import slugify
 
 import calendar
@@ -20,6 +21,7 @@ from django.utils.http import urlencode
 from django.contrib import messages
 
 from django.core.paginator import Paginator
+from django.core.cache import cache
 
 from django.http import HttpResponse
 from django.template.loader import get_template
@@ -1667,31 +1669,104 @@ def inventory_movement_new(request):
 # =============================
 
 def protesis_list(request):
-
     filtro = request.GET.get("filtro", "activas")
 
-    protesis = (
+    # Traemos todas las prótesis una sola vez. select_related evita una consulta
+    # adicional por cada paciente y prefetch_related carga las órdenes en bloque.
+    todas = list(
         Prosthesis.objects
+        .select_related("paciente")
         .prefetch_related("ordenes_laboratorio")
-        .all()
+        .order_by("-fecha_inicio", "-id")
     )
+
+    activas = sum(1 for item in todas if item.estado != "entregada")
+    laboratorio = sum(1 for item in todas if item.estado == "laboratorio")
+    prueba = sum(1 for item in todas if item.estado == "prueba")
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "http://127.0.0.1:8001",
+    ).rstrip("/")
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_PROTESIS_PATH",
+        "/pagos/api/por-protesis/",
+    )
+
+    def consultar_pago(item):
+        cache_key = f"protesis_pago_resumen_{item.id}"
+        guardado = cache.get(cache_key)
+        if guardado is not None:
+            return item.id, guardado
+
+        total_pagado = Decimal("0.00")
+        try:
+            response = requests.get(
+                f"{cobros_base_url}{cobros_api_path}",
+                params={"protesis_id": item.id},
+                timeout=1.5,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if data.get("ok"):
+                total_pagado = _decimal_seguro(data.get("total_pagado", 0))
+        except Exception:
+            # La página de Prótesis no debe quedar bloqueada si Cobros está apagado.
+            total_pagado = Decimal("0.00")
+
+        resultado = {"total_pagado": total_pagado}
+        cache.set(cache_key, resultado, 30)
+        return item.id, resultado
+
+    pagos_por_id = {}
+    if todas:
+        # Las consultas se realizan simultáneamente. Si Cobros no responde,
+        # la espera máxima ronda 1,5 segundos y no 1,5 segundos por prótesis.
+        trabajadores = min(8, len(todas))
+        with ThreadPoolExecutor(max_workers=trabajadores) as executor:
+            futuros = [executor.submit(consultar_pago, item) for item in todas]
+            for futuro in as_completed(futuros):
+                try:
+                    item_id, resumen = futuro.result()
+                    pagos_por_id[item_id] = resumen
+                except Exception:
+                    pass
+
+    pendientes_pago = 0
+
+    for item in todas:
+        total_pagado = pagos_por_id.get(
+            item.id,
+            {"total_pagado": Decimal("0.00")},
+        )["total_pagado"]
+
+        monto_total = item.monto_total or Decimal("0.00")
+        saldo = monto_total - total_pagado
+        if saldo < Decimal("0.00"):
+            saldo = Decimal("0.00")
+
+        item.total_pagado_mostrado = total_pagado
+        item.saldo_mostrado = saldo
+
+        if saldo > Decimal("0.00"):
+            pendientes_pago += 1
+
+        trabajo_mostrado = (item.trabajo or "").strip()
+        if not trabajo_mostrado:
+            ordenes = list(item.ordenes_laboratorio.all())
+            if ordenes:
+                ultima_orden = max(ordenes, key=lambda orden: orden.id or 0)
+                trabajo_mostrado = ultima_orden.resumen_trabajo
+        item.trabajo_mostrado = trabajo_mostrado
 
     if filtro == "activas":
-        protesis = protesis.exclude(estado="entregada")
-
+        protesis = [item for item in todas if item.estado != "entregada"]
     elif filtro == "entregadas":
-        protesis = protesis.filter(estado="entregada")
-
-    activas = Prosthesis.objects.exclude(estado="entregada").count()
-    laboratorio = Prosthesis.objects.filter(estado="laboratorio").count()
-    prueba = Prosthesis.objects.filter(estado="prueba").count()
-
-    pendientes_pago = sum(
-        1 for p in Prosthesis.objects.all()
-        if p.saldo_pendiente > 0
-    )
-
-    protesis = protesis.order_by("-fecha_inicio", "-id")
+        protesis = [item for item in todas if item.estado == "entregada"]
+    else:
+        protesis = todas
 
     return render(
         request,
@@ -1703,9 +1778,8 @@ def protesis_list(request):
             "laboratorio": laboratorio,
             "prueba": prueba,
             "pendientes_pago": pendientes_pago,
-        }
+        },
     )
-
 
 def protesis_new(request):
     if request.method == "POST":
@@ -1782,12 +1856,109 @@ def protesis_print(request, id):
 # 🧪 ORDENES DE LABORATORIO
 # =============================
 
-def orden_laboratorio_nueva(request, protesis_id):
 
+def _configuracion_inicial_orden(protesis):
+    """
+    Precarga la orden según el tipo y el trabajo principal de la prótesis.
+    No bloquea campos: el usuario puede modificar o desmarcar lo propuesto.
+    """
+    tipo = (protesis.tipo_protesis or "").strip()
+    trabajo = (protesis.trabajo or "").strip().lower()
+
+    initial = {
+        "estado": "pendiente",
+        "odontologo": "Rodrigo",
+    }
+
+    mapa_trabajos = {
+        "protesis_completa": "protesis_completa",
+        "prótesis completa": "protesis_completa",
+        "parcial_cromo": "parcial_cromo",
+        "prótesis parcial cromo": "parcial_cromo",
+        "parcial cromo": "parcial_cromo",
+        "parcial_acrilica": "parcial_acrilica",
+        "prótesis parcial acrílica": "parcial_acrilica",
+        "parcial acrílica": "parcial_acrilica",
+        "protesis_flexible": "protesis_flexible",
+        "prótesis flexible": "protesis_flexible",
+        "provisorio_placa": "provisorio_placa",
+        "provisorio a placa": "provisorio_placa",
+        "corona_unitaria": "corona_unitaria",
+        "corona unitaria": "corona_unitaria",
+        "puente_fijo": "puente_fijo",
+        "puente fijo": "puente_fijo",
+        "jacket": "jacket",
+        "perno_munon": "perno_metalico",
+        "perno muñón": "perno_metalico",
+        "perno metálico": "perno_metalico",
+        "incrustacion": "incrustacion",
+        "incrustación": "incrustacion",
+        "provisorio_fijo": "provisorio_fijo",
+        "provisorio fijo": "provisorio_fijo",
+        "contencion": "contencion",
+        "contención": "contencion",
+        "placa_neuromiorrelajante": "placa_relajacion",
+        "placa neuromiorrelajante": "placa_relajacion",
+        "placa de relajación": "placa_relajacion",
+        "reparacion": "reparacion",
+        "reparación": "reparacion",
+        "rebase": "rebasado",
+        "rebasado": "rebasado",
+        "agregado_diente": "agregado_diente",
+        "agregado de diente": "agregado_diente",
+        "agregado_gancho": "agregado_gancho",
+        "agregado de gancho": "agregado_gancho",
+    }
+
+    campo_trabajo = mapa_trabajos.get(trabajo)
+    if campo_trabajo:
+        initial[campo_trabajo] = True
+
+    # Propuestas habituales, siempre editables.
+    if campo_trabajo == "parcial_cromo":
+        initial["solicita_cromo"] = True
+    elif campo_trabajo == "rebasado":
+        initial["protesis_a_reparar"] = True
+    elif campo_trabajo in {"reparacion", "agregado_diente", "agregado_gancho"}:
+        initial["protesis_a_reparar"] = True
+
+    if tipo == "fija":
+        grupo = "fija"
+    elif tipo == "ortodoncia":
+        grupo = "otros"
+    elif tipo == "reparacion":
+        grupo = "removible"
+    else:
+        grupo = "removible"
+
+    return initial, grupo
+
+
+def _grupo_orden_existente(orden, protesis):
+    if any([
+        orden.corona_unitaria, orden.corona, orden.puente_fijo,
+        orden.jacket, orden.perno_metalico, orden.incrustacion,
+        orden.provisorio_fijo,
+    ]):
+        return "fija"
+
+    if any([orden.contencion, orden.placa_relajacion]):
+        return "otros"
+
+    if protesis.tipo_protesis == "fija":
+        return "fija"
+    if protesis.tipo_protesis == "ortodoncia":
+        return "otros"
+    return "removible"
+
+
+def orden_laboratorio_nueva(request, protesis_id):
     protesis = get_object_or_404(
-        Prosthesis,
-        id=protesis_id
+        Prosthesis.objects.select_related("paciente"),
+        id=protesis_id,
     )
+
+    initial, grupo_activo = _configuracion_inicial_orden(protesis)
 
     if request.method == "POST":
         form = OrdenLaboratorioForm(request.POST)
@@ -1797,15 +1968,14 @@ def orden_laboratorio_nueva(request, protesis_id):
             orden.protesis = protesis
             orden.save()
 
-            return redirect(
-                "protesis_detail",
-                id=protesis.id
-            )
-        else:
-            print("ERRORES ORDEN LABORATORIO:", form.errors)
+            protesis.trabajo = orden.resumen_trabajo
+            protesis.save(update_fields=["trabajo"])
 
+            return redirect("protesis_detail", id=protesis.id)
+
+        grupo_activo = request.POST.get("grupo_activo", grupo_activo)
     else:
-        form = OrdenLaboratorioForm()
+        form = OrdenLaboratorioForm(initial=initial)
 
     return render(
         request,
@@ -1814,11 +1984,17 @@ def orden_laboratorio_nueva(request, protesis_id):
             "form": form,
             "protesis": protesis,
             "titulo": "Nueva Orden de Laboratorio",
-        }
+            "grupo_activo": grupo_activo,
+            "trabajo_principal": protesis.trabajo,
+        },
     )
 
+
 def orden_laboratorio_detalle(request, orden_id):
-    orden = get_object_or_404(OrdenLaboratorio, id=orden_id)
+    orden = get_object_or_404(
+        OrdenLaboratorio.objects.select_related("protesis__paciente"),
+        id=orden_id,
+    )
 
     return render(
         request,
@@ -1826,23 +2002,29 @@ def orden_laboratorio_detalle(request, orden_id):
         {
             "orden": orden,
             "protesis": orden.protesis,
-        }
+            "grupo_activo": _grupo_orden_existente(orden, orden.protesis),
+        },
     )
 
 
 def orden_laboratorio_editar(request, orden_id):
-    orden = get_object_or_404(OrdenLaboratorio, id=orden_id)
+    orden = get_object_or_404(
+        OrdenLaboratorio.objects.select_related("protesis__paciente"),
+        id=orden_id,
+    )
     protesis = orden.protesis
+    grupo_activo = _grupo_orden_existente(orden, protesis)
 
     if request.method == "POST":
         form = OrdenLaboratorioForm(request.POST, instance=orden)
 
         if form.is_valid():
-            form.save()
+            orden = form.save()
+            protesis.trabajo = orden.resumen_trabajo
+            protesis.save(update_fields=["trabajo"])
             return redirect("protesis_detail", id=protesis.id)
-        else:
-            print("ERRORES EDITAR ORDEN:", form.errors)
 
+        grupo_activo = request.POST.get("grupo_activo", grupo_activo)
     else:
         form = OrdenLaboratorioForm(instance=orden)
 
@@ -1853,12 +2035,17 @@ def orden_laboratorio_editar(request, orden_id):
             "form": form,
             "protesis": protesis,
             "titulo": "Editar Orden de Laboratorio",
-        }
+            "grupo_activo": grupo_activo,
+            "trabajo_principal": protesis.trabajo,
+        },
     )
 
 
 def orden_laboratorio_print(request, orden_id):
-    orden = get_object_or_404(OrdenLaboratorio, id=orden_id)
+    orden = get_object_or_404(
+        OrdenLaboratorio.objects.select_related("protesis__paciente"),
+        id=orden_id,
+    )
     protesis = orden.protesis
 
     return render(
@@ -1867,7 +2054,8 @@ def orden_laboratorio_print(request, orden_id):
         {
             "orden": orden,
             "protesis": protesis,
-        }
+            "grupo_activo": _grupo_orden_existente(orden, protesis),
+        },
     )
 
 

@@ -1,317 +1,86 @@
 {% extends "core/base.html" %}
-
 {% block title %}Orden de Laboratorio{% endblock %}
-
 {% block content %}
-
 <style>
-    .orden-view-box {
-        border: 1px solid #0b7774;
-        border-radius: 10px;
-        padding: 16px;
-        margin-bottom: 16px;
-        background: #fff;
-    }
-
-    .orden-view-title {
-        color: #0b7774;
-        font-weight: 700;
-        font-size: 15px;
-        text-transform: uppercase;
-        margin-bottom: 14px;
-    }
-
-    .item-ok {
-        margin-bottom: 7px;
-        font-size: 15px;
-    }
-
-    .item-ok span {
-        color: #0b7774;
-        font-weight: bold;
-    }
+.orden-page{max-width:1000px}.orden-view-box{border:1px solid #b9dddd;border-radius:12px;padding:16px;margin-bottom:16px;background:#fff}
+.orden-view-title{color:#0b7774;font-weight:800;font-size:13px;text-transform:uppercase;margin-bottom:12px;letter-spacing:.04em}
+.item-ok{margin-bottom:7px;font-size:15px}.item-ok span{color:#0b7774;font-weight:bold}.summary-card{background:#edfafa}
 </style>
+<div class="container mt-4 mb-5 orden-page">
+<div class="d-flex justify-content-between align-items-center mb-4">
+<div><h2 class="mb-1">🧪 Orden OT-{{ orden.id|stringformat:"05d" }}</h2><p class="text-muted mb-0">{{ protesis.paciente }}</p></div>
+<div>
+<a href="{% url 'orden_laboratorio_print' orden.id %}" class="btn btn-success">🖨 Imprimir</a>
+<a href="{% url 'orden_laboratorio_editar' orden.id %}" class="btn btn-warning">✏️ Editar</a>
+<a href="{% url 'protesis_detail' protesis.id %}" class="btn btn-secondary">← Volver</a>
+</div></div>
 
-<div class="container mt-4">
+<div class="orden-view-box summary-card"><div class="row g-3">
+<div class="col-md-3"><strong>Paciente</strong><br>{{ protesis.paciente }}</div>
+<div class="col-md-3"><strong>Tipo</strong><br>{{ protesis.get_tipo_protesis_display }}</div>
+<div class="col-md-3"><strong>Trabajo</strong><br>{{ orden.resumen_trabajo }}</div>
+<div class="col-md-3"><strong>Entrega</strong><br>{{ orden.fecha_entrega_prometida|date:"d/m/Y"|default:"—" }}</div>
+</div></div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2>🧪 Orden de Laboratorio #{{ orden.id }}</h2>
-            <p class="text-muted mb-0">{{ protesis.paciente }}</p>
-        </div>
+<div class="row g-3">
+<div class="col-md-6"><div class="orden-view-box h-100"><div class="orden-view-title">Trabajo solicitado</div>
+{% if orden.protesis_completa %}<div class="item-ok"><span>☑</span> Prótesis completa</div>{% endif %}
+{% if orden.parcial_cromo or orden.cromo %}<div class="item-ok"><span>☑</span> Prótesis parcial cromo</div>{% endif %}
+{% if orden.parcial_acrilica or orden.protesis_parcial %}<div class="item-ok"><span>☑</span> Prótesis parcial acrílica</div>{% endif %}
+{% if orden.protesis_flexible %}<div class="item-ok"><span>☑</span> Prótesis flexible</div>{% endif %}
+{% if orden.provisorio_placa %}<div class="item-ok"><span>☑</span> Provisorio a placa</div>{% endif %}
+{% if orden.reparacion %}<div class="item-ok"><span>☑</span> Reparación</div>{% endif %}
+{% if orden.rebasado %}<div class="item-ok"><span>☑</span> Rebase</div>{% endif %}
+{% if orden.agregado_diente %}<div class="item-ok"><span>☑</span> Agregado de diente</div>{% endif %}
+{% if orden.agregado_gancho %}<div class="item-ok"><span>☑</span> Agregado de gancho</div>{% endif %}
+{% if orden.corona_unitaria or orden.corona %}<div class="item-ok"><span>☑</span> Corona unitaria</div>{% endif %}
+{% if orden.puente_fijo %}<div class="item-ok"><span>☑</span> Puente fijo</div>{% endif %}
+{% if orden.jacket %}<div class="item-ok"><span>☑</span> Jacket</div>{% endif %}
+{% if orden.perno_metalico %}<div class="item-ok"><span>☑</span> Perno muñón</div>{% endif %}
+{% if orden.incrustacion %}<div class="item-ok"><span>☑</span> Incrustación</div>{% endif %}
+{% if orden.provisorio_fijo %}<div class="item-ok"><span>☑</span> Provisorio fijo</div>{% endif %}
+{% if orden.contencion %}<div class="item-ok"><span>☑</span> Contención</div>{% endif %}
+{% if orden.placa_relajacion %}<div class="item-ok"><span>☑</span> Placa neuromiorrelajante</div>{% endif %}
+{% if orden.piezas_removible %}<div><strong>Piezas:</strong> {{ orden.piezas_removible }}</div>{% endif %}
+{% if orden.piezas_fija %}<div><strong>Piezas:</strong> {{ orden.piezas_fija }}</div>{% endif %}
+</div></div>
 
-        <div>
-            <a href="{% url 'orden_laboratorio_editar' orden.id %}" class="btn btn-warning">
-                ✏️ Editar
-            </a>
-
-            <a href="{% url 'protesis_detail' protesis.id %}" class="btn btn-secondary">
-                ← Volver
-            </a>
-        </div>
-    </div>
-
-    <div class="orden-view-box">
-        <div class="row">
-            <div class="col-md-4">
-                <strong>Paciente</strong><br>
-                {{ protesis.paciente }}
-            </div>
-
-            <div class="col-md-4">
-                <strong>Fecha</strong><br>
-                {{ orden.fecha }}
-            </div>
-
-            <div class="col-md-4">
-                <strong>Estado</strong><br>
-                {{ orden.get_estado_display }}
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-
-        <!-- PRÓTESIS REMOVIBLE -->
-        <div class="col-md-4">
-            <div class="orden-view-box h-100">
-                <div class="orden-view-title">
-                    Prótesis removible
-                </div>
-
-                {% if orden.protesis_completa %}
-                    <div class="item-ok">
-                        <span>☑</span> Prótesis completa
-                        {% if orden.protesis_completa_sup %} - Superior{% endif %}
-                        {% if orden.protesis_completa_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.protesis_parcial %}
-                    <div class="item-ok">
-                        <span>☑</span> Prótesis parcial
-                        {% if orden.protesis_parcial_sup %} - Superior{% endif %}
-                        {% if orden.protesis_parcial_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.protesis_flexible %}
-                    <div class="item-ok">
-                        <span>☑</span> Prótesis flexible
-                        {% if orden.protesis_flexible_sup %} - Superior{% endif %}
-                        {% if orden.protesis_flexible_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.cromo %}
-                    <div class="item-ok">
-                        <span>☑</span> Cromo
-                        {% if orden.cromo_sup %} - Superior{% endif %}
-                        {% if orden.cromo_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.provisorio_placa %}
-                    <div class="item-ok">
-                        <span>☑</span> Provisorio a placa
-                        {% if orden.provisorio_placa_sup %} - Superior{% endif %}
-                        {% if orden.provisorio_placa_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.reparacion %}
-                    <div class="item-ok"><span>☑</span> Reparación</div>
-                {% endif %}
-
-                {% if orden.rebasado %}
-                    <div class="item-ok"><span>☑</span> Rebasado</div>
-                {% endif %}
-
-                {% if orden.cubeta_individual %}
-                    <div class="item-ok"><span>☑</span> Cubeta individual</div>
-                {% endif %}
-
-                {% if orden.placa_articular %}
-                    <div class="item-ok"><span>☑</span> Placa articular</div>
-                {% endif %}
-
-                {% if orden.enfilado %}
-                    <div class="item-ok"><span>☑</span> Enfilado</div>
-                {% endif %}
-
-                {% if orden.terminacion %}
-                    <div class="item-ok"><span>☑</span> Terminación</div>
-                {% endif %}
-
-                {% if orden.removible_otros %}
-                    <div class="item-ok">
-                        <span>☑</span> Otros:
-                        {{ orden.removible_otros_texto }}
-                    </div>
-                {% endif %}
-
-            </div>
-        </div>
-
-        <!-- REHABILITACIÓN FIJA -->
-        <div class="col-md-4">
-            <div class="orden-view-box h-100">
-                <div class="orden-view-title">
-                    Rehabilitación fija
-                </div>
-
-                {% if orden.perno_metalico %}
-                    <div class="item-ok"><span>☑</span> Perno metálico</div>
-                {% endif %}
-
-                {% if orden.incrustacion %}
-                    <div class="item-ok"><span>☑</span> Incrustación</div>
-                {% endif %}
-
-                {% if orden.jacket %}
-                    <div class="item-ok"><span>☑</span> Jacket</div>
-                {% endif %}
-
-                {% if orden.corona %}
-                    <div class="item-ok"><span>☑</span> Corona</div>
-                {% endif %}
-
-                {% if orden.puente_fijo %}
-                    <div class="item-ok"><span>☑</span> Puente fijo</div>
-                {% endif %}
-
-            </div>
-        </div>
-
-        <!-- ORTODONCIA -->
-        <div class="col-md-4">
-            <div class="orden-view-box h-100">
-                <div class="orden-view-title">
-                    Ortodoncia y otros
-                </div>
-
-                {% if orden.contencion %}
-                    <div class="item-ok">
-                        <span>☑</span> Contención
-                        {% if orden.contencion_sup %} - Superior{% endif %}
-                        {% if orden.contencion_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.placa_relajacion %}
-                    <div class="item-ok">
-                        <span>☑</span> Placa de relajación
-                        {% if orden.placa_relajacion_sup %} - Superior{% endif %}
-                        {% if orden.placa_relajacion_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.ortodoncia_otros %}
-                    <div class="item-ok">
-                        <span>☑</span> Otros:
-                        {{ orden.ortodoncia_otros_texto }}
-                    </div>
-                {% endif %}
-
-            </div>
-        </div>
-
-    </div>
-
-    <!-- MATERIAL ENVIADO -->
-    <div class="orden-view-box mt-3">
-        <div class="orden-view-title">
-            Material enviado al laboratorio
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-
-                {% if orden.impresion_inicial_sup or orden.impresion_inicial_inf %}
-                    <div class="item-ok">
-                        <span>☑</span> Impresión inicial
-                        {% if orden.impresion_inicial_sup %} - Superior{% endif %}
-                        {% if orden.impresion_inicial_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.impresion_definitiva_sup or orden.impresion_definitiva_inf %}
-                    <div class="item-ok">
-                        <span>☑</span> Impresión definitiva
-                        {% if orden.impresion_definitiva_sup %} - Superior{% endif %}
-                        {% if orden.impresion_definitiva_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-                {% if orden.modelo_sup or orden.modelo_inf %}
-                    <div class="item-ok">
-                        <span>☑</span> Modelo
-                        {% if orden.modelo_sup %} - Superior{% endif %}
-                        {% if orden.modelo_inf %} - Inferior{% endif %}
-                    </div>
-                {% endif %}
-
-            </div>
-
-            <div class="col-md-6">
-
-                {% if orden.registro_mordida %}
-                    <div class="item-ok"><span>☑</span> Registro de mordida</div>
-                {% endif %}
-
-                {% if orden.protesis_a_reparar %}
-                    <div class="item-ok"><span>☑</span> Prótesis a reparar</div>
-                {% endif %}
-
-                {% if orden.material_otros %}
-                    <div class="item-ok">
-                        <span>☑</span> Otros:
-                        {{ orden.material_otros_texto }}
-                    </div>
-                {% endif %}
-
-            </div>
-        </div>
-    </div>
-
-    <!-- INDICACIONES -->
-    <div class="orden-view-box">
-        <div class="orden-view-title">
-            Indicaciones para laboratorio
-        </div>
-
-        {{ orden.indicaciones|default:"Sin indicaciones." }}
-    </div>
-
-    <!-- FECHAS -->
-    <div class="orden-view-box">
-        <div class="row">
-            <div class="col-md-4">
-                <strong>Fecha de envío</strong><br>
-                {{ orden.fecha_envio|default:"-" }}
-            </div>
-
-            <div class="col-md-4">
-                <strong>Fecha comprometida de entrega</strong><br>
-                {{ orden.fecha_entrega_prometida|default:"-" }}
-            </div>
-
-            <div class="col-md-4">
-                <strong>Fecha de recepción</strong><br>
-                {{ orden.fecha_recepcion|default:"-" }}
-            </div>
-        </div>
-    </div>
-
-    <!-- OBSERVACIONES -->
-    <div class="orden-view-box">
-        <div class="orden-view-title">
-            Observaciones
-        </div>
-
-        {{ orden.observaciones|default:"Sin observaciones." }}
-    </div>
-
+<div class="col-md-6"><div class="orden-view-box h-100"><div class="orden-view-title">Datos</div>
+<div><strong>Fecha:</strong> {{ orden.fecha|date:"d/m/Y" }}</div>
+<div><strong>Arcada:</strong> {{ orden.get_arcada_display|default:"—" }}</div>
+<div><strong>Estado:</strong> {{ orden.get_estado_display }}</div>
+<div><strong>Odontólogo:</strong> {{ orden.odontologo|default:"Rodrigo" }}</div>
+</div></div>
 </div>
 
+<div class="row g-3 mt-0">
+<div class="col-md-6"><div class="orden-view-box h-100"><div class="orden-view-title">Se envía</div>
+{% if orden.impresion_primaria or orden.impresion_inicial %}<div class="item-ok"><span>☑</span> Impresión primaria</div>{% endif %}
+{% if orden.impresion_definitiva %}<div class="item-ok"><span>☑</span> Impresión definitiva</div>{% endif %}
+{% if orden.antagonista %}<div class="item-ok"><span>☑</span> Antagonista</div>{% endif %}
+{% if orden.registro_mordida %}<div class="item-ok"><span>☑</span> Registro de mordida</div>{% endif %}
+{% if orden.enfilado_enviado %}<div class="item-ok"><span>☑</span> Enfilado</div>{% endif %}
+{% if orden.protesis_a_reparar %}<div class="item-ok"><span>☑</span> Prótesis a reparar</div>{% endif %}
+</div></div>
+<div class="col-md-6"><div class="orden-view-box h-100"><div class="orden-view-title">Solicito / Material</div>
+{% if orden.solicita_cubeta_individual %}<div class="item-ok"><span>☑</span> Cubeta individual</div>{% endif %}
+{% if orden.solicita_placa_articular %}<div class="item-ok"><span>☑</span> Placa articular</div>{% endif %}
+{% if orden.solicita_enfilado %}<div class="item-ok"><span>☑</span> Enfilado</div>{% endif %}
+{% if orden.solicita_terminacion %}<div class="item-ok"><span>☑</span> Terminación</div>{% endif %}
+{% if orden.solicita_cromo %}<div class="item-ok"><span>☑</span> Cromo</div>{% endif %}
+{% if orden.prueba_estructura %}<div class="item-ok"><span>☑</span> Prueba de estructura</div>{% endif %}
+{% if orden.prueba_estetica %}<div class="item-ok"><span>☑</span> Prueba estética</div>{% endif %}
+{% if orden.glaseado %}<div class="item-ok"><span>☑</span> Glaseado</div>{% endif %}
+{% if orden.material_metal %}<div class="item-ok"><span>☑</span> Metal</div>{% endif %}
+{% if orden.material_acrilico %}<div class="item-ok"><span>☑</span> Acrílico</div>{% endif %}
+{% if orden.material_ceromero %}<div class="item-ok"><span>☑</span> Cerómero</div>{% endif %}
+{% if orden.material_ceramica %}<div class="item-ok"><span>☑</span> Cerámica</div>{% endif %}
+{% if orden.material_zirconio %}<div class="item-ok"><span>☑</span> Zirconio</div>{% endif %}
+{% if orden.material_disilicato %}<div class="item-ok"><span>☑</span> Disilicato de litio</div>{% endif %}
+</div></div></div>
+
+<div class="orden-view-box mt-3"><div class="orden-view-title">Indicaciones / Observaciones</div>
+{{ orden.indicaciones|default:"" }}{% if orden.indicaciones and orden.observaciones %}<hr>{% endif %}{{ orden.observaciones|default:"Sin observaciones." }}
+</div>
+</div>
 {% endblock %}

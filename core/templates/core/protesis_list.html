@@ -4,20 +4,20 @@
 
 {% block content %}
 
-<div class="container mt-4 protesis-page">
+<div class="container mt-3 mb-5 protesis-page">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 protesis-header">
         <div>
             <h2 class="titulo-seccion mb-1">🦷 Prótesis</h2>
             <p class="text-muted mb-0">Control de prótesis, seguimiento y órdenes de laboratorio</p>
         </div>
 
-        <a href="{% url 'protesis_new' %}" class="btn btn-sonrisar">
+        <a href="{% url 'protesis_new' %}" class="btn btn-sonrisar btn-nueva-protesis">
             + Nueva prótesis
         </a>
     </div>
 
-    <div class="resumen-protesis mb-3">
+    <div class="resumen-protesis mb-4">
 
         <div class="mini-card">
             <div class="mini-numero">{{ activas }}</div>
@@ -41,7 +41,7 @@
 
     </div>
 
-    <div class="filtros-protesis mb-4">
+    <div class="filtros-protesis mb-5">
         <a href="{% url 'protesis_list' %}?filtro=activas"
            class="btn btn-sm {% if filtro == 'activas' %}btn-sonrisar{% else %}btn-outline-secondary{% endif %}">
             Activas
@@ -66,9 +66,9 @@
                 <div class="col-12">
                     <div class="protesis-card shadow-sm">
 
-                        <div class="row align-items-center">
+                        <div class="row align-items-start g-3">
 
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="label-card">Paciente</div>
                                 <div class="paciente-card">
                                     {{ item.paciente }}
@@ -80,16 +80,19 @@
                                 <div class="dato-card">
                                     {{ item.get_tipo_protesis_display }}
                                 </div>
+                                {% if item.trabajo_mostrado %}
+                                    <div class="trabajo-card">{{ item.trabajo_mostrado }}</div>
+                                {% endif %}
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="label-card">Etapa</div>
                                 <span class="badge-etapa">
                                     {{ item.get_etapa_display }}
                                 </span>
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-3 text-md-end">
                                 <div class="label-card">Estado</div>
                                 <span class="badge-estado estado-{{ item.estado }}">
                                     {{ item.get_estado_display }}
@@ -117,16 +120,16 @@
 
                             <div>
                                 <strong>Pagado:</strong>
-                                $ {{ item.total_pagado|default:"0" }}
+                                $ {{ item.total_pagado_mostrado|default:"0" }}
                             </div>
 
                             <div>
                                 <strong>Saldo:</strong>
 
-                                {% if item.saldo_pendiente == 0 %}
+                                {% if item.saldo_mostrado == 0 %}
                                     <span class="saldo-pago">✅ Paga</span>
                                 {% else %}
-                                    <span class="saldo-debe">$ {{ item.saldo_pendiente }}</span>
+                                    <span class="saldo-debe">$ {{ item.saldo_mostrado }}</span>
                                 {% endif %}
                             </div>
 
@@ -144,16 +147,16 @@
                             </a>
 
                             <a href="{% url 'cobros_nuevo_desde_protesis' item.id %}" class="btn btn-sm btn-pago">
-                                💰 Registrar pago
+                                💰 Pago
                             </a>
 
                             {% if item.ordenes_laboratorio.exists %}
                                 <a href="{% url 'protesis_detail' item.id %}" class="btn btn-sm btn-outline-success">
-                                    📄 Ver orden
+                                    📄 Orden
                                 </a>
                             {% else %}
                                 <a href="{% url 'orden_laboratorio_nueva' item.id %}" class="btn btn-sm btn-success">
-                                    🧪 Crear orden
+                                    📄 Orden
                                 </a>
                             {% endif %}
 
@@ -402,14 +405,138 @@
         font-weight: 800;
     }
 
+
+    /* ====== AJUSTE VISUAL AMPLIO ====== */
+    .protesis-header h2 {
+        font-size: 2rem;
+        letter-spacing: .01em;
+    }
+
+    .protesis-header p {
+        font-size: 1rem;
+        margin-top: 6px;
+    }
+
+    .btn-nueva-protesis {
+        padding: 12px 22px;
+        font-size: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 5px 14px rgba(38,171,165,.18);
+    }
+
+    .resumen-protesis {
+        gap: 12px;
+    }
+
+    .mini-card {
+        min-width: 132px;
+        padding: 11px 18px;
+        border-radius: 14px;
+    }
+
+    .mini-numero {
+        font-size: 1.65rem;
+        margin-bottom: 5px;
+    }
+
+    .mini-texto {
+        font-size: .78rem;
+        letter-spacing: .05em;
+    }
+
+    .filtros-protesis .btn {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: .92rem;
+    }
+
+    .protesis-card {
+        padding: 28px;
+        border-radius: 18px;
+        border-left-width: 6px;
+    }
+
+    .label-card {
+        font-size: .82rem;
+        margin-bottom: 7px;
+    }
+
+    .paciente-card {
+        font-size: 1.35rem;
+        line-height: 1.25;
+    }
+
+    .dato-card {
+        font-size: 1.08rem;
+        line-height: 1.35;
+    }
+
+    .badge-etapa,
+    .badge-estado {
+        padding: 8px 14px;
+        font-size: .92rem;
+    }
+
+    .protesis-extra {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, auto)) minmax(220px, 1fr);
+        gap: 14px;
+        font-size: .96rem;
+        color: #475569;
+        padding-top: 18px;
+    }
+
+    .protesis-extra > div {
+        background: #f8ffff;
+        border: 1px solid #e3f2f1;
+        border-radius: 12px;
+        padding: 12px 14px;
+        min-height: 62px;
+    }
+
+    .protesis-extra strong {
+        display: block;
+        color: #0f766e;
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-bottom: 5px;
+    }
+
+    .acciones-card {
+        gap: 10px;
+        padding-top: 18px;
+        margin-top: 18px !important;
+    }
+
+    .acciones-card .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-height: 40px;
+        padding: 8px 14px;
+        font-size: .9rem;
+        line-height: 1.15;
+        text-align: center;
+        border-radius: 10px;
+    }
+
+    @media (max-width: 1100px) {
+        .protesis-extra {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
     @media (max-width: 768px) {
         .protesis-card {
-            padding: 14px;
+            padding: 18px;
         }
 
         .protesis-extra {
-            gap: 8px;
-            display: block;
+            gap: 10px;
+            display: grid;
+            grid-template-columns: 1fr;
         }
 
         .protesis-extra div {
@@ -424,6 +551,113 @@
             flex: 1 1 auto;
         }
     }
+
+    /* ====== AJUSTES FINALES ====== */
+    .protesis-page {
+        padding-top: 0;
+    }
+
+    .resumen-protesis {
+        margin-top: 0;
+    }
+
+    .mini-card {
+        min-width: 138px;
+        padding: 10px 18px;
+    }
+
+    .mini-numero {
+        font-size: 1.72rem;
+    }
+
+    .dato-card {
+        font-weight: 700;
+    }
+
+    .trabajo-card {
+        margin-top: 6px;
+        color: #0f766e;
+        font-size: .96rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .protesis-extra > div {
+        min-height: 54px;
+        padding: 9px 12px;
+    }
+
+    .protesis-extra strong {
+        margin-bottom: 3px;
+    }
+
+    .acciones-card .btn {
+        min-width: 78px;
+    }
+
+    /* ====== TARJETAS MÁS COMPACTAS ====== */
+    .protesis-card {
+        padding: 20px 24px;
+        border-radius: 16px;
+    }
+
+    .paciente-card {
+        font-size: 1.18rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #20252b;
+    }
+
+    .dato-card {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .trabajo-card {
+        margin-top: 4px;
+        font-size: .94rem;
+        font-weight: 600;
+    }
+
+    .badge-etapa,
+    .badge-estado {
+        padding: 6px 12px;
+        font-size: .87rem;
+    }
+
+    .protesis-extra {
+        gap: 10px;
+        padding-top: 13px;
+        font-size: .9rem;
+    }
+
+    .protesis-extra > div {
+        min-height: 46px;
+        padding: 7px 10px;
+        border-radius: 10px;
+    }
+
+    .protesis-extra strong {
+        font-size: .72rem;
+        margin-bottom: 2px;
+    }
+
+    .acciones-card {
+        padding-top: 13px;
+        margin-top: 13px !important;
+    }
+
+    .acciones-card .btn {
+        min-height: 37px;
+        padding: 7px 12px;
+    }
+
+    @media (max-width: 768px) {
+        .protesis-card {
+            padding: 16px;
+        }
+    }
+
 </style>
 
 {% endblock %}

@@ -495,6 +495,13 @@ class OrdenLaboratorio(models.Model):
         ("entregada", "Entregada"),
     ]
 
+    ARCADAS = [
+        ("", "Seleccionar arcada"),
+        ("superior", "Superior"),
+        ("inferior", "Inferior"),
+        ("ambas", "Ambas"),
+    ]
+
     protesis = models.ForeignKey(
         Prosthesis,
         on_delete=models.CASCADE,
@@ -510,7 +517,55 @@ class OrdenLaboratorio(models.Model):
     fecha = models.DateField(auto_now_add=True)
 
     # =========================
-    # PRÓTESIS REMOVIBLE
+    # ORDEN DE LABORATORIO V2
+    # =========================
+    arcada = models.CharField(
+        "Arcada",
+        max_length=20,
+        choices=ARCADAS,
+        blank=True,
+        default=""
+    )
+    piezas_removible = models.CharField(max_length=100, blank=True)
+    piezas_fija = models.CharField(max_length=100, blank=True)
+    odontologo = models.CharField(max_length=150, blank=True, default="Rodrigo")
+
+    # Removible
+    parcial_cromo = models.BooleanField(default=False)
+    parcial_acrilica = models.BooleanField(default=False)
+    agregado_diente = models.BooleanField(default=False)
+    agregado_gancho = models.BooleanField(default=False)
+
+    # Fija
+    corona_unitaria = models.BooleanField(default=False)
+    provisorio_fijo = models.BooleanField(default=False)
+
+    # Material enviado V2
+    impresion_primaria = models.BooleanField(default=False)
+    antagonista = models.BooleanField(default=False)
+    enfilado_enviado = models.BooleanField(default=False)
+
+    # Solicito V2
+    solicita_cubeta_individual = models.BooleanField(default=False)
+    solicita_placa_articular = models.BooleanField(default=False)
+    solicita_enfilado = models.BooleanField(default=False)
+    solicita_terminacion = models.BooleanField(default=False)
+    solicita_cromo = models.BooleanField(default=False)
+    prueba_estructura = models.BooleanField(default=False)
+    prueba_estetica = models.BooleanField(default=False)
+    glaseado = models.BooleanField(default=False)
+
+    # Material de prótesis fija
+    material_metal = models.BooleanField(default=False)
+    material_acrilico = models.BooleanField(default=False)
+    material_ceromero = models.BooleanField(default=False)
+    material_ceramica = models.BooleanField(default=False)
+    material_zirconio = models.BooleanField(default=False)
+    material_disilicato = models.BooleanField(default=False)
+
+    # =========================
+    # CAMPOS ANTERIORES
+    # Se conservan para no perder órdenes existentes.
     # =========================
     protesis_completa = models.BooleanField(default=False)
     protesis_completa_sup = models.BooleanField(default=False)
@@ -541,18 +596,12 @@ class OrdenLaboratorio(models.Model):
     removible_otros = models.BooleanField(default=False)
     removible_otros_texto = models.CharField(max_length=255, blank=True)
 
-    # =========================
-    # REHABILITACIÓN FIJA
-    # =========================
     perno_metalico = models.BooleanField(default=False)
     incrustacion = models.BooleanField(default=False)
     jacket = models.BooleanField(default=False)
     corona = models.BooleanField(default=False)
     puente_fijo = models.BooleanField(default=False)
 
-    # =========================
-    # ORTODONCIA Y OTROS
-    # =========================
     contencion = models.BooleanField(default=False)
     contencion_sup = models.BooleanField(default=False)
     contencion_inf = models.BooleanField(default=False)
@@ -564,9 +613,6 @@ class OrdenLaboratorio(models.Model):
     ortodoncia_otros = models.BooleanField(default=False)
     ortodoncia_otros_texto = models.CharField(max_length=255, blank=True)
 
-    # =========================
-    # MATERIAL ENVIADO
-    # =========================
     impresion_inicial = models.BooleanField(default=False)
     impresion_inicial_sup = models.BooleanField(default=False)
     impresion_inicial_inf = models.BooleanField(default=False)
@@ -585,15 +631,48 @@ class OrdenLaboratorio(models.Model):
     material_otros = models.BooleanField(default=False)
     material_otros_texto = models.CharField(max_length=255, blank=True)
 
-    # =========================
-    # INDICACIONES Y FECHAS
-    # =========================
     indicaciones = models.TextField(blank=True)
     observaciones = models.TextField(blank=True)
 
     fecha_envio = models.DateField(null=True, blank=True)
-    fecha_entrega_prometida = models.DateField(null=True, blank=True)
+    fecha_entrega_prometida = models.DateField(
+        "Solicitado para",
+        null=True,
+        blank=True
+    )
+    hora_entrega_solicitada = models.TimeField(
+        "Hora solicitada",
+        null=True,
+        blank=True
+    )
     fecha_recepcion = models.DateField(null=True, blank=True)
+
+    @property
+    def resumen_trabajo(self):
+        trabajos = []
+        opciones = [
+            (self.protesis_completa, "Prótesis completa"),
+            (self.parcial_cromo or self.cromo, "Prótesis parcial cromo"),
+            (self.parcial_acrilica or self.protesis_parcial, "Prótesis parcial acrílica"),
+            (self.protesis_flexible, "Prótesis flexible"),
+            (self.provisorio_placa, "Provisorio a placa"),
+            (self.corona_unitaria or self.corona, "Corona unitaria"),
+            (self.puente_fijo, "Puente fijo"),
+            (self.jacket, "Jacket"),
+            (self.perno_metalico, "Perno muñón"),
+            (self.incrustacion, "Incrustación"),
+            (self.provisorio_fijo, "Provisorio fijo"),
+            (self.contencion, "Contención"),
+            (self.placa_relajacion, "Placa neuromiorrelajante"),
+            (self.reparacion, "Reparación"),
+            (self.rebasado, "Rebase"),
+            (self.agregado_diente, "Agregado de diente"),
+            (self.agregado_gancho, "Agregado de gancho"),
+        ]
+        for marcado, nombre in opciones:
+            if marcado:
+                trabajos.append(nombre)
+        return ", ".join(trabajos) if trabajos else "Orden de laboratorio"
 
     def __str__(self):
         return f"Orden #{self.id} - {self.protesis.paciente}"

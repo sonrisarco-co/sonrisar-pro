@@ -9,7 +9,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="titulo-seccion mb-1">🦷 {{ titulo }}</h2>
-            <p class="text-muted mb-0">Registro completo de prótesis del paciente</p>
+            <p class="text-muted mb-0">
+                Definí el trabajo protésico y los datos de seguimiento.
+            </p>
         </div>
 
         <a href="{% url 'protesis_list' %}" class="btn btn-outline-secondary">
@@ -27,32 +29,55 @@
         {% endif %}
 
         <div class="protesis-form-card shadow-sm">
-            <div class="form-section-title">Datos generales</div>
+            <div class="form-section-title">
+                Información del trabajo
+            </div>
 
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <label class="form-label">Paciente</label>
                     {{ form.paciente }}
-                    <div class="form-help">Escribí nombre o apellido para buscar rápido.</div>
+                    <div class="form-help">
+                        Escribí el nombre o apellido para encontrar al paciente.
+                    </div>
                     <div class="text-danger small">{{ form.paciente.errors }}</div>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Tipo de prótesis</label>
                     {{ form.tipo_protesis }}
-                    <div class="text-danger small">{{ form.tipo_protesis.errors }}</div>
+                    <div class="text-danger small">
+                        {{ form.tipo_protesis.errors }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Trabajo principal</label>
+                    {{ form.trabajo }}
+                    <div class="form-help" id="trabajo-help">
+                        Las opciones cambian según el tipo seleccionado.
+                    </div>
+                    <div class="text-danger small">
+                        {{ form.trabajo.errors }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Fecha de inicio / toma de impresión
+                    </label>
+                    {{ form.fecha_inicio }}
+                    <div class="text-danger small">
+                        {{ form.fecha_inicio.errors }}
+                    </div>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Monto total</label>
                     {{ form.monto_total }}
-                    <div class="text-danger small">{{ form.monto_total.errors }}</div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Fecha de inicio / toma de impresión</label>
-                    {{ form.fecha_inicio }}
-                    <div class="text-danger small">{{ form.fecha_inicio.errors }}</div>
+                    <div class="text-danger small">
+                        {{ form.monto_total.errors }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -61,31 +86,28 @@
             <div class="form-section-title">Seguimiento</div>
 
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Etapa actual</label>
-                    {{ form.etapa }}
-                    <div class="text-danger small">{{ form.etapa.errors }}</div>
-                </div>
-
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label">Estado</label>
                     {{ form.estado }}
                     <div class="text-danger small">{{ form.estado.errors }}</div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label">Fecha de retorno</label>
                     {{ form.fecha_retorno }}
-                    <div class="text-danger small">{{ form.fecha_retorno.errors }}</div>
+                    <div class="text-danger small">
+                        {{ form.fecha_retorno.errors }}
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Observaciones</label>
+                    {{ form.observaciones }}
+                    <div class="text-danger small">
+                        {{ form.observaciones.errors }}
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="protesis-form-card shadow-sm mt-3">
-            <div class="form-section-title">Observaciones</div>
-
-            {{ form.observaciones }}
-            <div class="text-danger small">{{ form.observaciones.errors }}</div>
         </div>
 
         <div class="form-actions mt-4">
@@ -97,12 +119,13 @@
                 Cancelar
             </a>
         </div>
-
     </form>
-
 </div>
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link
+    href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+    rel="stylesheet"
+>
 
 <style>
     .protesis-form-page {
@@ -111,11 +134,11 @@
 
     .titulo-seccion {
         color: #107361;
-        font-weight: 800;
+        font-weight: 700;
     }
 
     .protesis-form-card {
-        background: white;
+        background: #ffffff;
         border: 1px solid #d8eeee;
         border-left: 5px solid #26ABA5;
         border-radius: 16px;
@@ -124,7 +147,7 @@
 
     .form-section-title {
         color: #107361;
-        font-size: 0.85rem;
+        font-size: 0.86rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -132,8 +155,8 @@
     }
 
     .form-label {
-        color: #333;
-        font-weight: 700;
+        color: #333333;
+        font-weight: 650;
         margin-bottom: 6px;
     }
 
@@ -154,6 +177,12 @@
         font-size: 0.95rem;
     }
 
+    select:disabled {
+        background: #f5f7f7 !important;
+        color: #8a9494;
+        cursor: not-allowed;
+    }
+
     input:focus,
     select:focus,
     textarea:focus {
@@ -163,7 +192,7 @@
     }
 
     textarea {
-        min-height: 115px;
+        min-height: 105px;
         resize: vertical;
     }
 
@@ -180,21 +209,27 @@
         background: #ffffff;
     }
 
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: #333;
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__rendered {
+        color: #333333;
         line-height: 43px;
         padding-left: 11px;
         padding-right: 34px;
         font-size: 0.95rem;
     }
 
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__arrow {
         height: 41px;
         right: 8px;
     }
 
-    .select2-container--default.select2-container--focus .select2-selection--single,
-    .select2-container--default.select2-container--open .select2-selection--single {
+    .select2-container--default.select2-container--focus
+    .select2-selection--single,
+    .select2-container--default.select2-container--open
+    .select2-selection--single {
         border-color: #26ABA5 !important;
         box-shadow: 0 0 0 0.18rem rgba(38, 171, 165, 0.18) !important;
     }
@@ -213,7 +248,7 @@
 
     .btn-sonrisar {
         background-color: #26ABA5;
-        color: white;
+        color: #ffffff;
         border: none;
         border-radius: 10px;
         padding: 9px 18px;
@@ -222,7 +257,7 @@
 
     .btn-sonrisar:hover {
         background-color: #1d918c;
-        color: white;
+        color: #ffffff;
     }
 
     .form-actions {
@@ -270,6 +305,91 @@
                         return "Buscando...";
                     }
                 }
+            });
+        }
+
+        const trabajosPorTipo = {
+            removible: [
+                ["protesis_completa", "Prótesis completa"],
+                ["parcial_cromo", "Prótesis parcial cromo"],
+                ["parcial_acrilica", "Prótesis parcial acrílica"],
+                ["protesis_flexible", "Prótesis flexible"],
+                ["provisorio_placa", "Provisorio a placa"]
+            ],
+            fija: [
+                ["corona_unitaria", "Corona unitaria"],
+                ["puente_fijo", "Puente fijo"],
+                ["jacket", "Jacket"],
+                ["perno_munon", "Perno muñón"],
+                ["incrustacion", "Incrustación"],
+                ["provisorio_fijo", "Provisorio fijo"]
+            ],
+            ortodoncia: [
+                ["contencion", "Contención"],
+                ["placa_neuromiorrelajante", "Placa neuromiorrelajante"]
+            ],
+            reparacion: [
+                ["reparacion", "Reparación"],
+                ["rebase", "Rebase"],
+                ["agregado_diente", "Agregado de diente"],
+                ["agregado_gancho", "Agregado de gancho"]
+            ],
+            otro: [
+                ["otro", "Otro trabajo"]
+            ]
+        };
+
+        const tipoSelect = document.getElementById("id_tipo_protesis");
+        const trabajoSelect = document.getElementById("id_trabajo");
+
+        function actualizarTrabajos(mantenerValor) {
+            if (!tipoSelect || !trabajoSelect) {
+                return;
+            }
+
+            const tipo = tipoSelect.value;
+            const opciones = trabajosPorTipo[tipo] || [];
+            const valorActual = mantenerValor
+                ? (trabajoSelect.value || trabajoSelect.dataset.current || "")
+                : "";
+
+            trabajoSelect.innerHTML = "";
+
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = opciones.length
+                ? "Seleccionar trabajo principal"
+                : "Primero seleccioná el tipo de prótesis";
+            trabajoSelect.appendChild(placeholder);
+
+            opciones.forEach(function (opcion) {
+                const option = document.createElement("option");
+                option.value = opcion[0];
+                option.textContent = opcion[1];
+                trabajoSelect.appendChild(option);
+            });
+
+            const existe = Array.from(trabajoSelect.options).some(function (option) {
+                return option.value === valorActual;
+            });
+
+            if (valorActual && !existe) {
+                const historico = document.createElement("option");
+                historico.value = valorActual;
+                historico.textContent = valorActual;
+                trabajoSelect.appendChild(historico);
+            }
+
+            trabajoSelect.value = valorActual;
+            trabajoSelect.disabled = opciones.length === 0;
+        }
+
+        if (tipoSelect && trabajoSelect) {
+            actualizarTrabajos(true);
+
+            tipoSelect.addEventListener("change", function () {
+                trabajoSelect.dataset.current = "";
+                actualizarTrabajos(false);
             });
         }
     });

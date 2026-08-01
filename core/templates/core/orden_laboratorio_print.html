@@ -3,84 +3,155 @@
 <head>
 {% load static %}
 <meta charset="UTF-8">
-<title>Orden de Laboratorio #{{ orden.id }}</title>
+<title>OT-{{ orden.id|stringformat:"05d" }}</title>
 <style>
 @page{size:A4 portrait;margin:0}
 *{box-sizing:border-box}
-body{margin:0;background:#eee;font-family:Arial,Helvetica,sans-serif;color:#1f2933}
-:root{--v:#0b7774;--c:#26ABA5;--l:#d8eeee;--s:#f8ffff}
-.no-print{width:210mm;margin:7px auto;text-align:right}
-.no-print button,.no-print a{display:inline-block;padding:7px 12px;border-radius:6px;border:0;color:white;text-decoration:none;font-size:13px;margin-left:6px}
+html,body{margin:0;padding:0;width:210mm;min-height:297mm}
+body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
+.no-print{width:210mm;margin:6px auto;text-align:right;padding-right:6mm}
+.no-print button,.no-print a{display:inline-block;padding:6px 10px;border-radius:6px;border:0;color:#fff;text-decoration:none;font-size:11px;margin-left:5px}
 .btn-print{background:#198754}.btn-back{background:#6c757d}
-.sheet{width:210mm;height:148mm;margin:0 auto;background:#fff;padding:6mm 8mm 5mm;overflow:hidden;display:flex;flex-direction:column}
-.header{display:grid;grid-template-columns:42mm 1fr 30mm;gap:5mm;align-items:center;border-bottom:2px solid var(--v);padding-bottom:3.2mm;margin-bottom:3mm}
-.logo{width:34mm;height:auto}.title{text-align:center;color:var(--v);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:.9px}
-.box{border:1px solid var(--l);border-radius:8px;background:#fff;padding:2.5mm}.datebox{text-align:center;background:var(--s)}
-.label{color:var(--v);font-size:7px;font-weight:800;text-transform:uppercase;margin-bottom:1mm;letter-spacing:.25px}
-.value{font-size:10.5px;font-weight:700}.patient{font-size:11px;font-weight:700}
-.meta{display:grid;grid-template-columns:1fr 28mm 25mm;gap:3mm;margin-bottom:2.5mm}
-.main{display:grid;grid-template-columns:1fr 1fr;gap:4mm;flex:1;min-height:0}.col{display:flex;flex-direction:column;gap:2mm;min-height:0}
-.section{border:1px solid var(--l);border-radius:9px;padding:2.6mm 3mm;background:white}.section-title{display:flex;align-items:center;gap:1.8mm;color:var(--v);font-size:8.8px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;margin-bottom:1.6mm}
-.dot{width:3mm;height:3mm;border-radius:50%;background:var(--c);display:inline-block}.item{display:grid;grid-template-columns:4.2mm 1fr;gap:1.8mm;font-size:10.3px;line-height:1.25;margin-bottom:1.1mm}
-.chk{width:3.9mm;height:3.9mm;border-radius:4px;background:var(--v);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:900}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:2mm}.dates p{margin:0 0 .8mm;font-size:9.2px}.dates strong{color:var(--v)}
-.note{min-height:10mm;font-size:9.6px;line-height:1.35;white-space:pre-line}.work{flex:1 1 auto}.material{flex:0 0 auto;padding:2.5mm 3mm}.notes{flex:0 0 auto}
-.footer{margin-top:2mm;padding-top:2.3mm;border-top:2px solid var(--v);display:grid;grid-template-columns:1.25fr .9fr .85fr 1.25fr;gap:3mm;font-size:8px;color:#334155;line-height:1.15}
-.footer-item{display:grid;grid-template-columns:5.2mm 1fr;gap:1.4mm;align-items:center}.icon svg{width:4.4mm;height:4.4mm;stroke:var(--v);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sheet{width:210mm;height:148.5mm;min-height:148.5mm;max-height:148.5mm;margin:0 auto;background:#fff;padding:5mm 7mm;overflow:hidden}
+.header{display:grid;grid-template-columns:34mm 1fr 30mm;align-items:center;gap:3mm;border-bottom:1.5px solid #0b7774;padding-bottom:2.5mm}
+.logo{width:30mm;max-height:15mm;object-fit:contain}
+.title{text-align:center;color:#0b7774;font-size:14px;font-weight:800;letter-spacing:.5px}
+.order{text-align:center;border:1px solid #b9dddd;border-radius:6px;padding:2mm}
+.label{font-size:6.5px;color:#0b7774;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.value{font-size:9px;font-weight:700;margin-top:.7mm}
+.summary{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:1.8mm;margin:2mm 0}
+.box{border:1px solid #b9dddd;border-radius:6px;padding:2mm}
+.work{border:1.5px solid #0b7774;background:#f1fbfb;border-radius:7px;padding:2mm;margin-bottom:2mm}
+.work .value{font-size:11px}
+.work-meta{font-size:9.5px;line-height:1.35;margin-top:1.2mm;font-weight:600;color:#20262c}
+.work-meta strong{font-weight:800;color:#0b7774}
+.section{border:1px solid #b9dddd;border-radius:7px;padding:1.8mm;margin-bottom:1.8mm}
+.section-title{color:#0b7774;text-transform:uppercase;font-size:7px;font-weight:800;margin-bottom:1.3mm}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.8mm}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1mm 2mm}
+.item{font-size:8px;line-height:1.35;margin-bottom:.5mm}
+.check{display:inline-block;width:3.2mm;height:3.2mm;border:1px solid #0b7774;border-radius:1px;text-align:center;line-height:2.9mm;margin-right:1mm;color:#0b7774;font-weight:800;font-size:8px}
+.note{min-height:9mm;max-height:13mm;overflow:hidden;white-space:pre-line;font-size:8px;line-height:1.25}
+.signature{display:none}
+.line{border-top:1px solid #555;text-align:center;padding-top:1.3mm;font-size:7px}
+.footer{border-top:1.5px solid #0b7774;margin-top:1.8mm;padding-top:1.5mm;text-align:center;font-size:6.5px;color:#4b5563}
 @media print{
-html,body{width:210mm;height:297mm;margin:0!important;padding:0!important;background:#fff}
-body{overflow:hidden}
-.no-print{display:none!important}
-.sheet{width:210mm;height:148.5mm;margin:0!important;padding:6mm 8mm 5mm;overflow:hidden;display:flex;flex-direction:column;transform:none!important;page-break-after:avoid;break-after:avoid}
-}
+        html,body{
+            width:210mm;
+            height:297mm;
+            min-height:297mm;
+            background:#fff;
+            margin:0;
+            padding:0;
+        }
+        .no-print{display:none}
+        .sheet{
+            width:210mm;
+            height:148.5mm;
+            min-height:148.5mm;
+            max-height:148.5mm;
+            margin:0;
+            padding:5mm 7mm;
+            overflow:hidden;
+            page-break-after:avoid;
+            break-after:avoid;
+        }
+    }
 </style>
-</head><body>
-<div class="no-print"><button onclick="window.print()" class="btn-print">Imprimir / Guardar PDF</button><a href="{% url 'orden_laboratorio_detalle' orden.id %}" class="btn-back">Volver</a></div>
-<div class="sheet">
-<div class="header"><img class="logo" src="{% static 'img/logo.png' %}" alt="Sonrisar"><div class="title">Orden de Laboratorio</div><div class="box datebox"><div class="label">Fecha</div><div class="value">{% if orden.fecha %}{{ orden.fecha|date:"d/m/Y" }}{% endif %}</div></div></div>
-<div class="meta"><div class="box"><div class="label">Paciente</div><div class="patient">{{ protesis.paciente }}</div></div><div class="box"><div class="label">Estado</div><div class="value">{{ orden.get_estado_display }}</div></div><div class="box"><div class="label">Orden</div><div class="value">#{{ orden.id }}</div></div></div>
-<div class="main"><div class="col">
-<div class="section work"><div class="section-title"><span class="dot"></span>Trabajo solicitado</div>
+</head>
+<body>
+<div class="no-print">
+<button onclick="window.print()" class="btn-print">Imprimir / Guardar PDF</button>
+<a href="{% url 'orden_laboratorio_detalle' orden.id %}" class="btn-back">Volver</a>
+</div>
 
-{% if orden.protesis_completa %}<div class="item"><span class="chk">✓</span><span>Prótesis completa{% if orden.protesis_completa_sup %} · Superior{% endif %}{% if orden.protesis_completa_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.protesis_parcial %}<div class="item"><span class="chk">✓</span><span>Prótesis parcial{% if orden.protesis_parcial_sup %} · Superior{% endif %}{% if orden.protesis_parcial_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.protesis_flexible %}<div class="item"><span class="chk">✓</span><span>Prótesis flexible{% if orden.protesis_flexible_sup %} · Superior{% endif %}{% if orden.protesis_flexible_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.cromo %}<div class="item"><span class="chk">✓</span><span>Cromo{% if orden.cromo_sup %} · Superior{% endif %}{% if orden.cromo_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.provisorio_placa %}<div class="item"><span class="chk">✓</span><span>Provisorio a placa{% if orden.provisorio_placa_sup %} · Superior{% endif %}{% if orden.provisorio_placa_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.reparacion %}<div class="item"><span class="chk">✓</span><span>Reparación</span></div>{% endif %}
-{% if orden.rebasado %}<div class="item"><span class="chk">✓</span><span>Rebasado</span></div>{% endif %}
-{% if orden.cubeta_individual %}<div class="item"><span class="chk">✓</span><span>Cubeta individual</span></div>{% endif %}
-{% if orden.placa_articular %}<div class="item"><span class="chk">✓</span><span>Placa articular</span></div>{% endif %}
-{% if orden.enfilado %}<div class="item"><span class="chk">✓</span><span>Enfilado</span></div>{% endif %}
-{% if orden.terminacion %}<div class="item"><span class="chk">✓</span><span>Terminación</span></div>{% endif %}
-{% if orden.removible_otros %}<div class="item"><span class="chk">✓</span><span>Otros: {{ orden.removible_otros_texto }}</span></div>{% endif %}
-{% if orden.perno_metalico %}<div class="item"><span class="chk">✓</span><span>Perno metálico</span></div>{% endif %}
-{% if orden.incrustacion %}<div class="item"><span class="chk">✓</span><span>Incrustación</span></div>{% endif %}
-{% if orden.jacket %}<div class="item"><span class="chk">✓</span><span>Jacket</span></div>{% endif %}
-{% if orden.corona %}<div class="item"><span class="chk">✓</span><span>Corona</span></div>{% endif %}
-{% if orden.puente_fijo %}<div class="item"><span class="chk">✓</span><span>Puente fijo</span></div>{% endif %}
-{% if orden.contencion %}<div class="item"><span class="chk">✓</span><span>Contención{% if orden.contencion_sup %} · Superior{% endif %}{% if orden.contencion_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.placa_relajacion %}<div class="item"><span class="chk">✓</span><span>Placa de relajación{% if orden.placa_relajacion_sup %} · Superior{% endif %}{% if orden.placa_relajacion_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.ortodoncia_otros %}<div class="item"><span class="chk">✓</span><span>Otros ortodoncia: {{ orden.ortodoncia_otros_texto }}</span></div>{% endif %}
-</div><div class="section material"><div class="section-title"><span class="dot"></span>Material enviado</div>
-{% if orden.impresion_inicial_sup or orden.impresion_inicial_inf %}<div class="item"><span class="chk">✓</span><span>Impresión inicial{% if orden.impresion_inicial_sup %} · Superior{% endif %}{% if orden.impresion_inicial_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.impresion_definitiva_sup or orden.impresion_definitiva_inf %}<div class="item"><span class="chk">✓</span><span>Impresión definitiva{% if orden.impresion_definitiva_sup %} · Superior{% endif %}{% if orden.impresion_definitiva_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.modelo_sup or orden.modelo_inf %}<div class="item"><span class="chk">✓</span><span>Modelo{% if orden.modelo_sup %} · Superior{% endif %}{% if orden.modelo_inf %} · Inferior{% endif %}</span></div>{% endif %}
-{% if orden.registro_mordida %}<div class="item"><span class="chk">✓</span><span>Registro de mordida</span></div>{% endif %}
-{% if orden.protesis_a_reparar %}<div class="item"><span class="chk">✓</span><span>Prótesis a reparar</span></div>{% endif %}
-{% if orden.material_otros %}<div class="item"><span class="chk">✓</span><span>Otros: {{ orden.material_otros_texto }}</span></div>{% endif %}
-</div></div><div class="col">
-<div class="grid2"><div class="section"><div class="section-title"><span class="dot"></span>Fechas</div><div class="dates">
-<p><strong>Envío:</strong> {% if orden.fecha_envio %}{{ orden.fecha_envio|date:"d/m/Y" }}{% else %}Sin definir{% endif %}</p>
-<p><strong>Entrega:</strong> {% if orden.fecha_entrega_prometida %}{{ orden.fecha_entrega_prometida|date:"d/m/Y" }}{% else %}Sin definir{% endif %}</p>
-<p><strong>Recepción:</strong> {% if orden.fecha_recepcion %}{{ orden.fecha_recepcion|date:"d/m/Y" }}{% else %}Sin definir{% endif %}</p></div></div>
-<div class="section"><div class="section-title"><span class="dot"></span>Estado</div><div class="value">{{ orden.get_estado_display }}</div></div></div>
-<div class="section notes"><div class="section-title"><span class="dot"></span>Indicaciones</div><div class="note">{% if orden.indicaciones %}{{ orden.indicaciones }}{% else %}Sin indicaciones.{% endif %}</div></div>
-<div class="section notes"><div class="section-title"><span class="dot"></span>Observaciones</div><div class="note">{% if orden.observaciones %}{{ orden.observaciones }}{% else %}Sin observaciones.{% endif %}</div></div>
+<div class="sheet">
+<div class="header">
+<img class="logo" src="{% static 'img/logo.png' %}" alt="Sonrisar">
+<div class="title">ORDEN DE LABORATORIO</div>
+<div class="order"><div class="label">Orden</div><div class="value">OT-{{ orden.id|stringformat:"05d" }}</div></div>
+</div>
+
+<div class="summary">
+<div class="box"><div class="label">Paciente</div><div class="value">{{ protesis.paciente }}</div></div>
+<div class="box"><div class="label">Fecha de envío</div><div class="value">{% if orden.fecha_envio %}{{ orden.fecha_envio|date:"d/m/Y" }}{% else %}{{ orden.fecha|date:"d/m/Y" }}{% endif %}</div></div>
+<div class="box">
+        <div class="label">Solicitado para</div>
+        <div class="value">
+            {% if orden.fecha_entrega_prometida %}
+                {{ orden.fecha_entrega_prometida|date:"d/m/Y" }}
+                {% if orden.hora_entrega_solicitada %}
+                    · {{ orden.hora_entrega_solicitada|time:"H:i" }}
+                {% endif %}
+            {% else %}
+                —
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="work">
+<div class="label">Trabajo</div>
+<div class="value">{{ orden.resumen_trabajo }}</div>
+<div class="work-meta"><strong>Tipo:</strong> {{ protesis.get_tipo_protesis_display }} &nbsp;|&nbsp; <strong>Arcada:</strong> {{ orden.get_arcada_display|default:"—" }}</div>
+{% if orden.piezas_removible %}<div class="item"><strong>Piezas:</strong> {{ orden.piezas_removible }}</div>{% endif %}
+{% if orden.piezas_fija %}<div class="item"><strong>Piezas:</strong> {{ orden.piezas_fija }}</div>{% endif %}
+</div>
+
+<div class="grid2">
+<div>
+{% if orden.impresion_primaria or orden.impresion_inicial or orden.impresion_definitiva or orden.antagonista or orden.registro_mordida or orden.enfilado_enviado or orden.protesis_a_reparar %}
+<div class="section"><div class="section-title">Se envía</div>
+{% if orden.impresion_primaria or orden.impresion_inicial %}<div class="item"><span class="check">✓</span>Impresión primaria</div>{% endif %}
+{% if orden.impresion_definitiva %}<div class="item"><span class="check">✓</span>Impresión definitiva</div>{% endif %}
+{% if orden.antagonista %}<div class="item"><span class="check">✓</span>Antagonista</div>{% endif %}
+{% if orden.registro_mordida %}<div class="item"><span class="check">✓</span>Registro de mordida</div>{% endif %}
+{% if orden.enfilado_enviado %}<div class="item"><span class="check">✓</span>Enfilado</div>{% endif %}
+{% if orden.protesis_a_reparar %}<div class="item"><span class="check">✓</span>Prótesis a reparar</div>{% endif %}
+</div>
+{% endif %}
+
+{% if orden.solicita_cubeta_individual or orden.solicita_placa_articular or orden.solicita_enfilado or orden.solicita_terminacion or orden.solicita_cromo or orden.prueba_estructura or orden.prueba_estetica or orden.glaseado %}
+<div class="section"><div class="section-title">Solicito</div>
+{% if orden.solicita_cubeta_individual %}<div class="item"><span class="check">✓</span>Cubeta individual</div>{% endif %}
+{% if orden.solicita_placa_articular %}<div class="item"><span class="check">✓</span>Placa articular</div>{% endif %}
+{% if orden.solicita_enfilado %}<div class="item"><span class="check">✓</span>Enfilado</div>{% endif %}
+{% if orden.solicita_terminacion %}<div class="item"><span class="check">✓</span>Terminación</div>{% endif %}
+{% if orden.solicita_cromo %}<div class="item"><span class="check">✓</span>Cromo</div>{% endif %}
+{% if orden.prueba_estructura %}<div class="item"><span class="check">✓</span>Prueba de estructura</div>{% endif %}
+{% if orden.prueba_estetica %}<div class="item"><span class="check">✓</span>Prueba estética</div>{% endif %}
+{% if orden.glaseado %}<div class="item"><span class="check">✓</span>Glaseado</div>{% endif %}
+</div>
+{% endif %}
+</div>
+
+<div>
+{% if orden.material_metal or orden.material_acrilico or orden.material_ceromero or orden.material_ceramica or orden.material_zirconio or orden.material_disilicato %}
+<div class="section"><div class="section-title">Material</div>
+<div class="grid2">
+{% if orden.material_metal %}<div class="item"><span class="check">✓</span>Metal</div>{% endif %}
+{% if orden.material_acrilico %}<div class="item"><span class="check">✓</span>Acrílico</div>{% endif %}
+{% if orden.material_ceromero %}<div class="item"><span class="check">✓</span>Cerómero</div>{% endif %}
+{% if orden.material_ceramica %}<div class="item"><span class="check">✓</span>Cerámica</div>{% endif %}
+{% if orden.material_zirconio %}<div class="item"><span class="check">✓</span>Zirconio</div>{% endif %}
+{% if orden.material_disilicato %}<div class="item"><span class="check">✓</span>Disilicato</div>{% endif %}
 </div></div>
-<div class="footer">
-<div class="footer-item"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 21s7-7.2 7-12a7 7 0 0 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span><span>Román Guerra 752<br>Maldonado</span></div>
-<div class="footer-item"><span class="icon"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1.9.3 1.7.6 2.5a2 2 0 0 1-.4 2.1L9 10.6a16 16 0 0 0 4.4 4.4l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.6.5 2.5.6A2 2 0 0 1 22 16.9z"/></svg></span><span>092 706 293</span></div>
-<div class="footer-item"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span><span>sonrisar_</span></div>
-<div class="footer-item"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><span>sonrisarco@gmail.com</span></div>
-</div></div></body></html>
+{% endif %}
+
+<div class="section"><div class="section-title">Datos</div>
+<div class="item"><strong>Estado:</strong> {{ orden.get_estado_display }}</div>
+<div class="item"><strong>Odontólogo:</strong> {{ orden.odontologo|default:"Rodrigo" }}</div>
+{% if orden.fecha_envio %}<div class="item"><strong>Envío:</strong> {{ orden.fecha_envio|date:"d/m/Y" }}</div>{% endif %}
+</div>
+</div>
+</div>
+
+<div class="section"><div class="section-title">Indicaciones / Observaciones</div>
+<div class="note">{% if orden.indicaciones %}{{ orden.indicaciones }}{% endif %}{% if orden.indicaciones and orden.observaciones %}
+
+{% endif %}{% if orden.observaciones %}{{ orden.observaciones }}{% endif %}</div>
+</div>
+<div class="footer">Román Guerra 752 · Tel. 092 706 293</div>
+</div>
+</body>
+</html>

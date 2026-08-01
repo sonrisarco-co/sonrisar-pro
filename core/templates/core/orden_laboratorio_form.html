@@ -1,358 +1,245 @@
 {% extends "core/base.html" %}
-
 {% block content %}
 
 <style>
-    .orden-wrap {
-        max-width: 1050px;
-        margin: 0 auto;
-        background: #fff;
-        padding: 24px;
-        border: 1px solid #26ABA5;
-        border-radius: 10px;
-    }
-
-    .sonrisar {
-        color: #0b7774;
-    }
-
-    .orden-title {
-        font-weight: 700;
-        letter-spacing: 1px;
-        color: #0b7774;
-    }
-
-    .orden-box {
-        border: 1px solid #0b7774;
-        border-radius: 10px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
-
-    .orden-section-title {
-        color: #0b7774;
-        font-weight: 700;
-        font-size: 15px;
-        margin-bottom: 14px;
-        text-transform: uppercase;
-    }
-
-    .check-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-        font-size: 14px;
-    }
-
-    .sub-checks {
-        margin-left: 34px;
-        display: flex;
-        gap: 28px;
-        margin-bottom: 12px;
-        font-size: 13px;
-    }
-
-    .sub-checks label,
-    .check-row label,
-    .check-inline {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        line-height: 1;
-        margin: 0;
-    }
-
-    input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        margin: 0;
-        vertical-align: middle;
-        flex: 0 0 auto;
-    }
-
-    .thin-line {
-        border-top: 1px solid #9accca;
-        margin: 12px 0;
-    }
-
-    .form-control,
-    .form-select {
-        border-color: #9accca;
-    }
-
-    textarea.form-control {
-        min-height: 70px;
-    }
-
-
-    .patient-line {
-        min-height: 28px;
-        padding-top: 4px;
-        font-weight: 600;
-        font-size: 18px;
-    }
-
-    .footer-actions {
-        border-top: 3px solid #0b7774;
-        padding-top: 18px;
-        margin-top: 22px;
-    }
+.orden-wrap{max-width:1100px;margin:0 auto;background:#fff;padding:24px;border:1px solid #26ABA5;border-radius:12px}
+.orden-title,.section-title{color:#0b7774}
+.orden-title{font-weight:700;letter-spacing:.5px}
+.section-title{font-weight:700;text-transform:uppercase;font-size:14px;margin-bottom:14px}
+.orden-box{border:1px solid #b9dddd;border-radius:10px;padding:16px;margin-bottom:16px}
+.work-group{display:none}.work-group.active{display:block}
+.option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
+.check-item{display:flex;align-items:center;gap:9px;margin:0}
+.form-check-input{width:18px;height:18px;margin:0}
+.form-control,.form-select{border-color:#9accca}
+.patient-name{font-size:18px;font-weight:600}
+.footer-actions{border-top:2px solid #0b7774;padding-top:18px;margin-top:20px}
+.errorlist{color:#b02a37;margin:6px 0;padding-left:20px}
+.resumen-trabajo{background:#edfafa;border:1px solid #b9dddd;border-radius:10px;padding:12px 15px}
+.resumen-label{font-size:11px;text-transform:uppercase;color:#0b7774;font-weight:800;letter-spacing:.04em}
+.resumen-value{font-size:16px;font-weight:650;color:#263238;margin-top:2px}
+.work-tab.active{background:#198754;color:#fff}
+@media(max-width:768px){.option-grid{grid-template-columns:1fr}.orden-wrap{padding:16px}}
 </style>
 
 <div class="container mt-4 mb-5">
+<div class="orden-wrap">
 
-    <div class="orden-wrap">
+<form method="post" novalidate>
+{% csrf_token %}
+<input type="hidden" name="grupo_activo" id="grupo-activo" value="{{ grupo_activo|default:'removible' }}">
 
-        <div class="d-flex justify-content-between align-items-start mb-4">
-            <div>
-                <h2 class="orden-title mb-1">ORDEN DE LABORATORIO</h2>
-                <div class="text-muted">Sonrisar Centro Odontológico</div>
-            </div>
-
-            <div style="width: 220px;">
-                <label class="fw-bold sonrisar">Estado</label>
-                {{ form.estado }}
-            </div>
-        </div>
-
-        <form method="post">
-            {% csrf_token %}
-
-            <!-- DATOS DEL PACIENTE -->
-            <div class="orden-box">
-                <div class="orden-section-title">DATOS DEL PACIENTE</div>
-
-                <div class="row">
-                    <div class="col-md-9">
-                        <label class="fw-bold">Nombre y Apellido</label>
-                        <div class="patient-line mt-2">
-                            {{ protesis.paciente }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="fw-bold">Edad</label>
-                        <div class="patient-line mt-2">&nbsp;</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TRABAJOS SOLICITADOS -->
-            <div class="row g-3">
-
-                <!-- PRÓTESIS REMOVIBLE -->
-                <div class="col-md-4">
-                    <div class="orden-box h-100">
-                        <div class="orden-section-title">
-                            TRABAJOS SOLICITADOS<br>
-                            PRÓTESIS REMOVIBLE
-                        </div>
-
-                        <div class="check-row">{{ form.protesis_completa }} Prótesis completa</div>
-                        <div class="sub-checks">
-                            <label>{{ form.protesis_completa_sup }} Superior</label>
-                            <label>{{ form.protesis_completa_inf }} Inferior</label>
-                        </div>
-
-                        <div class="check-row">{{ form.protesis_parcial }} Prótesis parcial</div>
-                        <div class="sub-checks">
-                            <label>{{ form.protesis_parcial_sup }} Superior</label>
-                            <label>{{ form.protesis_parcial_inf }} Inferior</label>
-                        </div>
-
-                        <div class="check-row">{{ form.protesis_flexible }} Prótesis flexible</div>
-                        <div class="sub-checks">
-                            <label>{{ form.protesis_flexible_sup }} Superior</label>
-                            <label>{{ form.protesis_flexible_inf }} Inferior</label>
-                        </div>
-
-                        <div class="check-row">{{ form.cromo }} Cromo</div>
-                        <div class="sub-checks">
-                            <label>{{ form.cromo_sup }} Superior</label>
-                            <label>{{ form.cromo_inf }} Inferior</label>
-                        </div>
-
-                        <div class="check-row">{{ form.provisorio_placa }} Provisorio a placa</div>
-                        <div class="sub-checks">
-                            <label>{{ form.provisorio_placa_sup }} Superior</label>
-                            <label>{{ form.provisorio_placa_inf }} Inferior</label>
-                        </div>
-
-                        <div class="thin-line"></div>
-
-                        <div class="check-row">{{ form.reparacion }} Reparación</div>
-                        <div class="check-row">{{ form.rebasado }} Rebasado</div>
-                        <div class="check-row">{{ form.cubeta_individual }} Cubeta individual</div>
-                        <div class="check-row">{{ form.placa_articular }} Placa articular</div>
-                        <div class="check-row">{{ form.enfilado }} Enfilado</div>
-                        <div class="check-row">{{ form.terminacion }} Terminación</div>
-
-                        <div class="check-row mt-2">{{ form.removible_otros }} Otros:</div>
-                        {{ form.removible_otros_texto }}
-                    </div>
-                </div>
-
-                <!-- REHABILITACIÓN FIJA -->
-                <div class="col-md-4">
-                    <div class="orden-box h-100">
-                        <div class="orden-section-title">
-                            TRABAJOS SOLICITADOS<br>
-                            REHABILITACIÓN FIJA
-                        </div>
-
-                        <div class="check-row">{{ form.perno_metalico }} Perno metálico</div>
-                        <div class="check-row">{{ form.incrustacion }} Incrustación</div>
-                        <div class="check-row">{{ form.jacket }} Jacket</div>
-                        <div class="check-row">{{ form.corona }} Corona</div>
-                        <div class="check-row">{{ form.puente_fijo }} Puente fijo</div>
-                    </div>
-                </div>
-
-                <!-- ORTODONCIA -->
-                <div class="col-md-4">
-                    <div class="orden-box h-100">
-                        <div class="orden-section-title">
-                            TRABAJOS SOLICITADOS<br>
-                            ORTODONCIA Y OTROS
-                        </div>
-
-                        <div class="check-row">{{ form.contencion }} Contención</div>
-                        <div class="sub-checks">
-                            <label>{{ form.contencion_sup }} Superior</label>
-                            <label>{{ form.contencion_inf }} Inferior</label>
-                        </div>
-
-                        <div class="check-row mt-4">{{ form.placa_relajacion }} Placa de relajación</div>
-                        <div class="sub-checks">
-                            <label>{{ form.placa_relajacion_sup }} Superior</label>
-                            <label>{{ form.placa_relajacion_inf }} Inferior</label>
-                        </div>
-
-                        <div class="thin-line mt-5"></div>
-
-                        <div class="check-row">{{ form.ortodoncia_otros }} Otros:</div>
-                        {{ form.ortodoncia_otros_texto }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- MATERIAL ENVIADO -->
-            <div class="orden-box mt-3">
-                <div class="orden-section-title">
-                    MATERIAL ENVIADO AL LABORATORIO
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-
-                        <div class="row mb-3 align-items-center">
-                            <div class="col-5">Impresión inicial</div>
-                            <div class="col-3">
-                                <label class="check-inline">
-                                    {{ form.impresion_inicial_sup }}
-                                    Superior
-                                </label>
-                            </div>
-                            <div class="col-3">
-                                <label class="check-inline">
-                                    {{ form.impresion_inicial_inf }}
-                                    Inferior
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3 align-items-center">
-                            <div class="col-5">Impresión definitiva</div>
-                            <div class="col-3">
-                                <label class="check-inline">
-                                    {{ form.impresion_definitiva_sup }}
-                                    Superior
-                                </label>
-                            </div>
-                            <div class="col-3">
-                                <label class="check-inline">
-                                    {{ form.impresion_definitiva_inf }}
-                                    Inferior
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3 align-items-center">
-                            <div class="col-5">Modelo</div>
-                            <div class="col-3">
-                                <label class="check-inline">
-                                    {{ form.modelo_sup }}
-                                    Superior
-                                </label>
-                            </div>
-                            <div class="col-3">
-                                <label class="check-inline">
-                                    {{ form.modelo_inf }}
-                                    Inferior
-                                </label>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-6 border-start">
-
-                        <div class="check-row">{{ form.registro_mordida }} Registro de mordida</div>
-                        <div class="check-row">{{ form.protesis_a_reparar }} Prótesis a reparar</div>
-                        <div class="check-row">{{ form.material_otros }} Otros:</div>
-                        {{ form.material_otros_texto }}
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- INDICACIONES -->
-            <div class="orden-box">
-                <div class="orden-section-title">INDICACIONES PARA EL LABORATORIO</div>
-                {{ form.indicaciones }}
-            </div>
-
-            <!-- FECHAS -->
-            <div class="orden-box">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="fw-bold sonrisar">Fecha de envío</label>
-                        {{ form.fecha_envio }}
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="fw-bold sonrisar">Fecha comprometida de entrega</label>
-                        {{ form.fecha_entrega_prometida }}
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="fw-bold sonrisar">Fecha de recepción</label>
-                        {{ form.fecha_recepcion }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- OBSERVACIONES -->
-            <div class="orden-box">
-                <div class="orden-section-title">OBSERVACIONES</div>
-                {{ form.observaciones }}
-            </div>
-
-            <div class="footer-actions">
-                <button type="submit" class="btn btn-success">
-                    💾 Guardar Orden
-                </button>
-
-                <a href="{% url 'protesis_list' %}" class="btn btn-secondary">
-                    Cancelar
-                </a>
-            </div>
-
-        </form>
-
+<div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div>
+        <h2 class="orden-title mb-1">{{ titulo|default:"Orden de Laboratorio" }}</h2>
+        <div class="text-muted">Sonrisar Centro Odontológico</div>
     </div>
-
+    <div style="width:220px">
+        <label class="fw-bold section-title d-block mb-1">Estado</label>
+        {{ form.estado }}
+        <div class="text-danger small">{{ form.estado.errors }}</div>
+    </div>
 </div>
 
+<div class="row g-2 mb-4">
+    <div class="col-md-4">
+        <div class="resumen-trabajo h-100">
+            <div class="resumen-label">Paciente</div>
+            <div class="resumen-value">{{ protesis.paciente }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="resumen-trabajo h-100">
+            <div class="resumen-label">Tipo</div>
+            <div class="resumen-value">{{ protesis.get_tipo_protesis_display }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="resumen-trabajo h-100">
+            <div class="resumen-label">Trabajo principal</div>
+            <div class="resumen-value">{{ trabajo_principal|default:"Sin especificar" }}</div>
+        </div>
+    </div>
+</div>
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger">{{ form.non_field_errors }}</div>
+{% endif %}
+
+<div class="orden-box">
+    <div class="section-title">1. Datos de la orden</div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="fw-bold">Arcada</label>
+            {{ form.arcada }}{{ form.arcada.errors }}
+        </div>
+        <div class="col-md-4">
+            <label class="fw-bold">Odontólogo</label>
+            {{ form.odontologo }}{{ form.odontologo.errors }}
+        </div>
+        <div class="col-md-4">
+            <label class="fw-bold">Solicitado para</label>
+            <div class="row g-2">
+                <div class="col-7">
+                    {{ form.fecha_entrega_prometida }}
+                </div>
+                <div class="col-5">
+                    {{ form.hora_entrega_solicitada }}
+                </div>
+            </div>
+            <div class="text-danger small">
+                {{ form.fecha_entrega_prometida.errors }}
+                {{ form.hora_entrega_solicitada.errors }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="orden-box">
+    <div class="section-title">2. Trabajo solicitado</div>
+    <div class="btn-group flex-wrap" role="group">
+        <button type="button" class="btn btn-outline-success work-tab" data-target="removible">Removible</button>
+        <button type="button" class="btn btn-outline-success work-tab" data-target="fija">Fija</button>
+        <button type="button" class="btn btn-outline-success work-tab" data-target="otros">Otros</button>
+    </div>
+</div>
+
+<div id="group-removible" class="orden-box work-group">
+    <div class="section-title">Prótesis removible / Reparación</div>
+    <div class="option-grid">
+        <label class="check-item">{{ form.protesis_completa }} Prótesis completa</label>
+        <label class="check-item">{{ form.parcial_cromo }} Prótesis parcial cromo</label>
+        <label class="check-item">{{ form.parcial_acrilica }} Prótesis parcial acrílica</label>
+        <label class="check-item">{{ form.protesis_flexible }} Prótesis flexible</label>
+        <label class="check-item">{{ form.provisorio_placa }} Provisorio a placa</label>
+        <label class="check-item">{{ form.reparacion }} Reparación</label>
+        <label class="check-item">{{ form.rebasado }} Rebase</label>
+        <label class="check-item">{{ form.agregado_diente }} Agregado de diente</label>
+        <label class="check-item">{{ form.agregado_gancho }} Agregado de gancho</label>
+    </div>
+    <div class="mt-3"><label class="fw-bold">Pieza(s)</label>{{ form.piezas_removible }}</div>
+</div>
+
+<div id="group-fija" class="orden-box work-group">
+    <div class="section-title">Rehabilitación fija</div>
+    <div class="option-grid">
+        <label class="check-item">{{ form.corona_unitaria }} Corona unitaria</label>
+        <label class="check-item">{{ form.puente_fijo }} Puente fijo</label>
+        <label class="check-item">{{ form.jacket }} Jacket</label>
+        <label class="check-item">{{ form.perno_metalico }} Perno muñón</label>
+        <label class="check-item">{{ form.incrustacion }} Incrustación</label>
+        <label class="check-item">{{ form.provisorio_fijo }} Provisorio</label>
+    </div>
+    <div class="mt-3"><label class="fw-bold">Pieza(s)</label>{{ form.piezas_fija }}</div>
+</div>
+
+<div id="group-otros" class="orden-box work-group">
+    <div class="section-title">Ortodoncia y otros</div>
+    <div class="option-grid">
+        <label class="check-item">{{ form.contencion }} Contención</label>
+        <label class="check-item">{{ form.placa_relajacion }} Placa neuromiorrelajante</label>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="orden-box h-100">
+            <div class="section-title">3. Se envía</div>
+            <div class="option-grid">
+                <label class="check-item">{{ form.impresion_primaria }} Impresión primaria</label>
+                <label class="check-item">{{ form.impresion_definitiva }} Impresión definitiva</label>
+                <label class="check-item">{{ form.antagonista }} Antagonista</label>
+                <label class="check-item">{{ form.registro_mordida }} Registro de mordida</label>
+                <label class="check-item">{{ form.enfilado_enviado }} Enfilado</label>
+                <label class="check-item">{{ form.protesis_a_reparar }} Prótesis a reparar</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="orden-box h-100">
+            <div class="section-title">4. Solicito</div>
+            <div class="option-grid">
+                <label class="check-item">{{ form.solicita_cubeta_individual }} Cubeta individual</label>
+                <label class="check-item">{{ form.solicita_placa_articular }} Placa articular</label>
+                <label class="check-item">{{ form.solicita_enfilado }} Enfilado</label>
+                <label class="check-item">{{ form.solicita_terminacion }} Terminación</label>
+                <label class="check-item">{{ form.solicita_cromo }} Cromo</label>
+                <label class="check-item">{{ form.prueba_estructura }} Prueba de estructura</label>
+                <label class="check-item">{{ form.prueba_estetica }} Prueba estética</label>
+                <label class="check-item">{{ form.glaseado }} Glaseado</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="orden-box" id="material-fija">
+    <div class="section-title">Material — Prótesis fija</div>
+    <div class="option-grid">
+        <label class="check-item">{{ form.material_metal }} Metal</label>
+        <label class="check-item">{{ form.material_acrilico }} Acrílico</label>
+        <label class="check-item">{{ form.material_ceromero }} Cerómero</label>
+        <label class="check-item">{{ form.material_ceramica }} Cerámica</label>
+        <label class="check-item">{{ form.material_zirconio }} Zirconio</label>
+        <label class="check-item">{{ form.material_disilicato }} Disilicato de litio (E.max)</label>
+    </div>
+</div>
+
+<div class="orden-box">
+    <div class="section-title">5. Indicaciones para el laboratorio</div>
+    {{ form.indicaciones }}{{ form.indicaciones.errors }}
+</div>
+
+<div class="orden-box">
+    <div class="section-title">Fechas complementarias</div>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="fw-bold">Fecha de envío</label>
+            {{ form.fecha_envio }}
+            <div class="text-danger small">{{ form.fecha_envio.errors }}</div>
+        </div>
+        <div class="col-md-6"><label class="fw-bold">Fecha de recepción</label>{{ form.fecha_recepcion }}</div>
+    </div>
+</div>
+
+<div class="orden-box">
+    <div class="section-title">6. Observaciones</div>
+    {{ form.observaciones }}{{ form.observaciones.errors }}
+</div>
+
+<div class="footer-actions">
+    <button type="submit" class="btn btn-success">Guardar orden</button>
+    <a href="{% url 'protesis_detail' protesis.id %}" class="btn btn-secondary">Cancelar</a>
+</div>
+</form>
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hidden = document.getElementById("grupo-activo");
+    const material = document.getElementById("material-fija");
+
+    function activarGrupo(nombre) {
+        document.querySelectorAll(".work-tab").forEach(function (boton) {
+            boton.classList.toggle("active", boton.dataset.target === nombre);
+        });
+
+        document.querySelectorAll(".work-group").forEach(function (grupo) {
+            grupo.classList.toggle("active", grupo.id === "group-" + nombre);
+        });
+
+        hidden.value = nombre;
+        material.style.display = nombre === "fija" ? "block" : "none";
+    }
+
+    document.querySelectorAll(".work-tab").forEach(function (boton) {
+        boton.addEventListener("click", function () {
+            activarGrupo(boton.dataset.target);
+        });
+    });
+
+    activarGrupo(hidden.value || "removible");
+});
+</script>
 {% endblock %}
