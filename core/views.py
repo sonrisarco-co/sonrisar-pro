@@ -477,16 +477,21 @@ def appointment_new(request):
     if paciente_id:
         initial_data["paciente"] = paciente_id
 
-    # 🚫 VALIDAR HORARIOS BLOQUEADOS
-    if hora in ["14:00", "14:30"]:
+    # 🚫 VALIDAR HORARIOS BLOQUEADOS (14:00 y 14:30 solo de lunes a viernes)
+    fecha_obj = None
+    if fecha:
+        try:
+            fecha_obj = datetime.strptime(fecha, "%Y-%m-%d").date()
+        except Exception:
+            fecha_obj = None
+
+    if hora in ["14:00", "14:30"] and fecha_obj and fecha_obj.weekday() != 5:
         messages.error(request, "Ese horario está bloqueado.")
         return redirect(next_url)
 
     # 🚫 VALIDAR DÍA BLOQUEADO
-    if fecha:
+    if fecha_obj:
         try:
-            fecha_obj = datetime.strptime(fecha, "%Y-%m-%d").date()
-
             if DayBlock.objects.filter(fecha=fecha_obj).exists():
                 messages.error(request, "Ese día está bloqueado.")
                 return redirect(next_url)
@@ -504,7 +509,7 @@ def appointment_new(request):
             # 🚫 VALIDAR HORARIO EN POST
             hora_cita = nueva_cita.hora.strftime("%H:%M")
 
-            if hora_cita in ["14:00", "14:30"]:
+            if hora_cita in ["14:00", "14:30"] and nueva_cita.fecha.weekday() != 5:
                 messages.error(request, "Ese horario está bloqueado.")
                 return redirect(next_url)
 
@@ -616,13 +621,6 @@ def appointment_move_time(request, id):
             "error": "Fecha no recibida."
         }, status=400)
 
-    # 🚫 BLOQUEO DESCANSO
-    if hora_str in {"14:00", "14:30"}:
-        return JsonResponse({
-            "success": False,
-            "error": "Ese horario está bloqueado."
-        }, status=400)
-
     try:
         nueva_hora = datetime.strptime(hora_str, "%H:%M").time()
     except ValueError:
@@ -640,6 +638,13 @@ def appointment_move_time(request, id):
         return JsonResponse({
             "success": False,
             "error": "Formato de fecha inválido."
+        }, status=400)
+
+    # 🚫 BLOQUEO DESCANSO (sábado queda libre)
+    if hora_str in {"14:00", "14:30"} and nueva_fecha.weekday() != 5:
+        return JsonResponse({
+            "success": False,
+            "error": "Ese horario está bloqueado."
         }, status=400)
 
     # 🚫 DÍA BLOQUEADO
@@ -2608,7 +2613,7 @@ def agenda_day(request, day, month, year):
             })
             continue
 
-        if hora_txt in HORARIOS_BLOQUEADOS:
+        if hora_txt in HORARIOS_BLOQUEADOS and fecha.weekday() != 5:
             horarios.append({
                 "hora": h,
                 "bloqueado": True,
@@ -3174,7 +3179,7 @@ def agenda_mensual_calendario(request):
                 })
                 continue
 
-            if hora_txt in HORARIOS_BLOQUEADOS:
+            if hora_txt in HORARIOS_BLOQUEADOS and date(year, month, d).weekday() != 5:
                 slots.append({
                     "hora": h,
                     "ocupado": False,

@@ -296,7 +296,7 @@
                                                     {{ celda.motivo_bloqueo|default:"Día bloqueado" }}
                                                 </div>
 
-                                            {% elif celda.hora|time:"H:i" == "14:00" or celda.hora|time:"H:i" == "14:30" %}
+                                            {% elif celda.fecha|date:"w" != "6" and celda.hora|time:"H:i" == "14:00" or celda.fecha|date:"w" != "6" and celda.hora|time:"H:i" == "14:30" %}
 
                                                 <div class="slot-bloqueado-descanso">
                                                     Descanso
