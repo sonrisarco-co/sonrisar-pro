@@ -2595,6 +2595,33 @@ def agenda_day(request, day, month, year):
         fecha
     )
 
+    # La deuda mostrada en la agenda debe usar el mismo criterio que la
+    # pantalla general de deudores: deuda de citas + presupuestos confirmados.
+    # Antes la agenda solo recibía la deuda acumulada de las citas, por eso un
+    # paciente con deuda únicamente en Presupuestos figuraba sin deuda aquí.
+    patient_ids_dia = {cita.paciente_id for cita in citas if cita.paciente_id}
+    deuda_presupuestos_por_paciente = {
+        patient_id: Decimal("0") for patient_id in patient_ids_dia
+    }
+
+    presupuestos_confirmados_dia = (
+        Budget.objects
+        .filter(
+            paciente_id__in=patient_ids_dia,
+            estado="confirmado",
+        )
+        .prefetch_related("pagos")
+    )
+
+    for presupuesto in presupuestos_confirmados_dia:
+        saldo_presupuesto = _decimal_seguro(presupuesto.saldo_pendiente)
+        if saldo_presupuesto > 0:
+            patient_id = presupuesto.paciente_id
+            deuda_presupuestos_por_paciente[patient_id] = (
+                deuda_presupuestos_por_paciente.get(patient_id, Decimal("0"))
+                + saldo_presupuesto
+            )
+
     citas_por_bloque = agrupar_citas_por_bloque(citas)
 
     horarios = []
@@ -2651,6 +2678,21 @@ def agenda_day(request, day, month, year):
             )
             for cita in citas_extra
         ]
+
+        # Completar cada cita con la deuda total real del paciente, incluyendo
+        # los saldos de presupuestos confirmados.
+        for cita_data in citas_exactas_data + citas_extra_data:
+            deuda_citas = _decimal_seguro(cita_data.get("debe", 0))
+            deuda_presupuestos = deuda_presupuestos_por_paciente.get(
+                cita_data.get("patient_id"),
+                Decimal("0"),
+            )
+            deuda_total = deuda_citas + deuda_presupuestos
+
+            cita_data["deuda_citas"] = deuda_citas
+            cita_data["deuda_presupuestos"] = deuda_presupuestos
+            cita_data["debe"] = deuda_total
+            cita_data["deuda_total_paciente"] = deuda_total
 
         horarios.append({
             "hora": h,
