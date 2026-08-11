@@ -2595,12 +2595,21 @@ def agenda_day(request, day, month, year):
         fecha
     )
 
-    # La deuda mostrada en la agenda debe usar el mismo criterio que la
-    # pantalla general de deudores: deuda de citas + presupuestos confirmados.
-    # Antes la agenda solo recibía la deuda acumulada de las citas, por eso un
-    # paciente con deuda únicamente en Presupuestos figuraba sin deuda aquí.
+    # Deuda de presupuestos aceptados SIN duplicar pagos de Sonrisar Cobros.
+    #
+    # El presupuesto representa el valor total del tratamiento, mientras que
+    # las citas pueden ir cargando partes de ese mismo tratamiento. Por eso NO
+    # debemos sumar deuda de citas + deuda de presupuesto: eso duplica deuda.
+    #
+    # Para cada paciente calculamos cuánto queda del presupuesto luego de los
+    # pagos registrados en Cobros. Más abajo se mostrará el mayor saldo entre
+    # citas y presupuesto, evitando contar dos veces el mismo tratamiento.
     patient_ids_dia = {cita.paciente_id for cita in citas if cita.paciente_id}
-    deuda_presupuestos_por_paciente = {
+
+    total_presupuestos_por_paciente = {
+        patient_id: Decimal("0") for patient_id in patient_ids_dia
+    }
+    total_pagado_presupuesto_local_por_paciente = {
         patient_id: Decimal("0") for patient_id in patient_ids_dia
     }
 
@@ -2614,13 +2623,44 @@ def agenda_day(request, day, month, year):
     )
 
     for presupuesto in presupuestos_confirmados_dia:
-        saldo_presupuesto = _decimal_seguro(presupuesto.saldo_pendiente)
-        if saldo_presupuesto > 0:
-            patient_id = presupuesto.paciente_id
-            deuda_presupuestos_por_paciente[patient_id] = (
-                deuda_presupuestos_por_paciente.get(patient_id, Decimal("0"))
-                + saldo_presupuesto
-            )
+        patient_id = presupuesto.paciente_id
+        total_presupuestos_por_paciente[patient_id] = (
+            total_presupuestos_por_paciente.get(patient_id, Decimal("0"))
+            + _decimal_seguro(presupuesto.total)
+        )
+        total_pagado_presupuesto_local_por_paciente[patient_id] = (
+            total_pagado_presupuesto_local_por_paciente.get(patient_id, Decimal("0"))
+            + _decimal_seguro(presupuesto.total_pagado)
+        )
+
+    resumenes_cobros_dia = obtener_resumen_cobros_pacientes_bulk(
+        list(patient_ids_dia)
+    ) if patient_ids_dia else {}
+
+    deuda_presupuestos_por_paciente = {}
+
+    for patient_id in patient_ids_dia:
+        total_presupuestos = total_presupuestos_por_paciente.get(
+            patient_id,
+            Decimal("0"),
+        )
+        total_pagado_cobros = _decimal_seguro(
+            resumenes_cobros_dia.get(patient_id, {}).get("total_pagado", 0)
+        )
+        total_pagado_local = total_pagado_presupuesto_local_por_paciente.get(
+            patient_id,
+            Decimal("0"),
+        )
+
+        # Si un pago está también asentado localmente en el presupuesto, usar el
+        # mayor de ambos totales evita descontarlo dos veces.
+        total_pagado_reconocido = max(total_pagado_cobros, total_pagado_local)
+
+        deuda_presupuesto = total_presupuestos - total_pagado_reconocido
+        if deuda_presupuesto < 0:
+            deuda_presupuesto = Decimal("0")
+
+        deuda_presupuestos_por_paciente[patient_id] = deuda_presupuesto
 
     citas_por_bloque = agrupar_citas_por_bloque(citas)
 
@@ -2679,15 +2719,16 @@ def agenda_day(request, day, month, year):
             for cita in citas_extra
         ]
 
-        # Completar cada cita con la deuda total real del paciente, incluyendo
-        # los saldos de presupuestos confirmados.
+        # Citas y presupuesto pueden representar el mismo tratamiento.
+        # Mostrar el saldo mayor evita duplicar deuda cuando ambos contienen
+        # importes del mismo tratamiento.
         for cita_data in citas_exactas_data + citas_extra_data:
             deuda_citas = _decimal_seguro(cita_data.get("debe", 0))
             deuda_presupuestos = deuda_presupuestos_por_paciente.get(
                 cita_data.get("patient_id"),
                 Decimal("0"),
             )
-            deuda_total = deuda_citas + deuda_presupuestos
+            deuda_total = max(deuda_citas, deuda_presupuestos)
 
             cita_data["deuda_citas"] = deuda_citas
             cita_data["deuda_presupuestos"] = deuda_presupuestos
@@ -4535,13 +4576,17 @@ def deudores_general(request):
             ultima_fecha_por_id[patient_id] = cita.fecha
 
     # Presupuestos confirmados también pueden generar deuda aunque no haya cita reciente.
+    # Guardamos el TOTAL del presupuesto; los pagos se descontarán desde Cobros
+    # una sola vez por paciente para no duplicar deuda.
     presupuestos_confirmados = list(
         Budget.objects
         .filter(estado="confirmado")
         .select_related("paciente")
+        .prefetch_related("pagos")
     )
 
-    deuda_presupuestos_por_id = {}
+    total_presupuestos_por_id = {}
+    total_pagado_presupuesto_local_por_id = {}
 
     for presupuesto in presupuestos_confirmados:
         paciente = presupuesto.paciente
@@ -4551,16 +4596,19 @@ def deudores_general(request):
         if query and query not in nombre:
             continue
 
-        try:
-            saldo = presupuesto.saldo_pendiente or Decimal("0")
-        except Exception:
-            saldo = Decimal("0")
-
-        if saldo <= 0:
+        total_presupuesto = _decimal_seguro(presupuesto.total)
+        if total_presupuesto <= 0:
             continue
 
         pacientes_por_id[patient_id] = paciente
-        deuda_presupuestos_por_id[patient_id] = deuda_presupuestos_por_id.get(patient_id, Decimal("0")) + saldo
+        total_presupuestos_por_id[patient_id] = (
+            total_presupuestos_por_id.get(patient_id, Decimal("0"))
+            + total_presupuesto
+        )
+        total_pagado_presupuesto_local_por_id[patient_id] = (
+            total_pagado_presupuesto_local_por_id.get(patient_id, Decimal("0"))
+            + _decimal_seguro(presupuesto.total_pagado)
+        )
 
         if patient_id not in ultima_fecha_por_id:
             ultima_fecha_por_id[patient_id] = presupuesto.fecha
@@ -4580,8 +4628,23 @@ def deudores_general(request):
         if deuda_citas < 0:
             deuda_citas = Decimal("0")
 
-        deuda_presupuestos = deuda_presupuestos_por_id.get(patient_id, Decimal("0"))
-        deuda_total = deuda_citas + deuda_presupuestos
+        total_presupuestos = total_presupuestos_por_id.get(
+            patient_id,
+            Decimal("0"),
+        )
+        total_pagado_local = total_pagado_presupuesto_local_por_id.get(
+            patient_id,
+            Decimal("0"),
+        )
+        total_pagado_reconocido = max(total_pagado, total_pagado_local)
+
+        deuda_presupuestos = total_presupuestos - total_pagado_reconocido
+        if deuda_presupuestos < 0:
+            deuda_presupuestos = Decimal("0")
+
+        # Citas y presupuesto pueden corresponder al mismo tratamiento.
+        # Tomamos el saldo mayor en vez de sumarlos para no duplicar deuda.
+        deuda_total = max(deuda_citas, deuda_presupuestos)
 
         if deuda_total <= 0:
             continue
