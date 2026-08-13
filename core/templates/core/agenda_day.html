@@ -190,7 +190,21 @@
 
                                             {% if cita.tiene_pago_cobros %}
 
-                                                {% if cita.tiene_saldo_a_favor %}
+                                                {% if cita.es_pago_mixto %}
+
+                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
+
+                                                    <span class="badge badge-saldo-favor">
+                                                        💰 Usó saldo a favor $ {{ cita.saldo_usado|floatformat:0 }}
+                                                    </span>
+
+                                                    {% if cita.saldo_a_favor_restante > 0 %}
+                                                        <span class="badge badge-saldo-favor">
+                                                            Restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}
+                                                        </span>
+                                                    {% endif %}
+
+                                                {% elif cita.tiene_saldo_a_favor %}
 
                                                     {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
 
@@ -435,7 +449,21 @@
 
                                             {% if cita.tiene_pago_cobros %}
 
-                                                {% if cita.tiene_saldo_a_favor %}
+                                                {% if cita.es_pago_mixto %}
+
+                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
+
+                                                    <span class="badge badge-saldo-favor">
+                                                        💰 Usó saldo a favor $ {{ cita.saldo_usado|floatformat:0 }}
+                                                    </span>
+
+                                                    {% if cita.saldo_a_favor_restante > 0 %}
+                                                        <span class="badge badge-saldo-favor">
+                                                            Restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}
+                                                        </span>
+                                                    {% endif %}
+
+                                                {% elif cita.tiene_saldo_a_favor %}
 
                                                     {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
 

@@ -2441,14 +2441,13 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
             if monto_cita > 0:
                 deuda_acumulada += monto_cita
 
-            if deuda_acumulada > 0 and saldo_a_favor_disponible > 0:
-                saldo_usado = min(
-                    saldo_a_favor_disponible,
-                    deuda_acumulada
-                )
-                deuda_acumulada -= saldo_usado
-                saldo_a_favor_disponible -= saldo_usado
-
+            # IMPORTANTE:
+            # Si esta cita tiene un pago propio en Sonrisar Cobros,
+            # ese pago se aplica primero a la cita actual y NO consume
+            # un saldo a favor generado por pagos anteriores.
+            #
+            # El saldo previo solamente se utiliza cuando la cita
+            # no tiene ningún pago propio registrado.
             if pago_cita > 0:
                 if deuda_acumulada > 0:
                     if pago_cita >= deuda_acumulada:
@@ -2463,6 +2462,18 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
                 else:
                     saldo_generado = pago_cita
                     saldo_a_favor_disponible += pago_cita
+
+            # Después de aplicar el pago propio de la cita, si todavía queda
+            # parte del monto sin cubrir, recién entonces se puede usar el
+            # saldo a favor previo. Esto permite una cita mixta:
+            # parte pagada aparte + parte cubierta por el presupuesto.
+            if deuda_acumulada > 0 and saldo_a_favor_disponible > 0:
+                saldo_usado = min(
+                    saldo_a_favor_disponible,
+                    deuda_acumulada
+                )
+                deuda_acumulada -= saldo_usado
+                saldo_a_favor_disponible -= saldo_usado
 
             pagos_cita = pago_info.get("pagos", []) or []
             ultimo_pago_id = pagos_cita[0].get("id") if pagos_cita else None
@@ -2506,7 +2517,8 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
     cita_pagada_visual = tiene_monto and deuda_cita <= 0
 
     tiene_saldo_generado = saldo_generado > 0
-    usa_saldo_a_favor = saldo_usado > 0 and not tiene_pago_cita
+    usa_saldo_a_favor = saldo_usado > 0
+    es_pago_mixto = tiene_pago_cita and saldo_usado > 0
 
     mostrar_pago_cobros = (
         tiene_pago_cita
@@ -2517,6 +2529,8 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
 
     if tiene_saldo_generado:
         tipo_pago_visual = "saldo_a_favor"
+    elif es_pago_mixto:
+        tipo_pago_visual = "mixto"
     elif usa_saldo_a_favor:
         tipo_pago_visual = "saldo_usado"
     elif tiene_entrega_parcial:
@@ -2567,6 +2581,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "saldo_usado": saldo_usado,
         "tiene_saldo_a_favor": tiene_saldo_generado,
         "usa_saldo_a_favor": usa_saldo_a_favor,
+        "es_pago_mixto": es_pago_mixto,
         "cobros_error": contexto_financiero.get("cobros_error"),
         "ultimo_pago_id": ultimo_pago_id,
         "recibo_url": recibo_url,
