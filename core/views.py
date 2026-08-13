@@ -893,6 +893,13 @@ def clinical_record_new(request, patient_id):
 
             guardar_odontograma_desde_post(request, paciente)
 
+            # Si la Historia Clínica se abrió desde una cita de Agenda,
+            # marcamos únicamente que la HC fue actualizada.
+            # NO modificamos el estado de asistencia.
+            if cita and not cita.historia_actualizada:
+                cita.historia_actualizada = True
+                cita.save(update_fields=["historia_actualizada"])
+
             if volver_url:
                 return redirect(volver_url)
 
@@ -967,6 +974,9 @@ def clinical_record_edit(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
     paciente = registro.paciente
 
+    # Debe definirse antes del bloque POST porque se usa al guardar.
+    volver_url = request.GET.get("next") or request.POST.get("next")
+
     cita_id = request.GET.get("appointment_id") or request.POST.get("appointment_id")
     cita = None
 
@@ -982,6 +992,13 @@ def clinical_record_edit(request, registro_id):
         if form.is_valid():
             form.save()
             guardar_odontograma_desde_post(request, paciente)
+
+            # Si la Historia Clínica se abrió desde una cita de Agenda,
+            # marcamos únicamente que la HC fue actualizada.
+            # NO modificamos el estado de asistencia.
+            if cita and not cita.historia_actualizada:
+                cita.historia_actualizada = True
+                cita.save(update_fields=["historia_actualizada"])
 
             if volver_url:
                 return redirect(volver_url)
@@ -1016,8 +1033,6 @@ def clinical_record_edit(request, registro_id):
                 form.initial["evolucion"] = f"{texto_actual}\n{hoy} "
             else:
                 form.initial["evolucion"] = f"{hoy} "
-
-    volver_url = request.GET.get("next") or request.POST.get("next")
 
     if not volver_url:
         volver_url = reverse("clinical_record_detail", args=[registro.id])
@@ -2567,6 +2582,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "procedimientos": [p.nombre for p in cita.procedimientos.all()],
         "estado": cita.get_estado_display(),
         "estado_slug": cita.estado,
+        "historia_actualizada": cita.historia_actualizada,
         "pagado": cita_pagada_visual,
         "tiene_pago_cobros": mostrar_pago_cobros,
         "total_pagado": str(pago_cita),

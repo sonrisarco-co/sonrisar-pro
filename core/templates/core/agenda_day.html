@@ -255,8 +255,8 @@
                                             {% endif %}
 
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
-                                               class="btn btn-sm btn-outline-success">
-                                                Historia clínica
+                                               class="btn btn-sm {% if cita.historia_actualizada %}btn-success{% else %}btn-outline-success{% endif %}">
+                                                Historia clínica{% if cita.historia_actualizada %} ✓{% endif %}
                                             </a>
 
                                             <a href="{% url 'patient_detail' cita.patient_id %}?next={{ request.get_full_path|urlencode }}"
@@ -498,8 +498,8 @@
                                             {% endif %}
 
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
-                                               class="btn btn-sm btn-outline-success">
-                                                Historia clínica
+                                               class="btn btn-sm {% if cita.historia_actualizada %}btn-success{% else %}btn-outline-success{% endif %}">
+                                                Historia clínica{% if cita.historia_actualizada %} ✓{% endif %}
                                             </a>
 
                                             <a href="{% url 'patient_detail' cita.patient_id %}?next={{ request.get_full_path|urlencode }}"

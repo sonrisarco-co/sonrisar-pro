@@ -51,6 +51,10 @@ class Appointment(models.Model):
     pagado = models.BooleanField(default=False)
     observaciones = models.TextField(blank=True)
 
+    # Indica que desde esta cita se guardó/actualizó la Historia Clínica.
+    # Es independiente del estado de asistencia de la cita.
+    historia_actualizada = models.BooleanField(default=False)
+
     monto_total = models.DecimalField(
         "Monto total",
         max_digits=10,
