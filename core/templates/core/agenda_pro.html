@@ -293,8 +293,21 @@
                                             {% if celda.bloqueado %}
 
                                                 <div class="slot-dia-bloqueado">
-                                                    {{ celda.motivo_bloqueo|default:"Día bloqueado" }}
+                                                    {{ celda.motivo_bloqueo|default:"Bloqueado" }}
                                                 </div>
+
+                                                {% if celda.tipo_bloqueo == "horario" %}
+                                                    <form method="POST"
+                                                          action="{% url 'desbloquear_horario' %}"
+                                                          class="slot-unblock-time-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="fecha" value="{{ celda.fecha|date:'Y-m-d' }}">
+                                                        <input type="hidden" name="hora" value="{{ celda.hora|time:'H:i' }}">
+                                                        <button type="submit" class="slot-unblock-time-btn" title="Desbloquear horario">
+                                                            Desbloquear
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
 
                                             {% elif celda.fecha|date:"w" != "6" and celda.hora|time:"H:i" == "14:00" or celda.fecha|date:"w" != "6" and celda.hora|time:"H:i" == "14:30" %}
 
@@ -304,10 +317,24 @@
 
                                             {% else %}
 
-                                                <a class="slot-plus"
-                                                   href="{% url 'appointment_new' %}?hora={{ celda.hora|time:'H:i' }}&fecha={{ celda.fecha|date:'Y-m-d' }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}">
-                                                   +
-                                                </a>
+                                                <div class="slot-free-actions">
+                                                    <a class="slot-plus"
+                                                       href="{% url 'appointment_new' %}?hora={{ celda.hora|time:'H:i' }}&fecha={{ celda.fecha|date:'Y-m-d' }}&next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}">
+                                                       +
+                                                    </a>
+
+                                                    <form method="POST"
+                                                          action="{% url 'bloquear_horario' %}"
+                                                          class="slot-block-time-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="fecha" value="{{ celda.fecha|date:'Y-m-d' }}">
+                                                        <input type="hidden" name="hora" value="{{ celda.hora|time:'H:i' }}">
+                                                        <input type="hidden" name="motivo" value="">
+                                                        <button type="submit" class="slot-block-time-btn" title="Bloquear este horario">
+                                                            🔒
+                                                        </button>
+                                                    </form>
+                                                </div>
 
                                             {% endif %}
 
@@ -1584,6 +1611,54 @@ thead th {
         width: 165px;
     }
 }
+
+/* ===== BLOQUEO DE HORARIOS INDIVIDUALES ===== */
+.slot-free-actions{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-height:34px;
+}
+
+.slot-block-time-form,
+.slot-unblock-time-form{
+    margin:0;
+}
+
+.slot-block-time-btn{
+    border:1px solid #dc3545;
+    background:#fff;
+    color:#dc3545;
+    border-radius:6px;
+    min-width:28px;
+    height:26px;
+    padding:0 5px;
+    font-size:12px;
+    line-height:1;
+    opacity:.7;
+}
+
+.slot-block-time-btn:hover{
+    opacity:1;
+    background:#fff1f2;
+}
+
+.slot-unblock-time-btn{
+    border:0;
+    background:#198754;
+    color:#fff;
+    border-radius:6px;
+    padding:2px 8px;
+    font-size:10px;
+    line-height:1.35;
+    margin-top:3px;
+}
+
+.slot-unblock-time-btn:hover{
+    background:#157347;
+}
+
 </style>
 
 <script>
@@ -1625,7 +1700,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!citaId) return;
 
             if (this.dataset.bloqueado === "1") {
-                alert("Ese día está bloqueado.");
+                alert("Ese día u horario está bloqueado.");
                 return;
             }
 
@@ -1639,6 +1714,25 @@ document.addEventListener("DOMContentLoaded", function () {
                     hora: this.dataset.hora
                 })
             }).then(() => location.reload());
+        });
+    });
+
+
+    document.querySelectorAll(".slot-block-time-form").forEach(form => {
+        form.addEventListener("submit", function(e) {
+            const hora = this.querySelector('input[name="hora"]').value;
+            const motivo = window.prompt(
+                `Motivo del bloqueo para las ${hora}:`,
+                "Horario bloqueado"
+            );
+
+            if (motivo === null) {
+                e.preventDefault();
+                return;
+            }
+
+            this.querySelector('input[name="motivo"]').value =
+                motivo.trim() || "Horario bloqueado";
         });
     });
 

@@ -3,7 +3,60 @@
 
 {% block content %}
 
-<div class="hc-page">
+<div class="hc-layout">
+
+    <aside class="clinical-alerts-sidebar">
+        <div class="clinical-alerts-card">
+            <div class="clinical-alerts-heading">
+                <div>
+                    <strong>📌 Avisos importantes</strong>
+                    <small>Seguimientos clínicos pendientes</small>
+                </div>
+            </div>
+
+            <form method="post" action="{% url 'clinical_alert_create' paciente.id %}" class="clinical-alert-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <input type="text" name="titulo" placeholder="Ej.: Evaluar retiro de brackets" required>
+                <textarea name="detalle" rows="3" placeholder="Detalle opcional"></textarea>
+                <label>Mes de revisión</label>
+                <input type="month" name="mes_revision">
+                <button type="submit">+ Agregar aviso</button>
+            </form>
+
+            <div class="clinical-alerts-list">
+                {% for aviso in avisos_clinicos %}
+                    <div class="clinical-alert-item {% if aviso.fecha_revision and aviso.fecha_revision <= fecha_hoy_date %}clinical-alert-due{% endif %}">
+                        <strong>{{ aviso.titulo }}</strong>
+                        {% if aviso.detalle %}
+                            <p>{{ aviso.detalle }}</p>
+                        {% endif %}
+                        {% if aviso.fecha_revision %}
+                            <div class="clinical-alert-date">📅 {{ aviso.fecha_revision|date:"m/Y" }}</div>
+                        {% else %}
+                            <div class="clinical-alert-date muted">Sin mes definido</div>
+                        {% endif %}
+                        <div class="clinical-alert-actions">
+                            <form method="post" action="{% url 'clinical_alert_done' aviso.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="alert-done">✓ Realizado</button>
+                            </form>
+                            <form method="post" action="{% url 'clinical_alert_delete' aviso.id %}" onsubmit="return confirm('¿Eliminar este aviso?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="alert-delete">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="clinical-alert-empty">No hay avisos pendientes.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+
+    <div class="hc-page">
 
     <div class="hc-header">
         <div>
@@ -32,9 +85,20 @@
 
         <section class="hc-card">
             <div class="hc-card-title">
+                <span>📋</span>
+                <div>
+                    <h3> Evolución</h3>
+                    <p>Seguimiento clínico del paciente.</p>
+                </div>
+            </div>
+            <div class="hc-field">{{ form.evolucion }}</div>
+        </section>
+
+        <section class="hc-card">
+            <div class="hc-card-title">
                 <span>🩺</span>
                 <div>
-                    <h3>1. Antecedentes médicos</h3>
+                    <h3> Antecedentes médicos</h3>
                     <p>Datos generales de salud del paciente.</p>
                 </div>
             </div>
@@ -70,7 +134,7 @@
             <div class="hc-card-title">
                 <span>📝</span>
                 <div>
-                    <h3>2. Motivo de consulta</h3>
+                    <h3> Motivo de consulta</h3>
                     <p>Razón principal por la que consulta el paciente.</p>
                 </div>
             </div>
@@ -81,7 +145,7 @@
             <div class="hc-card-title">
                 <span>🔍</span>
                 <div>
-                    <h3>3. Diagnóstico</h3>
+                    <h3> Diagnóstico</h3>
                     <p>Evaluación clínica realizada por el profesional.</p>
                 </div>
             </div>
@@ -92,7 +156,7 @@
             <div class="hc-card-title">
                 <span>📈</span>
                 <div>
-                    <h3>4. Pronóstico</h3>
+                    <h3> Pronóstico</h3>
                     <p>Estado esperado de evolución del caso.</p>
                 </div>
             </div>
@@ -103,7 +167,7 @@
             <div class="hc-card-title">
                 <span>🛠️</span>
                 <div>
-                    <h3>5. Plan de tratamiento</h3>
+                    <h3> Plan de tratamiento</h3>
                     <p>Tratamiento indicado para el paciente.</p>
                 </div>
             </div>
@@ -114,7 +178,7 @@
             <div class="hc-card-title">
                 <span>✍️</span>
                 <div>
-                    <h3>6. Consentimiento informado</h3>
+                    <h3> Consentimiento informado</h3>
                     <p>Confirmación del consentimiento del paciente.</p>
                 </div>
             </div>
@@ -130,7 +194,7 @@
             <div class="hc-card-title">
                 <span>🦷</span>
                 <div>
-                    <h3>7. Odontograma</h3>
+                    <h3> Odontograma</h3>
                     <p>Odontograma profesional del paciente.</p>
                 </div>
             </div>
@@ -148,25 +212,185 @@
             </div>
         </section>
 
-        <section class="hc-card">
-            <div class="hc-card-title">
-                <span>📋</span>
-                <div>
-                    <h3>8. Evolución</h3>
-                    <p>Seguimiento clínico del paciente.</p>
-                </div>
-            </div>
-            <div class="hc-field">{{ form.evolucion }}</div>
-        </section>
-
         <div class="hc-actions">
             <button type="submit" class="btn-sonrisar">Guardar Historia Clínica</button>
             <a href="{{ volver_url }}" class="btn-sonrisar-outline">Cancelar</a>
         </div>
     </form>
+    </div>
 </div>
 
 <style>
+.hc-layout {
+    max-width: 1460px;
+    margin: 28px auto;
+    padding: 0 14px 40px;
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1100px);
+    gap: 20px;
+    align-items: start;
+}
+
+.hc-layout .hc-page {
+    max-width: 1100px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.clinical-alerts-sidebar {
+    position: sticky;
+    top: 18px;
+}
+
+.clinical-alerts-card {
+    background: #fff;
+    border: 1px solid #e6eeee;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+}
+
+.clinical-alerts-heading strong {
+    display: block;
+    color: #146B6C;
+    font-size: 1.05rem;
+}
+
+.clinical-alerts-heading small {
+    display: block;
+    color: #6b7280;
+    margin-top: 3px;
+}
+
+.clinical-alert-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e6eeee;
+}
+
+.clinical-alert-form input,
+.clinical-alert-form textarea {
+    width: 100%;
+    border: 1px solid #d5e1e1;
+    border-radius: 10px;
+    padding: 9px 10px;
+    font-size: 13px;
+    background: #fbfefe;
+}
+
+.clinical-alert-form label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #52606d;
+}
+
+.clinical-alert-form button {
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 10px;
+    background: #26ABA5;
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.clinical-alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.clinical-alert-item {
+    border: 1px solid #f0d98b;
+    border-left: 4px solid #e0a800;
+    background: #fffaf0;
+    border-radius: 12px;
+    padding: 11px;
+}
+
+.clinical-alert-item.clinical-alert-due {
+    border-color: #f2b8b5;
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.clinical-alert-item strong {
+    display: block;
+    color: #273444;
+    font-size: 13px;
+}
+
+.clinical-alert-item p {
+    margin: 5px 0;
+    color: #52606d;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.clinical-alert-date {
+    margin-top: 7px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #9a6700;
+}
+
+.clinical-alert-date.muted {
+    color: #8a94a0;
+    font-weight: 600;
+}
+
+.clinical-alert-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+.clinical-alert-actions form {
+    margin: 0;
+}
+
+.clinical-alert-actions button {
+    border-radius: 8px;
+    padding: 5px 7px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.alert-done {
+    border: 1px solid #198754;
+    background: #fff;
+    color: #198754;
+}
+
+.alert-delete {
+    border: 1px solid #dc3545;
+    background: #fff;
+    color: #dc3545;
+}
+
+.clinical-alert-empty {
+    color: #8a94a0;
+    font-size: 12px;
+    text-align: center;
+    padding: 10px 4px;
+}
+
+@media (max-width: 1180px) {
+    .hc-layout {
+        grid-template-columns: 1fr;
+        max-width: 1100px;
+    }
+    .clinical-alerts-sidebar {
+        position: static;
+    }
+}
+
 .hc-page {
     max-width: 1100px;
     margin: 28px auto;

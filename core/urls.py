@@ -53,6 +53,8 @@ urlpatterns = [
     path("agenda/agenda-pro/", views.agenda_pro, name="agenda_pro"),
     path("agenda/bloquear-dia/", views.bloquear_dia, name="bloquear_dia"),
     path("agenda/desbloquear-dia/", views.desbloquear_dia, name="desbloquear_dia"),
+    path("agenda/bloquear-horario/", views.bloquear_horario, name="bloquear_horario"),
+    path("agenda/desbloquear-horario/", views.desbloquear_horario, name="desbloquear_horario"),
     path("agenda/semana/", views.agenda_week, name="agenda_week"),
     path("agenda/mensual/", views.agenda_month, name="agenda_month"),
 
@@ -126,6 +128,22 @@ urlpatterns = [
         "historia/registro/nuevo/<int:patient_id>/",
         views.clinical_record_new,
         name="clinical_record_new",
+    ),
+
+    path(
+        "historia/avisos/nuevo/<int:patient_id>/",
+        views.clinical_alert_create,
+        name="clinical_alert_create",
+    ),
+    path(
+        "historia/avisos/<int:alert_id>/realizado/",
+        views.clinical_alert_done,
+        name="clinical_alert_done",
+    ),
+    path(
+        "historia/avisos/<int:alert_id>/eliminar/",
+        views.clinical_alert_delete,
+        name="clinical_alert_delete",
     ),
 
     path(

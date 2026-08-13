@@ -90,6 +90,29 @@ class DayBlock(models.Model):
         return f"{self.fecha} - {self.motivo}"
 
 
+# ⏰ BLOQUEO DE HORARIOS INDIVIDUALES
+class TimeBlock(models.Model):
+    fecha = models.DateField()
+    hora = models.TimeField()
+    motivo = models.CharField(
+        max_length=200,
+        default="Horario bloqueado"
+    )
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["fecha", "hora"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["fecha", "hora"],
+                name="unique_time_block_fecha_hora"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.fecha} {self.hora.strftime('%H:%M')} - {self.motivo}"
+
+
 
 
 # 📝 RECORDATORIOS DE AGENDA
@@ -189,6 +212,29 @@ class ClinicalRecord(models.Model):
     def __str__(self):
         return f"Historia {self.paciente} ({self.fecha})"
         
+
+# 📌 AVISOS CLÍNICOS IMPORTANTES DEL PACIENTE
+class ClinicalAlert(models.Model):
+    paciente = models.ForeignKey(
+        Patient,
+        on_delete=models.CASCADE,
+        related_name="clinical_alerts"
+    )
+    titulo = models.CharField(max_length=200)
+    detalle = models.TextField(blank=True)
+    fecha_revision = models.DateField(null=True, blank=True)
+    realizado = models.BooleanField(default=False)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["realizado", "fecha_revision", "-creado"]
+        verbose_name = "Aviso clínico"
+        verbose_name_plural = "Avisos clínicos"
+
+    def __str__(self):
+        return f"{self.paciente} - {self.titulo}"
+
 
 class OdontogramTooth(models.Model):
 

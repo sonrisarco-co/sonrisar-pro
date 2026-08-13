@@ -62,7 +62,9 @@ from .models import (
     OdontogramTooth,
     OdontogramaCara,
     DayBlock,
+    TimeBlock,
     AgendaReminder,
+    ClinicalAlert,
 )
 
 from .forms import (
@@ -496,6 +498,16 @@ def appointment_new(request):
                 messages.error(request, "Ese día está bloqueado.")
                 return redirect(next_url)
 
+            # 🚫 VALIDAR HORARIO BLOQUEADO MANUALMENTE
+            if hora:
+                try:
+                    hora_obj = datetime.strptime(hora, "%H:%M").time()
+                    if TimeBlock.objects.filter(fecha=fecha_obj, hora=hora_obj).exists():
+                        messages.error(request, "Ese horario está bloqueado.")
+                        return redirect(next_url)
+                except ValueError:
+                    pass
+
         except Exception:
             pass
 
@@ -516,6 +528,14 @@ def appointment_new(request):
             # 🚫 VALIDAR DÍA BLOQUEADO
             if DayBlock.objects.filter(fecha=nueva_cita.fecha).exists():
                 messages.error(request, "Ese día está bloqueado.")
+                return redirect(next_url)
+
+            # 🚫 VALIDAR HORARIO BLOQUEADO MANUALMENTE
+            if TimeBlock.objects.filter(
+                fecha=nueva_cita.fecha,
+                hora=nueva_cita.hora
+            ).exists():
+                messages.error(request, "Ese horario está bloqueado.")
                 return redirect(next_url)
 
             nueva_cita.save()
@@ -652,6 +672,13 @@ def appointment_move_time(request, id):
         return JsonResponse({
             "success": False,
             "error": "Ese día está bloqueado."
+        }, status=400)
+
+    # 🚫 HORARIO BLOQUEADO MANUALMENTE
+    if TimeBlock.objects.filter(fecha=nueva_fecha, hora=nueva_hora).exists():
+        return JsonResponse({
+            "success": False,
+            "error": "Ese horario está bloqueado."
         }, status=400)
 
     cita.hora = nueva_hora
@@ -802,6 +829,10 @@ def odontograma_paciente(request, patient_id):
         {
             "paciente": paciente,
             "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+            "avisos_clinicos": ClinicalAlert.objects.filter(
+                paciente=paciente,
+                realizado=False
+            ).order_by("fecha_revision", "-creado"),
         }
     )
 
@@ -869,6 +900,60 @@ def odontograma_profesional(request, patient_id):
     )
 
 
+@require_POST
+def clinical_alert_create(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+    titulo = request.POST.get("titulo", "").strip()
+    detalle = request.POST.get("detalle", "").strip()
+    mes_revision = request.POST.get("mes_revision", "").strip()
+    fecha_revision = None
+
+    if mes_revision:
+        try:
+            # Se guarda el primer día del mes para mantener el DateField actual
+            # sin necesidad de migraciones. En pantalla se muestra solo mes/año.
+            fecha_revision = datetime.strptime(mes_revision, "%Y-%m").date()
+        except ValueError:
+            messages.error(request, "El mes de revisión no es válido.")
+            next_url = request.POST.get("next") or reverse("clinical_records_list", args=[paciente.id])
+            return redirect(next_url)
+
+    next_url = request.POST.get("next") or reverse("clinical_records_list", args=[paciente.id])
+
+    if not titulo:
+        messages.error(request, "Escribí un título para el aviso clínico.")
+        return redirect(next_url)
+
+    ClinicalAlert.objects.create(
+        paciente=paciente,
+        titulo=titulo,
+        detalle=detalle,
+        fecha_revision=fecha_revision,
+    )
+    messages.success(request, "Aviso clínico agregado.")
+    return redirect(next_url)
+
+
+@require_POST
+def clinical_alert_done(request, alert_id):
+    aviso = get_object_or_404(ClinicalAlert, id=alert_id)
+    next_url = request.POST.get("next") or reverse("clinical_records_list", args=[aviso.paciente_id])
+    aviso.realizado = True
+    aviso.save(update_fields=["realizado", "actualizado"])
+    messages.success(request, "Aviso clínico marcado como realizado.")
+    return redirect(next_url)
+
+
+@require_POST
+def clinical_alert_delete(request, alert_id):
+    aviso = get_object_or_404(ClinicalAlert, id=alert_id)
+    paciente_id = aviso.paciente_id
+    next_url = request.POST.get("next") or reverse("clinical_records_list", args=[paciente_id])
+    aviso.delete()
+    messages.success(request, "Aviso clínico eliminado.")
+    return redirect(next_url)
+
+
 def clinical_record_new(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
 
@@ -933,9 +1018,14 @@ def clinical_record_new(request, patient_id):
             "form": form,
             "paciente": paciente,
             "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
+            "fecha_hoy_date": timezone.localdate(),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
             "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+            "avisos_clinicos": ClinicalAlert.objects.filter(
+                paciente=paciente,
+                realizado=False
+            ).order_by("fecha_revision", "-creado"),
         },
     )
 
@@ -1045,9 +1135,14 @@ def clinical_record_edit(request, registro_id):
             "paciente": paciente,
             "registro": registro,
             "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
+            "fecha_hoy_date": timezone.localdate(),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
             "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+            "avisos_clinicos": ClinicalAlert.objects.filter(
+                paciente=paciente,
+                realizado=False
+            ).order_by("fecha_revision", "-creado"),
         },
     )
 
@@ -2612,6 +2707,11 @@ def agenda_day(request, day, month, year):
         fecha=fecha
     ).first()
 
+    bloqueos_horarios = {
+        bloqueo.hora: bloqueo
+        for bloqueo in TimeBlock.objects.filter(fecha=fecha)
+    }
+
     citas = list(
         Appointment.objects.filter(fecha=fecha)
         .select_related("paciente")
@@ -2705,6 +2805,18 @@ def agenda_day(request, day, month, year):
                 "hora": h,
                 "bloqueado": True,
                 "motivo": dia_bloqueado.motivo or "Día bloqueado",
+                "ocupado_exacto": False,
+                "citas_exactas": [],
+                "citas_extra": [],
+            })
+            continue
+
+        bloqueo_horario = bloqueos_horarios.get(h)
+        if bloqueo_horario:
+            horarios.append({
+                "hora": h,
+                "bloqueado": True,
+                "motivo": bloqueo_horario.motivo or "Horario bloqueado",
                 "ocupado_exacto": False,
                 "citas_exactas": [],
                 "citas_extra": [],
@@ -4177,6 +4289,14 @@ def agenda_pro(request):
     bloqueos_por_dia = {bloqueo.fecha: bloqueo for bloqueo in bloqueos_semana}
     bloqueos_por_dia_str = {bloqueo.fecha.strftime("%Y-%m-%d"): bloqueo for bloqueo in bloqueos_semana}
 
+    bloqueos_horarios_semana = TimeBlock.objects.filter(
+        fecha__range=[inicio_semana, fin_semana]
+    )
+    bloqueos_horarios = {
+        (bloqueo.fecha, bloqueo.hora): bloqueo
+        for bloqueo in bloqueos_horarios_semana
+    }
+
     citas_semana = (
         Appointment.objects
         .filter(fecha__range=[inicio_semana, fin_semana])
@@ -4218,7 +4338,21 @@ def agenda_pro(request):
                 celdas.append({
                     "ocupado": False,
                     "bloqueado": True,
+                    "tipo_bloqueo": "dia",
                     "motivo_bloqueo": dia_bloqueado.motivo or "Día bloqueado",
+                    "citas": [],
+                    "fecha": dia,
+                    "hora": hora,
+                })
+                continue
+
+            bloqueo_horario = bloqueos_horarios.get((dia, hora))
+            if bloqueo_horario:
+                celdas.append({
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "tipo_bloqueo": "horario",
+                    "motivo_bloqueo": bloqueo_horario.motivo or "Horario bloqueado",
                     "citas": [],
                     "fecha": dia,
                     "hora": hora,
@@ -4261,6 +4395,7 @@ def agenda_pro(request):
                 celdas.append({
                     "ocupado": True,
                     "bloqueado": False,
+                    "tipo_bloqueo": "",
                     "motivo_bloqueo": "",
                     "citas": citas_preparadas,
                     "fecha": dia,
@@ -4270,6 +4405,7 @@ def agenda_pro(request):
                 celdas.append({
                     "ocupado": False,
                     "bloqueado": False,
+                    "tipo_bloqueo": "",
                     "motivo_bloqueo": "",
                     "citas": [],
                     "fecha": dia,
@@ -4902,6 +5038,73 @@ def desbloquear_dia(request):
     return redirect(
         f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}"
     )
+
+# ============================
+# BLOQUEAR / DESBLOQUEAR HORARIO
+# ============================
+
+@require_POST
+def bloquear_horario(request):
+    fecha_str = request.POST.get("fecha", "").strip()
+    hora_str = request.POST.get("hora", "").strip()
+    motivo = request.POST.get("motivo", "").strip() or "Horario bloqueado"
+
+    try:
+        fecha_obj = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        hora_obj = datetime.strptime(hora_str, "%H:%M").time()
+    except ValueError:
+        messages.error(request, "Fecha u hora inválida.")
+        return redirect("agenda_pro")
+
+    if DayBlock.objects.filter(fecha=fecha_obj).exists():
+        messages.error(request, "Ese día ya está bloqueado completamente.")
+        return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
+
+    if hora_str in {"14:00", "14:30"} and fecha_obj.weekday() != 5:
+        messages.error(request, "Ese horario ya corresponde al descanso.")
+        return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
+
+    # No permitir ocultar accidentalmente una cita existente dentro del bloque de 30 min.
+    inicio_dt = datetime.combine(fecha_obj, hora_obj)
+    fin_dt = inicio_dt + timedelta(minutes=30)
+    if Appointment.objects.filter(
+        fecha=fecha_obj,
+        hora__gte=inicio_dt.time(),
+        hora__lt=fin_dt.time()
+    ).exists():
+        messages.error(request, "No se puede bloquear: ya existe una cita en ese horario.")
+        return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
+
+    bloqueo, creado = TimeBlock.objects.get_or_create(
+        fecha=fecha_obj,
+        hora=hora_obj,
+        defaults={"motivo": motivo}
+    )
+
+    if not creado and bloqueo.motivo != motivo:
+        bloqueo.motivo = motivo
+        bloqueo.save(update_fields=["motivo"])
+
+    messages.success(request, f"Horario {hora_str} bloqueado.")
+    return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
+
+
+@require_POST
+def desbloquear_horario(request):
+    fecha_str = request.POST.get("fecha", "").strip()
+    hora_str = request.POST.get("hora", "").strip()
+
+    try:
+        fecha_obj = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        hora_obj = datetime.strptime(hora_str, "%H:%M").time()
+    except ValueError:
+        messages.error(request, "Fecha u hora inválida.")
+        return redirect("agenda_pro")
+
+    TimeBlock.objects.filter(fecha=fecha_obj, hora=hora_obj).delete()
+    messages.success(request, f"Horario {hora_str} desbloqueado.")
+    return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
+
 
 # =============================
 # 📊 ESTADÍSTICAS SONRISAR PRO
