@@ -180,7 +180,10 @@
         </div>
 
         <div>
-            <a href="{% url 'patient_detail' paciente.id %}" class="btn-sonrisar-outline">← Volver a ficha</a>
+            <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
+            class="btn-sonrisar-outline">
+                ← Volver a ficha
+            </a>
             <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.path }}" class="btn btn-sonrisar">+ Registrar pago</a>
         </div>
     </div>

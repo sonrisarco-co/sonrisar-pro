@@ -18,6 +18,7 @@
 
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
 
         <!-- ================= PACIENTE ================= -->
         <div class="mb-3">
@@ -160,9 +161,19 @@
             <button type="submit" class="btn btn-primary">
                 💾 Guardar
             </button>
-            <a href="{% url 'budgets_list' %}" class="btn btn-secondary">
-                Cancelar
-            </a>
+            {% if paciente %}
+                <a href="{% url 'patient_detail' paciente.id %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            {% elif presupuesto.paciente %}
+                <a href="{% url 'patient_detail' presupuesto.paciente.id %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            {% else %}
+                <a href="{% url 'budgets_list' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            {% endif %}
         </div>
 
     </form>

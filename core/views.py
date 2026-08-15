@@ -1325,6 +1325,9 @@ def budget_new(request, paciente_id):
     # 🔒 Paciente fijo (viene desde la URL)
     paciente = get_object_or_404(Patient, id=paciente_id)
 
+    # 🔁 Conserva de dónde venimos: Agenda del día / Calendario
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
+
     if request.method == "POST":
         diagnostico = request.POST.get("diagnostico")
         conceptos = request.POST.getlist("concepto[]")
@@ -1364,7 +1367,16 @@ def budget_new(request, paciente_id):
         presupuesto.save()
 
         messages.success(request, "Presupuesto creado correctamente.")
-        return redirect("budgets_list")
+
+        # 🔁 Volver a la ficha conservando Agenda/Calendario
+        url_ficha = reverse("patient_detail", args=[paciente.id])
+
+        if next_url:
+            return redirect(
+                f"{url_ficha}?next={quote(next_url)}"
+            )
+
+        return redirect(url_ficha)
 
     # GET → mostrar formulario
     form = BudgetForm()
@@ -1374,7 +1386,8 @@ def budget_new(request, paciente_id):
         "core/budget_form.html",
         {
             "form": form,
-            "paciente": paciente  # 👈 para mostrar nombre en el form
+            "paciente": paciente,
+            "next": next_url,
         }
     )
 
