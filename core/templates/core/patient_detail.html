@@ -498,8 +498,8 @@
             <a href="{% url 'abrir_historia_desde_cita' paciente.id %}?next={{ request.get_full_path|urlencode }}"
                class="ficha-btn ficha-btn-claro">🦷 Historia clínica</a>
 
-            <a href="{% url 'patient_edit' paciente.id %}?next={{ request.get_full_path|urlencode }}"
-               class="ficha-btn ficha-btn-claro">✏️ Editar</a>
+            <a href="{% url 'patient_edit' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
+                class="ficha-btn ficha-btn-claro">✏️ Editar</a>
         </div>
     </section>
 
