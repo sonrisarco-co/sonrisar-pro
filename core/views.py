@@ -4883,9 +4883,16 @@ def patient_finances(request, id):
     resumen_cobros = obtener_resumen_cobros_paciente(paciente)
     total_pagado_cobros = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
 
-    saldo_actual = total_citas - total_pagado_cobros
-    if saldo_actual < 0:
-        saldo_actual = Decimal("0")
+    # Saldo financiero real del paciente.
+    # Si pagó menos de lo cargado, queda saldo pendiente.
+    # Si pagó más de lo cargado, la diferencia queda como saldo a favor.
+    diferencia_saldo = total_citas - total_pagado_cobros
+
+    saldo_pendiente = max(diferencia_saldo, Decimal("0"))
+    saldo_a_favor = max(-diferencia_saldo, Decimal("0"))
+
+    # Se conserva saldo_actual por compatibilidad con cualquier uso existente.
+    saldo_actual = saldo_pendiente
 
     presupuestos = list(
         Budget.objects
@@ -4964,6 +4971,8 @@ def patient_finances(request, id):
             "total_citas": total_citas,
             "total_pagado_cobros": total_pagado_cobros,
             "saldo_actual": saldo_actual,
+            "saldo_pendiente": saldo_pendiente,
+            "saldo_a_favor": saldo_a_favor,
             "cobros_error": resumen_cobros.get("error"),
             "cobros_ok": resumen_cobros.get("ok", False),
             "cantidad_pagos_cobros": resumen_cobros.get("cantidad_pagos", 0),

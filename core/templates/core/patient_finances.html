@@ -74,8 +74,21 @@
     line-height: 1.1;
 }
 
-.kpi-card.saldo strong {
+.kpi-card.saldo-pendiente strong {
     color: #b42318;
+}
+
+.kpi-card.saldo-favor {
+    border-color: rgba(8, 116, 67, 0.22);
+    background: #f3fbf7;
+}
+
+.kpi-card.saldo-favor strong {
+    color: #087443;
+}
+
+.kpi-card.saldo-cero strong {
+    color: #173f3a;
 }
 
 .panel-finanzas {
@@ -205,10 +218,22 @@
             <strong>${{ total_pagado_cobros|floatformat:0 }}</strong>
         </div>
 
-        <div class="kpi-card saldo">
-            <span>Saldo actual del paciente</span>
-            <strong>${{ saldo_actual|floatformat:0 }}</strong>
-        </div>
+        {% if saldo_a_favor > 0 %}
+            <div class="kpi-card saldo-favor">
+                <span>Saldo a favor del paciente</span>
+                <strong>+${{ saldo_a_favor|floatformat:0 }}</strong>
+            </div>
+        {% elif saldo_pendiente > 0 %}
+            <div class="kpi-card saldo-pendiente">
+                <span>Saldo pendiente del paciente</span>
+                <strong>${{ saldo_pendiente|floatformat:0 }}</strong>
+            </div>
+        {% else %}
+            <div class="kpi-card saldo-cero">
+                <span>Saldo actual del paciente</span>
+                <strong>$0</strong>
+            </div>
+        {% endif %}
     </div>
 
     <div class="panel-finanzas">
