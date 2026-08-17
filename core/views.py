@@ -3620,7 +3620,8 @@ def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
             f"Te recordamos tu cita odontológica el *{fecha_txt}* "
             f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
             f"📍 Román Guerra 752, Maldonado\n\n"
-            f"Si necesitás modificar o cancelar tu cita, te agradecemos avisarnos con anticipación.\n\n"
+            f"Agradecemos que *CONFIRMES* tu asistencia por este medio.\n\n"
+            f"📌 24 horas antes te enviaremos un nuevo recordatorio.\n\n"
             f"¡Muchas gracias! 🦷✨\n\n"
             f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
         )
@@ -3629,13 +3630,11 @@ def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
         f"Hola {nombre} 😊\n\n"
         f"Te recordamos tu cita odontológica para mañana *{fecha_txt}* "
         f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
-        f"📍 Román Guerra 752, Maldonado\n\n"
-        f"Para dejar tu turno asegurado, respondé CONFIRMO, ✅\n\n"
-        f"En caso de no confirmar, su turno será cancelado.\n\n"
+        f"Para mantener tu reserva, necesitamos que vuelvas a *CONFIRMAR* tu asistencia.\n\n"
         f"¡Te esperamos! 🦷✨\n\n"
-        f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
     )
 
+    
 
 def iniciar_recordatorios_manana(request):
     fecha_objetivo = date.today() + timedelta(days=1)
