@@ -47,7 +47,7 @@
 
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 18px;
 }
@@ -89,6 +89,19 @@
 
 .kpi-card.saldo-cero strong {
     color: #173f3a;
+}
+
+.kpi-card.devuelto {
+    border-color: rgba(180, 35, 24, 0.18);
+    background: #fff8f7;
+}
+
+.kpi-card.devuelto strong {
+    color: #b42318;
+}
+
+.monto-devolucion {
+    color: #b42318;
 }
 
 .panel-finanzas {
@@ -214,8 +227,13 @@
         </div>
 
         <div class="kpi-card">
-            <span>Total pagado / señado en Cobros</span>
+            <span>Total pagado neto en Cobros</span>
             <strong>${{ total_pagado_cobros|floatformat:0 }}</strong>
+        </div>
+
+        <div class="kpi-card devuelto">
+            <span>Total devuelto al paciente</span>
+            <strong>{% if total_devuelto_cobros > 0 %}-${{ total_devuelto_cobros|floatformat:0 }}{% else %}$0{% endif %}</strong>
         </div>
 
         {% if saldo_a_favor > 0 %}
@@ -233,6 +251,37 @@
                 <span>Saldo actual del paciente</span>
                 <strong>$0</strong>
             </div>
+        {% endif %}
+    </div>
+
+    <div class="panel-finanzas">
+        <h4>↩ Devoluciones registradas</h4>
+
+        {% if devoluciones_cobros %}
+            <table class="tabla-finanzas">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th>Método</th>
+                        <th>Pago original</th>
+                        <th class="text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in devoluciones_cobros %}
+                        <tr>
+                            <td>{{ d.fecha }}</td>
+                            <td>{{ d.concepto|default:"Devolución a paciente" }}</td>
+                            <td>{{ d.metodo|default:"—" }}</td>
+                            <td>{% if d.pago_original_id %}Pago #{{ d.pago_original_id }}{% else %}—{% endif %}</td>
+                            <td class="text-right"><strong class="monto-devolucion">-${{ d.monto|floatformat:0 }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="vacio">No hay devoluciones registradas para este paciente.</div>
         {% endif %}
     </div>
 

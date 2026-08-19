@@ -4857,14 +4857,111 @@ def deudores_general(request):
         }
     )
 
+def obtener_detalle_cobros_paciente(paciente):
+    """
+    Consulta el detalle financiero de un paciente en Sonrisar Cobros.
+
+    Primero consulta por patient_id. Si no encuentra movimientos, intenta por
+    los formatos de nombre usados históricamente en Cobros. Esto permite que
+    pagos/devoluciones antiguos que todavía no tengan patient_id sigan
+    apareciendo en Finanzas del paciente.
+    """
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros-1.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_PACIENTE_PATH",
+        "/pagos/api/por-paciente/"
+    )
+
+    consultas = [
+        {"patient_id": paciente.id},
+        {"paciente": f"{paciente.apellido}, {paciente.nombre}".strip(", ")},
+        {"paciente": f"{paciente.nombre} {paciente.apellido}".strip()},
+    ]
+
+    ultimo_error = None
+
+    for params in consultas:
+        try:
+            response = requests.get(
+                f"{cobros_base_url}{cobros_api_path}",
+                params=params,
+                timeout=8,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            if not data.get("ok"):
+                ultimo_error = data.get("error", "Respuesta inválida de Cobros")
+                continue
+
+            # La conexión respondió bien; a partir de acá no arrastramos un
+            # error de un intento anterior.
+            ultimo_error = None
+
+            cantidad_pagos = int(data.get("total", data.get("cantidad_pagos", 0)) or 0)
+            cantidad_devoluciones = int(data.get("cantidad_devoluciones", 0) or 0)
+
+            # Si no hay ningún movimiento con patient_id, seguimos con los
+            # nombres históricos antes de aceptar un resumen vacío.
+            if cantidad_pagos == 0 and cantidad_devoluciones == 0:
+                continue
+
+            return {
+                "ok": True,
+                "total_pagado": _decimal_seguro(data.get("total_pagado", 0)),
+                "total_pagado_bruto": _decimal_seguro(
+                    data.get("total_pagado_bruto", data.get("total_pagado", 0))
+                ),
+                "total_devuelto": _decimal_seguro(data.get("total_devuelto", 0)),
+                "cantidad_pagos": cantidad_pagos,
+                "cantidad_devoluciones": cantidad_devoluciones,
+                "devoluciones": data.get("devoluciones", []) or [],
+                "error": None,
+            }
+
+        except Exception as e:
+            ultimo_error = str(e)
+
+    # Si todas las consultas respondieron correctamente pero no había
+    # movimientos, el resumen es válido y simplemente está vacío.
+    if ultimo_error is None:
+        return {
+            "ok": True,
+            "total_pagado": Decimal("0"),
+            "total_pagado_bruto": Decimal("0"),
+            "total_devuelto": Decimal("0"),
+            "cantidad_pagos": 0,
+            "cantidad_devoluciones": 0,
+            "devoluciones": [],
+            "error": None,
+        }
+
+    return {
+        "ok": False,
+        "total_pagado": Decimal("0"),
+        "total_pagado_bruto": Decimal("0"),
+        "total_devuelto": Decimal("0"),
+        "cantidad_pagos": 0,
+        "cantidad_devoluciones": 0,
+        "devoluciones": [],
+        "error": f"No fue posible conectar con Sonrisar Cobros: {ultimo_error}",
+    }
+
 def patient_finances(request, id):
     """
     Ficha financiera del paciente.
 
     Pantalla liviana:
     - Usa datos locales de Sonrisar Pro para citas/presupuestos.
-    - Consulta Sonrisar Cobros una sola vez para total pagado por patient_id.
-    - No llama a Cobros por cada cita ni por cada pago.
+    - Consulta Sonrisar Cobros una sola vez por patient_id.
+    - Usa el total pagado neto (pagos - devoluciones).
+    - Muestra el historial de devoluciones sin borrar el pago original.
     """
     paciente = get_object_or_404(Patient, id=id)
 
@@ -4880,12 +4977,14 @@ def patient_finances(request, id):
     for cita in citas_cobrables:
         total_citas += _decimal_seguro(cita.monto_total)
 
-    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
+    resumen_cobros = obtener_detalle_cobros_paciente(paciente)
     total_pagado_cobros = _decimal_seguro(resumen_cobros.get("total_pagado", 0))
+    total_pagado_bruto_cobros = _decimal_seguro(resumen_cobros.get("total_pagado_bruto", 0))
+    total_devuelto_cobros = _decimal_seguro(resumen_cobros.get("total_devuelto", 0))
+    devoluciones_cobros = resumen_cobros.get("devoluciones", []) or []
 
     # Saldo financiero real del paciente.
-    # Si pagó menos de lo cargado, queda saldo pendiente.
-    # Si pagó más de lo cargado, la diferencia queda como saldo a favor.
+    # total_pagado_cobros ya viene neto desde Cobros: pagos - devoluciones.
     diferencia_saldo = total_citas - total_pagado_cobros
 
     saldo_pendiente = max(diferencia_saldo, Decimal("0"))
@@ -4970,12 +5069,16 @@ def patient_finances(request, id):
             "paciente": paciente,
             "total_citas": total_citas,
             "total_pagado_cobros": total_pagado_cobros,
+            "total_pagado_bruto_cobros": total_pagado_bruto_cobros,
+            "total_devuelto_cobros": total_devuelto_cobros,
+            "devoluciones_cobros": devoluciones_cobros,
             "saldo_actual": saldo_actual,
             "saldo_pendiente": saldo_pendiente,
             "saldo_a_favor": saldo_a_favor,
             "cobros_error": resumen_cobros.get("error"),
             "cobros_ok": resumen_cobros.get("ok", False),
             "cantidad_pagos_cobros": resumen_cobros.get("cantidad_pagos", 0),
+            "cantidad_devoluciones_cobros": resumen_cobros.get("cantidad_devoluciones", 0),
             "total_presupuestos_aceptados": total_presupuestos_aceptados,
             "total_pagado_presupuestos": total_pagado_presupuestos,
             "saldo_presupuestos": saldo_presupuestos,
@@ -4985,7 +5088,7 @@ def patient_finances(request, id):
         }
     )
 
- 
+
 # FINANZAS_2026_05_23 
 
 
