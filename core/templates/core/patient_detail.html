@@ -742,15 +742,43 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (telefono.startsWith("0")) {
-            telefono = telefono.substring(1);
+        // Argentina ya completo para WhatsApp
+        // Ej: 5491124928943
+        if (telefono.startsWith("549")) {
+            // Ya está correcto, no hacemos nada
         }
 
-        if (!telefono.startsWith("598")) {
+        // Argentina con 54 pero sin el 9
+        // Ej: 541124928943 -> 5491124928943
+        else if (telefono.startsWith("54")) {
+            telefono = "549" + telefono.substring(2);
+        }
+
+        // Argentina CABA / Buenos Aires sin código país
+        // Ej: 1124928943 -> 5491124928943
+        else if (telefono.startsWith("11") && telefono.length === 10) {
+            telefono = "549" + telefono;
+        }
+
+        // Uruguay ya completo
+        else if (telefono.startsWith("598")) {
+            // Ya está correcto, no hacemos nada
+        }
+
+        // Uruguay local
+        else {
+            if (telefono.startsWith("0")) {
+                telefono = telefono.substring(1);
+            }
+
             telefono = "598" + telefono;
         }
 
-        window.open("https://wa.me/" + telefono, "_blank", "noopener");
+        window.open(
+            "https://wa.me/" + telefono,
+            "_blank",
+            "noopener"
+        );
     });
 });
 </script>
