@@ -17,7 +17,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # ==========================================
 SECRET_KEY = 'django-insecure-reemplazar-esto-luego'
-DEBUG = True
+
+# Render define automáticamente RENDER=true.
+# Así Sonrisar Pro distingue producción de desarrollo local sin depender
+# de cambios manuales cada vez que trabajás en tu PC.
+IS_RENDER = os.getenv("RENDER", "").strip().lower() == "true"
+DEBUG = not IS_RENDER
+
 ALLOWED_HOSTS = ["*"]
 
 
@@ -173,10 +179,16 @@ CRONJOBS = [
 # ==========================================
 # SONRISAR COBROS
 # ==========================================
-SONRISAR_COBROS_BASE_URL = os.getenv(
-    "SONRISAR_COBROS_BASE_URL",
-    "https://sonrisar-cobros-1.onrender.com"
-).rstrip("/")
+# En local, Sonrisar Pro habla con Sonrisar Cobros local.
+# En Render, usa Sonrisar Cobros web. La variable de entorno
+# SONRISAR_COBROS_BASE_URL puede sobreescribir el destino de producción.
+if IS_RENDER:
+    SONRISAR_COBROS_BASE_URL = os.getenv(
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros-1.onrender.com"
+    ).rstrip("/")
+else:
+    SONRISAR_COBROS_BASE_URL = "http://127.0.0.1:8001"
 SONRISAR_COBROS_NUEVO_PATH = "/pagos/nuevo/"
 SONRISAR_COBROS_API_PACIENTE_PATH = "/pagos/api/por-paciente/"
 SONRISAR_COBROS_API_CITA_PATH = "/pagos/api/por-cita/"
