@@ -2413,10 +2413,15 @@ def obtener_saldo_tratamiento(cita_actual):
     )
 
 
-def _obtener_pagos_cobros_citas_bulk(appointment_ids):
+def _obtener_pagos_cobros_citas_bulk(appointment_ids, base_url=None):
     """
     Consulta Sonrisar Cobros una sola vez para varias citas.
     Si falla, devuelve None para que se use el método viejo.
+
+    base_url es opcional:
+    - None conserva exactamente el origen habitual configurado.
+    - En desarrollo puede usarse para consultar Cobros local solo para
+      las citas visibles del día, sin alterar deudas históricas.
     """
 
     appointment_ids_limpios = []
@@ -2433,11 +2438,14 @@ def _obtener_pagos_cobros_citas_bulk(appointment_ids):
     if not appointment_ids_limpios:
         return {}
 
-    cobros_base_url = getattr(
-        settings,
-        "SONRISAR_COBROS_BASE_URL",
-        "http://127.0.0.1:8001"
-    ).rstrip("/")
+    if base_url:
+        cobros_base_url = base_url.rstrip("/")
+    else:
+        cobros_base_url = getattr(
+            settings,
+            "SONRISAR_COBROS_BASE_URL",
+            "http://127.0.0.1:8001"
+        ).rstrip("/")
 
     cobros_api_path = getattr(
         settings,
@@ -2528,7 +2536,37 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
             appointment_ids.append(cita.id)
 
 
+    # Pagos históricos: se consultan EXACTAMENTE como antes.
     pagos_bulk = _obtener_pagos_cobros_citas_bulk(appointment_ids)
+
+    # En desarrollo local únicamente, superponemos pagos hechos en Cobros local
+    # SOLO para las citas que se están viendo en la Agenda del día.
+    # Esto permite probar Agenda -> Cobrar -> volver a Agenda sin cambiar
+    # la deuda histórica del resto de los pacientes.
+    if settings.DEBUG:
+        appointment_ids_dia = [
+            cita.id
+            for cita in citas_dia
+            if getattr(cita, "id", None)
+        ]
+
+        pagos_locales_dia = _obtener_pagos_cobros_citas_bulk(
+            appointment_ids_dia,
+            base_url="http://127.0.0.1:8001",
+        )
+
+        if pagos_locales_dia:
+            if pagos_bulk is None:
+                pagos_bulk = {}
+
+            for appointment_id, pago_local in pagos_locales_dia.items():
+                total_local = _decimal_seguro(
+                    pago_local.get("total_pagado", 0)
+                )
+
+                # Solo reemplazamos si realmente existe un pago local.
+                if total_local > 0:
+                    pagos_bulk[appointment_id] = pago_local
 
     for patient_id, citas_paciente in citas_por_paciente.items():
 
@@ -2955,11 +2993,16 @@ def cobros_nuevo_desde_cita(request, appointment_id):
         id=appointment_id
     )
 
-    cobros_base_url = getattr(
-        settings,
-        "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros-1.onrender.com"
-    ).rstrip("/")
+    # En desarrollo local, el botón Cobrar debe abrir Sonrisar Cobros local.
+    # En producción, usa la URL configurada para Sonrisar Cobros web.
+    if settings.DEBUG:
+        cobros_base_url = "http://127.0.0.1:8001"
+    else:
+        cobros_base_url = getattr(
+            settings,
+            "SONRISAR_COBROS_BASE_URL",
+            "https://sonrisar-cobros-1.onrender.com"
+        ).rstrip("/")
 
     cobros_path = getattr(
         settings,

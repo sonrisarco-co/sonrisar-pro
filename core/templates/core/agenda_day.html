@@ -20,6 +20,37 @@
         Agenda del {{ fecha|date:"d/m/Y" }}
     </h3>
 
+    {% if request.GET.cobro == "ok" %}
+        {% if request.GET.cfe == "emitido" %}
+            <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <strong>✓ Pago registrado.</strong>
+                    CFE emitido: eTicket {{ request.GET.cfe_serie }} {{ request.GET.cfe_numero }}.
+                </div>
+                {% if request.GET.cfe_pdf %}
+                    <a href="{{ request.GET.cfe_pdf }}"
+                       class="btn btn-sm btn-success"
+                       target="_blank"
+                       rel="noopener">
+                        🧾 Ver / Imprimir CFE
+                    </a>
+                {% endif %}
+            </div>
+        {% elif request.GET.cfe == "error" %}
+            <div class="alert alert-warning mb-3">
+                <strong>✓ Pago registrado.</strong>
+                El CFE no pudo emitirse.
+                {% if request.GET.cfe_mensaje %}
+                    <div class="small mt-1">{{ request.GET.cfe_mensaje }}</div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="alert alert-success mb-3">
+                <strong>✓ Pago registrado correctamente.</strong>
+            </div>
+        {% endif %}
+    {% endif %}
+
     <div class="row">
         <div class="col-lg-8">
 
