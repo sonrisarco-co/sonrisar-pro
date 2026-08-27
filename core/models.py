@@ -1,5 +1,6 @@
 from django.db import models
 from django import forms
+from django.core.exceptions import ValidationError
 
 # 🧑‍⚕️ PACIENTES
 class Patient(models.Model):
@@ -340,9 +341,35 @@ class Budget(models.Model):
         return sum((p.monto for p in self.pagos.all()), Decimal("0.00"))
 
     @property
+    def total_ajustes(self):
+        return sum((a.monto for a in self.ajustes.all()), Decimal("0.00"))
+
+    @property
+    def total_efectivo(self):
+        return max((self.total or Decimal("0.00")) + self.total_ajustes, Decimal("0.00"))
+
+    @property
+    def credito_recibido(self):
+        return sum((t.monto for t in self.transferencias_recibidas.all()), Decimal("0.00"))
+
+    @property
+    def credito_transferido(self):
+        return sum((t.monto for t in self.transferencias_enviadas.all()), Decimal("0.00"))
+
+    @property
+    def credito_disponible(self):
+        disponible = (
+            self.total_pagado
+            + self.credito_recibido
+            - self.total_efectivo
+            - self.credito_transferido
+        )
+        return max(disponible, Decimal("0.00"))
+
+    @property
     def saldo_pendiente(self):
-        total = self.total or Decimal("0.00")
-        return total - self.total_pagado
+        saldo = self.total_efectivo - self.total_pagado - self.credito_recibido
+        return max(saldo, Decimal("0.00"))
 
 
 class BudgetItem(models.Model):
@@ -394,6 +421,93 @@ class BudgetPayment(models.Model):
 
     def __str__(self):
         return f"Pago {self.monto} - Presupuesto #{self.presupuesto.id}"
+
+
+class BudgetAdjustment(models.Model):
+    presupuesto = models.ForeignKey(
+        Budget,
+        on_delete=models.PROTECT,
+        related_name="ajustes",
+    )
+    fecha = models.DateField(default=timezone.now)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    motivo = models.CharField(max_length=255)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha", "-id"]
+
+    def clean(self):
+        super().clean()
+        if self.monto is None or self.monto == 0:
+            raise ValidationError({"monto": "El ajuste no puede ser cero."})
+        total_resultante = (self.presupuesto.total or Decimal("0.00")) + self.monto
+        otros = self.presupuesto.ajustes.exclude(pk=self.pk).aggregate(
+            total=models.Sum("monto")
+        )["total"] or Decimal("0.00")
+        total_efectivo_resultante = total_resultante + otros
+        if total_efectivo_resultante < 0:
+            raise ValidationError({"monto": "El ajuste no puede dejar el presupuesto con total negativo."})
+        fondos = self.presupuesto.total_pagado + self.presupuesto.credito_recibido
+        if self.presupuesto.credito_transferido > max(
+            fondos - total_efectivo_resultante,
+            Decimal("0.00"),
+        ):
+            raise ValidationError({
+                "monto": "El ajuste dejaría sin respaldo una transferencia de crédito ya registrada."
+            })
+
+    def __str__(self):
+        return f"Ajuste {self.monto} - Presupuesto #{self.presupuesto_id}"
+
+
+class BudgetCreditTransfer(models.Model):
+    presupuesto_origen = models.ForeignKey(
+        Budget,
+        on_delete=models.PROTECT,
+        related_name="transferencias_enviadas",
+    )
+    presupuesto_destino = models.ForeignKey(
+        Budget,
+        on_delete=models.PROTECT,
+        related_name="transferencias_recibidas",
+    )
+    fecha = models.DateField(default=timezone.now)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    motivo = models.CharField(max_length=255)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha", "-id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(monto__gt=0),
+                name="budget_credit_transfer_monto_positivo",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(presupuesto_origen=models.F("presupuesto_destino")),
+                name="budget_credit_transfer_presupuestos_distintos",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.monto is None or self.monto <= 0:
+            raise ValidationError({"monto": "El monto debe ser mayor a cero."})
+        if self.presupuesto_origen_id == self.presupuesto_destino_id:
+            raise ValidationError("El presupuesto de origen y destino deben ser distintos.")
+        if (
+            self.presupuesto_origen_id
+            and self.presupuesto_destino_id
+            and self.presupuesto_origen.paciente_id != self.presupuesto_destino.paciente_id
+        ):
+            raise ValidationError("Solo se puede transferir crédito entre presupuestos del mismo paciente.")
+
+    def __str__(self):
+        return (
+            f"Transferencia {self.monto}: presupuesto "
+            f"#{self.presupuesto_origen_id} a #{self.presupuesto_destino_id}"
+        )
         
 
 # 💳 PAGOS
@@ -801,8 +915,6 @@ class RayosX(models.Model):
 
     def __str__(self):
         return f"Rayos X - {self.paciente}"
-
-
 
 
 

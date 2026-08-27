@@ -179,6 +179,46 @@
     padding: 14px 0;
 }
 
+.gestion-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.gestion-card {
+    border: 1px solid #dcebea;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fbfefd;
+}
+
+.gestion-card h5 {
+    color: #173f3a;
+    margin: 0 0 12px;
+}
+
+.gestion-form {
+    display: grid;
+    gap: 9px;
+}
+
+.gestion-form input,
+.gestion-form select {
+    width: 100%;
+    border: 1px solid #cbdad8;
+    border-radius: 8px;
+    padding: 9px 10px;
+}
+
+.gestion-ayuda {
+    color: #6c757d;
+    font-size: 0.84rem;
+    margin-bottom: 10px;
+}
+
+.monto-positivo { color: #087443; }
+.monto-negativo { color: #b42318; }
+
 @media (max-width: 900px) {
     .kpi-grid {
         grid-template-columns: 1fr;
@@ -191,6 +231,10 @@
 
     .tabla-finanzas {
         font-size: 0.9rem;
+    }
+
+    .gestion-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>
@@ -295,8 +339,9 @@
                         <th>Fecha</th>
                         <th>Diagnóstico / tratamiento</th>
                         <th>Estado</th>
-                        <th class="text-right">Total</th>
+                        <th class="text-right">Total efectivo</th>
                         <th class="text-right">Pagado</th>
+                        <th class="text-right">Crédito aplicado</th>
                         <th class="text-right">Saldo</th>
                     </tr>
                 </thead>
@@ -317,8 +362,12 @@
                                     <span class="badge-finanzas badge-pendiente">{{ p.estado_display }}</span>
                                 {% endif %}
                             </td>
-                            <td class="text-right">${{ p.total|floatformat:0 }}</td>
+                            <td class="text-right">
+                                ${{ p.total|floatformat:0 }}
+                                {% if p.total_ajustes %}<br><small>Original: ${{ p.total_original|floatformat:0 }}</small>{% endif %}
+                            </td>
                             <td class="text-right">${{ p.total_pagado|floatformat:0 }}</td>
+                            <td class="text-right">${{ p.credito_recibido|floatformat:0 }}</td>
                             <td class="text-right"><strong>${{ p.saldo|floatformat:0 }}</strong></td>
                         </tr>
                     {% endfor %}
@@ -328,6 +377,52 @@
             <div class="vacio">Este paciente todavía no tiene presupuestos cargados.</div>
         {% endif %}
     </div>
+
+    {% if presupuestos %}
+    <div class="panel-finanzas">
+        <h4>Ajustes y transferencias de saldo</h4>
+        <div class="gestion-ayuda">
+            Estos movimientos son administrativos de Sonrisar Pro. No registran cobros, no mueven Caja y no generan documentos para DGI.
+        </div>
+        <div class="gestion-grid">
+            {% for p in presupuestos %}
+                <div class="gestion-card">
+                    <h5>Presupuesto #{{ p.id }}</h5>
+                    <div class="gestion-ayuda">
+                        Total efectivo: ${{ p.total|floatformat:0 }} · Crédito disponible: ${{ p.credito_disponible|floatformat:0 }}
+                    </div>
+
+                    <form method="post" action="{% url 'budget_add_adjustment' p.id %}" class="gestion-form">
+                        {% csrf_token %}
+                        <strong>Registrar ajuste</strong>
+                        <input type="number" name="monto" step="0.01" required placeholder="Ej.: -3000">
+                        <input type="text" name="motivo" maxlength="255" required placeholder="Motivo del ajuste">
+                        <button type="submit" class="btn btn-sonrisar">Guardar ajuste</button>
+                    </form>
+
+                    {% if p.credito_disponible > 0 %}
+                        <hr>
+                        <form method="post" action="{% url 'budget_transfer_credit' p.id %}" class="gestion-form">
+                            {% csrf_token %}
+                            <strong>Transferir crédito disponible</strong>
+                            <select name="presupuesto_destino" required>
+                                <option value="">Elegir presupuesto destino</option>
+                                {% for destino in presupuestos %}
+                                    {% if destino.id != p.id and destino.estado != "cancelado" %}
+                                        <option value="{{ destino.id }}">Presupuesto #{{ destino.id }} · saldo ${{ destino.saldo|floatformat:0 }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <input type="number" name="monto" min="0.01" max="{{ p.credito_disponible }}" step="0.01" required placeholder="Monto">
+                            <input type="text" name="motivo" maxlength="255" required placeholder="Motivo de la transferencia">
+                            <button type="submit" class="btn btn-sonrisar">Transferir saldo</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <div class="panel-finanzas">
         <h4>Movimientos de presupuestos</h4>
@@ -350,13 +445,17 @@
                             <td>{{ m.tipo }}</td>
                             <td>{{ m.concepto }}</td>
                             <td>{{ m.metodo }}</td>
-                            <td class="text-right"><strong>${{ m.monto|floatformat:0 }}</strong></td>
+                            <td class="text-right">
+                                <strong class="{% if m.monto < 0 %}monto-negativo{% else %}monto-positivo{% endif %}">
+                                    {% if m.monto > 0 %}+{% endif %}${{ m.monto|floatformat:0 }}
+                                </strong>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         {% else %}
-            <div class="vacio">Todavía no hay pagos asociados a presupuestos.</div>
+            <div class="vacio">Todavía no hay movimientos asociados a presupuestos.</div>
         {% endif %}
     </div>
 

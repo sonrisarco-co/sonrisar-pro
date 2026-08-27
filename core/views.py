@@ -7,6 +7,8 @@ from django.utils.text import slugify
 import calendar
 #from core.models import Cita
 from django.db.models import Q, F, Max, Sum
+from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 
 from django.conf import settings
@@ -59,6 +61,8 @@ from .models import (
     ClinicalRecord,
     RayosX,
     BudgetPayment,
+    BudgetAdjustment,
+    BudgetCreditTransfer,
     OdontogramTooth,
     OdontogramaCara,
     DayBlock,
@@ -1544,12 +1548,19 @@ def budget_change_status(request, id):
 
 
 def budget_payment_receipt(request, payment_id):
-    pago = get_object_or_404(BudgetPayment, id=payment_id)
+    pago = get_object_or_404(
+        BudgetPayment.objects.select_related("presupuesto").prefetch_related(
+            "presupuesto__ajustes",
+            "presupuesto__transferencias_recibidas",
+        ),
+        id=payment_id,
+    )
     presupuesto = pago.presupuesto
 
-    saldo_luego_del_pago = presupuesto.total - sum(
+    saldo_luego_del_pago = presupuesto.total_efectivo - presupuesto.credito_recibido - sum(
         p.monto for p in presupuesto.pagos.filter(id__lte=pago.id)
     )
+    saldo_luego_del_pago = max(saldo_luego_del_pago, Decimal("0.00"))
 
     return render(request, "core/budget_payment_receipt.html", {
         "pago": pago,
@@ -1568,6 +1579,87 @@ def budget_payment_delete(request, payment_id):
         messages.success(request, "Pago eliminado correctamente.")
 
     return redirect("budget_detail", id=presupuesto_id)
+
+
+@require_POST
+def budget_add_adjustment(request, id):
+    presupuesto_base = get_object_or_404(Budget, id=id)
+    try:
+        monto = Decimal(request.POST.get("monto", "").replace(",", "."))
+    except (InvalidOperation, AttributeError):
+        messages.error(request, "Ingresá un monto de ajuste válido.")
+        return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+    with transaction.atomic():
+        presupuesto = (
+            Budget.objects.select_for_update()
+            .prefetch_related(
+                "pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas"
+            )
+            .get(id=id)
+        )
+        ajuste = BudgetAdjustment(
+            presupuesto=presupuesto,
+            monto=monto,
+            motivo=request.POST.get("motivo", "").strip(),
+        )
+        try:
+            ajuste.full_clean()
+            ajuste.save()
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
+        else:
+            messages.success(request, f"Ajuste de presupuesto registrado por ${monto}.")
+    return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+
+@require_POST
+def budget_transfer_credit(request, id):
+    presupuesto_base = get_object_or_404(Budget, id=id)
+    try:
+        monto = Decimal(request.POST.get("monto", "").replace(",", "."))
+        destino_id = int(request.POST.get("presupuesto_destino", ""))
+    except (InvalidOperation, AttributeError, TypeError, ValueError):
+        messages.error(request, "Completá un destino y un monto válidos.")
+        return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+    with transaction.atomic():
+        ids = sorted([id, destino_id])
+        bloqueados = {
+            presupuesto.id: presupuesto
+            for presupuesto in Budget.objects.select_for_update()
+            .filter(id__in=ids)
+            .prefetch_related(
+                "pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas"
+            )
+        }
+        origen = bloqueados.get(id)
+        destino = bloqueados.get(destino_id)
+        if not origen or not destino:
+            messages.error(request, "No se encontró uno de los presupuestos seleccionados.")
+            return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+        transferencia = BudgetCreditTransfer(
+            presupuesto_origen=origen,
+            presupuesto_destino=destino,
+            monto=monto,
+            motivo=request.POST.get("motivo", "").strip(),
+        )
+        try:
+            transferencia.full_clean()
+            if monto > origen.credito_disponible:
+                raise ValidationError(
+                    f"El monto supera el crédito disponible (${origen.credito_disponible})."
+                )
+            transferencia.save()
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
+        else:
+            messages.success(
+                request,
+                f"Se transfirieron ${monto} del presupuesto #{origen.id} al #{destino.id}.",
+            )
+    return redirect("patient_finances", id=presupuesto_base.paciente_id)
 
 
 # =============================
@@ -2904,14 +2996,14 @@ def agenda_day(request, day, month, year):
             paciente_id__in=patient_ids_dia,
             estado="confirmado",
         )
-        .prefetch_related("pagos")
+        .prefetch_related("pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas")
     )
 
     for presupuesto in presupuestos_confirmados_dia:
         patient_id = presupuesto.paciente_id
         total_presupuestos_por_paciente[patient_id] = (
             total_presupuestos_por_paciente.get(patient_id, Decimal("0"))
-            + _decimal_seguro(presupuesto.total)
+            + _decimal_seguro(presupuesto.total_efectivo)
         )
         total_pagado_presupuesto_local_por_paciente[patient_id] = (
             total_pagado_presupuesto_local_por_paciente.get(patient_id, Decimal("0"))
@@ -4958,7 +5050,7 @@ def deudores_general(request):
         Budget.objects
         .filter(estado="confirmado")
         .select_related("paciente")
-        .prefetch_related("pagos")
+        .prefetch_related("pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas")
     )
 
     total_presupuestos_por_id = {}
@@ -4972,7 +5064,7 @@ def deudores_general(request):
         if query and query not in nombre:
             continue
 
-        total_presupuesto = _decimal_seguro(presupuesto.total)
+        total_presupuesto = _decimal_seguro(presupuesto.total_efectivo)
         if total_presupuesto <= 0:
             continue
 
@@ -5260,7 +5352,7 @@ def patient_finances(request, id):
     presupuestos = list(
         Budget.objects
         .filter(paciente=paciente)
-        .prefetch_related("items", "pagos")
+        .prefetch_related("items", "pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas")
         .order_by("-fecha", "-id")
     )
 
@@ -5273,9 +5365,14 @@ def patient_finances(request, id):
     movimientos_presupuesto = []
 
     for presupuesto in presupuestos:
-        total_presupuesto = _decimal_seguro(presupuesto.total)
+        total_original = _decimal_seguro(presupuesto.total)
+        total_ajustes = _decimal_seguro(presupuesto.total_ajustes)
+        total_presupuesto = _decimal_seguro(presupuesto.total_efectivo)
         total_pagado = _decimal_seguro(presupuesto.total_pagado)
-        saldo = total_presupuesto - total_pagado
+        credito_recibido = _decimal_seguro(presupuesto.credito_recibido)
+        credito_transferido = _decimal_seguro(presupuesto.credito_transferido)
+        credito_disponible = _decimal_seguro(presupuesto.credito_disponible)
+        saldo = _decimal_seguro(presupuesto.saldo_pendiente)
 
         if saldo < 0:
             saldo = Decimal("0")
@@ -5292,7 +5389,12 @@ def patient_finances(request, id):
             "estado": presupuesto.estado,
             "estado_display": presupuesto.get_estado_display(),
             "total": total_presupuesto,
+            "total_original": total_original,
+            "total_ajustes": total_ajustes,
             "total_pagado": total_pagado,
+            "credito_recibido": credito_recibido,
+            "credito_transferido": credito_transferido,
+            "credito_disponible": credito_disponible,
             "saldo": saldo,
             "aceptado": presupuesto.estado in estados_aceptados,
         })
@@ -5305,6 +5407,40 @@ def patient_finances(request, id):
                 "metodo": pago.get_metodo_pago_display() if pago.metodo_pago else "—",
                 "monto": _decimal_seguro(pago.monto),
                 "presupuesto_id": presupuesto.id,
+                "clase": "pago",
+            })
+
+        for ajuste in presupuesto.ajustes.all():
+            movimientos_presupuesto.append({
+                "fecha": ajuste.fecha,
+                "tipo": "Ajuste de presupuesto",
+                "concepto": ajuste.motivo,
+                "metodo": "Administrativo",
+                "monto": _decimal_seguro(ajuste.monto),
+                "presupuesto_id": presupuesto.id,
+                "clase": "ajuste",
+            })
+
+        for transferencia in presupuesto.transferencias_enviadas.all():
+            movimientos_presupuesto.append({
+                "fecha": transferencia.fecha,
+                "tipo": "Crédito transferido",
+                "concepto": transferencia.motivo or f"Al presupuesto #{transferencia.presupuesto_destino_id}",
+                "metodo": f"#{presupuesto.id} → #{transferencia.presupuesto_destino_id}",
+                "monto": -_decimal_seguro(transferencia.monto),
+                "presupuesto_id": presupuesto.id,
+                "clase": "transferencia",
+            })
+
+        for transferencia in presupuesto.transferencias_recibidas.all():
+            movimientos_presupuesto.append({
+                "fecha": transferencia.fecha,
+                "tipo": "Crédito recibido",
+                "concepto": transferencia.motivo or f"Desde presupuesto #{transferencia.presupuesto_origen_id}",
+                "metodo": f"#{transferencia.presupuesto_origen_id} → #{presupuesto.id}",
+                "monto": _decimal_seguro(transferencia.monto),
+                "presupuesto_id": presupuesto.id,
+                "clase": "transferencia",
             })
 
     movimientos_presupuesto.sort(
