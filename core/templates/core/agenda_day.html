@@ -285,6 +285,12 @@
 
                                             {% endif %}
 
+                                            {% if cita.deuda_total_paciente <= 0 %}
+                                                <span class="badge badge-sin-deuda">
+                                                    Sin deuda
+                                                </span>
+                                            {% endif %}
+
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
                                                class="btn btn-sm {% if cita.historia_actualizada %}btn-success{% else %}btn-outline-success{% endif %}">
                                                 Historia clínica{% if cita.historia_actualizada %} ✓{% endif %}
@@ -528,6 +534,12 @@
 
                                             {% endif %}
 
+                                            {% if cita.deuda_total_paciente <= 0 %}
+                                                <span class="badge badge-sin-deuda">
+                                                    Sin deuda
+                                                </span>
+                                            {% endif %}
+
                                             <a href="{% url 'abrir_historia_desde_cita' cita.patient_id %}?appointment_id={{ cita.id }}&next={{ request.get_full_path|urlencode }}"
                                                class="btn btn-sm {% if cita.historia_actualizada %}btn-success{% else %}btn-outline-success{% endif %}">
                                                 Historia clínica{% if cita.historia_actualizada %} ✓{% endif %}
@@ -607,7 +619,7 @@
                                 </div>
 
                                 <div class="deudor-debe">
-                                    Debe: $ {{ d.debe|floatformat:0 }}
+                                    Debe: $ {{ d.deuda_total_paciente|floatformat:0 }}
                                 </div>
 
                                 <a href="{% url 'cobros_nuevo_desde_cita' d.id %}?next={{ request.get_full_path|urlencode }}"
@@ -674,6 +686,12 @@
     background: #f8f9fa !important;
     color: #6c757d !important;
     border: 1px solid #ced4da;
+}
+
+.badge-sin-deuda {
+    background: #e9f7ef !important;
+    color: #198754 !important;
+    border: 1px solid #badbcc;
 }
 
 .badge-recibo-link {

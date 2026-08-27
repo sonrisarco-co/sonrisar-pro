@@ -558,7 +558,13 @@
                         </div>
                     {% endif %}
                 {% else %}
-                    <div class="resumen-detalle">No hay pagos registrados.</div>
+                    {% if resumen_financiero.total_pagado > 0 %}
+                        <div class="resumen-detalle">
+                            Total pagado registrado: ${{ resumen_financiero.total_pagado|floatformat:0 }}
+                        </div>
+                    {% else %}
+                        <div class="resumen-detalle">No hay pagos registrados.</div>
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <div class="resumen-valor">No disponible</div>

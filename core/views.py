@@ -6,7 +6,7 @@ from django.utils.text import slugify
 
 import calendar
 #from core.models import Cita
-from django.db.models import Q, F, Max
+from django.db.models import Q, F, Max, Sum
 from django.contrib import messages
 
 from django.conf import settings
@@ -202,54 +202,21 @@ def patient_list(request):
 
 def _obtener_resumen_financiero_ficha(paciente):
     """
-    Obtiene la información financiera para la ficha del paciente.
+    Resumen financiero liviano para la Ficha del paciente.
 
-    Primero consulta por patient_id. Si no encuentra pagos, intenta por los
-    formatos de nombre usados históricamente en Sonrisar Cobros.
-    Esta consulta se ejecuta solamente al abrir la ficha del paciente.
+    Usa exactamente la misma fuente rápida por patient_id que Agenda del día
+    y Pacientes deudores, evitando inconsistencias entre pantallas.
+
+    Rendimiento:
+    - Una sola consulta HTTP a Sonrisar Cobros.
+    - No consulta cita por cita.
+    - No hace búsquedas repetidas por nombre.
     """
-    cobros_base_url = getattr(
-        settings,
-        "SONRISAR_COBROS_BASE_URL",
-        "https://sonrisar-cobros-1.onrender.com"
-    ).rstrip("/")
+    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
 
-    cobros_api_path = getattr(
-        settings,
-        "SONRISAR_COBROS_API_PACIENTE_PATH",
-        "/pagos/api/por-paciente/"
-    )
-
-    consultas = [
-        {"patient_id": paciente.id},
-        {"paciente": f"{paciente.apellido}, {paciente.nombre}".strip(", ")},
-        {"paciente": f"{paciente.nombre} {paciente.apellido}".strip()},
-    ]
-
-    pagos = []
-    error = None
-
-    for params in consultas:
-        try:
-            response = requests.get(
-                f"{cobros_base_url}{cobros_api_path}",
-                params=params,
-                timeout=6,
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            if data.get("ok") and data.get("pagos"):
-                pagos = data.get("pagos", [])
-                error = None
-                break
-
-        except Exception:
-            error = "No fue posible consultar Sonrisar Cobros."
-
-    total_pagado = sum(
-        (_decimal_seguro(pago.get("monto", 0)) for pago in pagos),
-        Decimal("0")
+    disponible = bool(resumen_cobros.get("ok"))
+    total_pagado = _decimal_seguro(
+        resumen_cobros.get("total_pagado", 0)
     )
 
     total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
@@ -258,26 +225,18 @@ def _obtener_resumen_financiero_ficha(paciente):
     if deuda < 0:
         deuda = Decimal("0")
 
-    ultimo_pago = pagos[0] if pagos else None
-    recibo_url = ""
-
-    if ultimo_pago and ultimo_pago.get("id"):
-        recibo_url = (
-            f"{cobros_base_url}/pagos/{ultimo_pago['id']}/recibo/"
-        )
-
-        ci_paciente = (paciente.ci or "").strip()
-        if ci_paciente:
-            recibo_url += "?" + urlencode({"ci": ci_paciente})
-
     return {
-        "disponible": error is None,
-        "error": error,
+        "disponible": disponible,
+        "error": resumen_cobros.get("error"),
         "deuda": deuda,
         "sin_deuda": deuda <= 0,
         "total_pagado": total_pagado,
-        "ultimo_pago": ultimo_pago,
-        "recibo_url": recibo_url,
+
+        # El endpoint rápido devuelve el total consolidado, no el detalle
+        # del último movimiento. Dejamos estos campos vacíos para que el
+        # template muestre el total pagado registrado sin inventar datos.
+        "ultimo_pago": None,
+        "recibo_url": "",
     }
 
 
@@ -2280,8 +2239,21 @@ def obtener_total_cobrable_paciente_desde_pro(paciente, fecha_hasta=None):
 
 def obtener_resumen_cobros_pacientes_bulk(patient_ids):
     """
-    Consulta Sonrisar Cobros UNA sola vez para varios pacientes.
-    Esto evita que Agenda del día quede lenta por hacer una consulta HTTP por cada cita.
+    Consulta Sonrisar Cobros en bloque para varios pacientes.
+
+    Producción:
+    - Usa únicamente SONRISAR_COBROS_BASE_URL.
+
+    Desarrollo local (DEBUG=True):
+    - Consulta la base configurada (normalmente http://127.0.0.1:8001).
+    - Consulta también Cobros de producción para conservar el historial real.
+    - Para cada paciente toma el MAYOR total pagado entre ambas fuentes.
+      No suma los importes, evitando duplicar pagos presentes en las dos bases.
+
+    Rendimiento:
+    - Máximo 2 consultas HTTP por pantalla en desarrollo.
+    - 1 sola consulta HTTP en producción.
+    - Nunca hace una consulta por paciente/cita.
     """
     patient_ids_limpios = []
 
@@ -2297,59 +2269,98 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
     if not patient_ids_limpios:
         return {}
 
-    cobros_base_url = "https://sonrisar-cobros-1.onrender.com"
-
     cobros_api_path = getattr(
         settings,
         "SONRISAR_COBROS_API_RESUMEN_PACIENTES_PATH",
         "/pagos/api/resumen-pacientes/"
     )
 
-    api_url = (
-        f"{cobros_base_url}"
-        f"{cobros_api_path}"
-        f"?{urlencode({'patient_ids': ','.join(str(x) for x in patient_ids_limpios)})}"
-    )
+    patient_ids_param = ",".join(str(x) for x in patient_ids_limpios)
 
-    try:
-        response = requests.get(api_url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+    def consultar_fuente(base_url):
+        base_url = (base_url or "").strip().rstrip("/")
 
-        print("DEBUG COBROS patient_ids:", patient_ids_limpios)
-        print("DEBUG COBROS api_url:", api_url)
-        print("DEBUG COBROS status:", response.status_code)
-        print("DEBUG COBROS data:", data)
+        if not base_url:
+            return None, "URL de Sonrisar Cobros vacía."
 
-        if not data.get("ok"):
-            raise ValueError(data.get("error", "Respuesta inválida de Cobros"))
+        api_url = (
+            f"{base_url}"
+            f"{cobros_api_path}"
+            f"?{urlencode({'patient_ids': patient_ids_param})}"
+        )
 
-        resumenes = {}
+        try:
+            response = requests.get(api_url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
 
-        for item in data.get("pacientes", []):
-            patient_id = item.get("patient_id")
+            if not data.get("ok"):
+                raise ValueError(
+                    data.get("error", "Respuesta inválida de Cobros")
+                )
 
-            if patient_id is None:
-                continue
+            resumenes = {}
 
-            try:
-                patient_id = int(patient_id)
-            except (TypeError, ValueError):
-                continue
+            for item in data.get("pacientes", []):
+                patient_id = item.get("patient_id")
 
-            resumenes[patient_id] = {
-                "ok": True,
-                "total_pagado": _decimal_seguro(item.get("total_pagado", 0)),
-                "tipo_pago": item.get("tipo_pago", "pagado"),
-                "cantidad_pagos": item.get("cantidad_pagos", 0),
-                "error": None,
-            }
+                if patient_id is None:
+                    continue
 
-        return resumenes
+                try:
+                    patient_id = int(patient_id)
+                except (TypeError, ValueError):
+                    continue
 
-    except Exception as e:
-        print("ERROR CONECTANDO COBROS:", str(e))
-        print("ERROR COBROS api_url:", api_url)
+                resumenes[patient_id] = {
+                    "ok": True,
+                    "total_pagado": _decimal_seguro(
+                        item.get("total_pagado", 0)
+                    ),
+                    "tipo_pago": item.get("tipo_pago", "pagado"),
+                    "cantidad_pagos": int(
+                        item.get("cantidad_pagos", 0) or 0
+                    ),
+                    "error": None,
+                }
+
+            for patient_id in patient_ids_limpios:
+                resumenes.setdefault(
+                    patient_id,
+                    {
+                        "ok": True,
+                        "total_pagado": Decimal("0"),
+                        "tipo_pago": "pagado",
+                        "cantidad_pagos": 0,
+                        "error": None,
+                    }
+                )
+
+            return resumenes, None
+
+        except Exception as e:
+            print(
+                "ERROR CONECTANDO COBROS:",
+                base_url,
+                str(e)
+            )
+            return None, str(e)
+
+    base_configurada = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        (
+            "http://127.0.0.1:8001"
+            if settings.DEBUG
+            else "https://sonrisar-cobros-1.onrender.com"
+        )
+    ).rstrip("/")
+
+    if not settings.DEBUG:
+        resumenes, error = consultar_fuente(base_configurada)
+
+        if resumenes is not None:
+            return resumenes
 
         return {
             patient_id: {
@@ -2357,10 +2368,101 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
                 "total_pagado": Decimal("0"),
                 "tipo_pago": "pagado",
                 "cantidad_pagos": 0,
-                "error": f"No fue posible conectar con Sonrisar Cobros: {str(e)}",
+                "error": (
+                    "No fue posible conectar con Sonrisar Cobros: "
+                    f"{error}"
+                ),
             }
             for patient_id in patient_ids_limpios
         }
+
+    base_produccion = "https://sonrisar-cobros-1.onrender.com"
+
+    fuentes = []
+    for base_url in (base_configurada, base_produccion):
+        normalizada = (base_url or "").strip().rstrip("/")
+        if normalizada and normalizada not in fuentes:
+            fuentes.append(normalizada)
+
+    resultados_validos = []
+    errores = []
+
+    for base_url in fuentes:
+        resumenes, error = consultar_fuente(base_url)
+
+        if resumenes is not None:
+            resultados_validos.append(resumenes)
+        elif error:
+            errores.append(f"{base_url}: {error}")
+
+    if not resultados_validos:
+        detalle_error = " | ".join(errores) or "Sin respuesta de Cobros."
+
+        return {
+            patient_id: {
+                "ok": False,
+                "total_pagado": Decimal("0"),
+                "tipo_pago": "pagado",
+                "cantidad_pagos": 0,
+                "error": (
+                    "No fue posible conectar con ninguna fuente "
+                    f"de Sonrisar Cobros: {detalle_error}"
+                ),
+            }
+            for patient_id in patient_ids_limpios
+        }
+
+    combinados = {}
+
+    for patient_id in patient_ids_limpios:
+        candidatos = [
+            resumen.get(
+                patient_id,
+                {
+                    "ok": True,
+                    "total_pagado": Decimal("0"),
+                    "tipo_pago": "pagado",
+                    "cantidad_pagos": 0,
+                    "error": None,
+                }
+            )
+            for resumen in resultados_validos
+        ]
+
+        mejor = max(
+            candidatos,
+            key=lambda item: _decimal_seguro(
+                item.get("total_pagado", 0)
+            )
+        )
+
+        total_mayor = _decimal_seguro(
+            mejor.get("total_pagado", 0)
+        )
+
+        cantidad_mayor = max(
+            int(item.get("cantidad_pagos", 0) or 0)
+            for item in candidatos
+        )
+
+        tipo_pago = (
+            "sena"
+            if any(
+                item.get("tipo_pago") == "sena"
+                for item in candidatos
+            )
+            else mejor.get("tipo_pago", "pagado")
+        )
+
+        combinados[patient_id] = {
+            "ok": True,
+            "total_pagado": total_mayor,
+            "tipo_pago": tipo_pago,
+            "cantidad_pagos": cantidad_mayor,
+            "error": None,
+        }
+
+    return combinados
 
 
 def obtener_resumen_cobros_paciente(paciente):
@@ -2737,6 +2839,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "monto_total": monto_total,
         "total_cobrable_paciente": monto_total,
         "debe": deuda_cita,
+        "deuda_cita": deuda_cita,
         "deuda_total_paciente": deuda_cita,
         "saldo_a_favor": saldo_generado,
         "saldo_a_favor_restante": saldo_a_favor_restante,
@@ -2819,15 +2922,52 @@ def agenda_day(request, day, month, year):
         list(patient_ids_dia)
     ) if patient_ids_dia else {}
 
+    # Deuda TOTAL de citas por paciente, calculada en bloque.
+    #
+    # Importante para rendimiento: NO llamamos
+    # obtener_total_cobrable_paciente_desde_pro() una vez por paciente.
+    # Hacemos una sola consulta SQL agrupada y reutilizamos el mismo resumen
+    # de Cobros que ya se pidió arriba para todos los pacientes del día.
+    totales_cobrables_por_paciente = {
+        patient_id: Decimal("0") for patient_id in patient_ids_dia
+    }
+
+    if patient_ids_dia:
+        totales_cobrables_qs = (
+            Appointment.objects
+            .filter(paciente_id__in=patient_ids_dia)
+            .exclude(estado="cancelado")
+            .values("paciente_id")
+            .annotate(total_cobrable=Sum("monto_total"))
+        )
+
+        for fila in totales_cobrables_qs:
+            totales_cobrables_por_paciente[fila["paciente_id"]] = _decimal_seguro(
+                fila.get("total_cobrable", 0)
+            )
+
+    deuda_citas_por_paciente = {}
     deuda_presupuestos_por_paciente = {}
 
     for patient_id in patient_ids_dia:
+        total_pagado_cobros = _decimal_seguro(
+            resumenes_cobros_dia.get(patient_id, {}).get("total_pagado", 0)
+        )
+
+        # Misma lógica usada por Pacientes deudores:
+        # total de citas cobrables - total pagado por el paciente.
+        deuda_citas = (
+            totales_cobrables_por_paciente.get(patient_id, Decimal("0"))
+            - total_pagado_cobros
+        )
+        if deuda_citas < 0:
+            deuda_citas = Decimal("0")
+
+        deuda_citas_por_paciente[patient_id] = deuda_citas
+
         total_presupuestos = total_presupuestos_por_paciente.get(
             patient_id,
             Decimal("0"),
-        )
-        total_pagado_cobros = _decimal_seguro(
-            resumenes_cobros_dia.get(patient_id, {}).get("total_pagado", 0)
         )
         total_pagado_local = total_pagado_presupuesto_local_por_paciente.get(
             patient_id,
@@ -2917,16 +3057,22 @@ def agenda_day(request, day, month, year):
         # Mostrar el saldo mayor evita duplicar deuda cuando ambos contienen
         # importes del mismo tratamiento.
         for cita_data in citas_exactas_data + citas_extra_data:
-            deuda_citas = _decimal_seguro(cita_data.get("debe", 0))
+            patient_id = cita_data.get("patient_id")
+            deuda_citas = deuda_citas_por_paciente.get(
+                patient_id,
+                Decimal("0"),
+            )
             deuda_presupuestos = deuda_presupuestos_por_paciente.get(
-                cita_data.get("patient_id"),
+                patient_id,
                 Decimal("0"),
             )
             deuda_total = max(deuda_citas, deuda_presupuestos)
 
             cita_data["deuda_citas"] = deuda_citas
             cita_data["deuda_presupuestos"] = deuda_presupuestos
-            cita_data["debe"] = deuda_total
+            # IMPORTANTE: "debe" conserva la deuda calculada para el flujo
+            # de ESTA cita. No se reemplaza por la deuda global del paciente,
+            # porque ese valor se usa para decidir Pendiente / Ya cobrado.
             cita_data["deuda_total_paciente"] = deuda_total
 
         horarios.append({
@@ -2947,15 +3093,23 @@ def agenda_day(request, day, month, year):
                 continue
 
             for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
-                debe = _decimal_seguro(cita.get("debe", 0))
+                deuda_total_paciente = _decimal_seguro(
+                    cita.get("deuda_total_paciente", 0)
+                )
                 patient_id = cita.get("patient_id")
 
-                if debe > 0 and patient_id not in pacientes_ya_agregados:
+                if (
+                    deuda_total_paciente > 0
+                    and patient_id not in pacientes_ya_agregados
+                ):
                     deudores.append(cita)
                     pacientes_ya_agregados.add(patient_id)
 
     total_deuda_dia = sum(
-        (_decimal_seguro(d.get("debe", 0)) for d in deudores),
+        (
+            _decimal_seguro(d.get("deuda_total_paciente", 0))
+            for d in deudores
+        ),
         Decimal("0")
     )
 
@@ -4902,12 +5056,13 @@ def deudores_general(request):
 
 def obtener_detalle_cobros_paciente(paciente):
     """
-    Consulta el detalle financiero de un paciente en Sonrisar Cobros.
+    Obtiene el resumen financiero del paciente usando como fuente principal
+    el endpoint rápido por patient_id, el mismo que utiliza Agenda/Deudores.
 
-    Primero consulta por patient_id. Si no encuentra movimientos, intenta por
-    los formatos de nombre usados históricamente en Cobros. Esto permite que
-    pagos/devoluciones antiguos que todavía no tengan patient_id sigan
-    apareciendo en Finanzas del paciente.
+    Si existen movimientos modernos con patient_id, hace como máximo una
+    consulta adicional al endpoint de detalle para recuperar devoluciones.
+    Si no existen movimientos por patient_id, conserva la compatibilidad con
+    pagos históricos buscando por los formatos de nombre antiguos.
     """
     cobros_base_url = getattr(
         settings,
@@ -4921,15 +5076,83 @@ def obtener_detalle_cobros_paciente(paciente):
         "/pagos/api/por-paciente/"
     )
 
-    consultas = [
-        {"patient_id": paciente.id},
+    # Fuente principal y rápida: exactamente el mismo resumen por patient_id
+    # que ya usan Agenda del día y Pacientes deudores.
+    resumen_rapido = obtener_resumen_cobros_paciente(paciente)
+    resumen_ok = bool(resumen_rapido.get("ok"))
+    total_pagado_resumen = _decimal_seguro(
+        resumen_rapido.get("total_pagado", 0)
+    )
+    cantidad_pagos_resumen = int(
+        resumen_rapido.get("cantidad_pagos", 0) or 0
+    )
+
+    # Si el resumen rápido reconoce pagos del paciente, NO hacemos las tres
+    # búsquedas históricas. Consultamos detalle solo una vez por patient_id
+    # para conservar información de devoluciones cuando esté disponible.
+    if resumen_ok and (total_pagado_resumen > 0 or cantidad_pagos_resumen > 0):
+        try:
+            response = requests.get(
+                f"{cobros_base_url}{cobros_api_path}",
+                params={"patient_id": paciente.id},
+                timeout=8,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("ok"):
+                cantidad_devoluciones = int(
+                    data.get("cantidad_devoluciones", 0) or 0
+                )
+                total_devuelto = _decimal_seguro(
+                    data.get("total_devuelto", 0)
+                )
+                total_pagado_bruto = _decimal_seguro(
+                    data.get(
+                        "total_pagado_bruto",
+                        total_pagado_resumen + total_devuelto,
+                    )
+                )
+
+                return {
+                    "ok": True,
+                    # El total rápido es la fuente autoritativa para el saldo.
+                    "total_pagado": total_pagado_resumen,
+                    "total_pagado_bruto": total_pagado_bruto,
+                    "total_devuelto": total_devuelto,
+                    "cantidad_pagos": max(
+                        cantidad_pagos_resumen,
+                        int(data.get("total", data.get("cantidad_pagos", 0)) or 0),
+                    ),
+                    "cantidad_devoluciones": cantidad_devoluciones,
+                    "devoluciones": data.get("devoluciones", []) or [],
+                    "error": None,
+                }
+        except Exception:
+            # Si falla solamente el detalle, el saldo sigue siendo válido
+            # gracias al resumen rápido. No bloqueamos Finanzas del paciente.
+            pass
+
+        return {
+            "ok": True,
+            "total_pagado": total_pagado_resumen,
+            "total_pagado_bruto": total_pagado_resumen,
+            "total_devuelto": Decimal("0"),
+            "cantidad_pagos": cantidad_pagos_resumen,
+            "cantidad_devoluciones": 0,
+            "devoluciones": [],
+            "error": None,
+        }
+
+    # Compatibilidad con pagos históricos que todavía no tengan patient_id.
+    consultas_historicas = [
         {"paciente": f"{paciente.apellido}, {paciente.nombre}".strip(", ")},
         {"paciente": f"{paciente.nombre} {paciente.apellido}".strip()},
     ]
 
-    ultimo_error = None
+    ultimo_error = resumen_rapido.get("error") if not resumen_ok else None
 
-    for params in consultas:
+    for params in consultas_historicas:
         try:
             response = requests.get(
                 f"{cobros_base_url}{cobros_api_path}",
@@ -4943,15 +5166,15 @@ def obtener_detalle_cobros_paciente(paciente):
                 ultimo_error = data.get("error", "Respuesta inválida de Cobros")
                 continue
 
-            # La conexión respondió bien; a partir de acá no arrastramos un
-            # error de un intento anterior.
             ultimo_error = None
 
-            cantidad_pagos = int(data.get("total", data.get("cantidad_pagos", 0)) or 0)
-            cantidad_devoluciones = int(data.get("cantidad_devoluciones", 0) or 0)
+            cantidad_pagos = int(
+                data.get("total", data.get("cantidad_pagos", 0)) or 0
+            )
+            cantidad_devoluciones = int(
+                data.get("cantidad_devoluciones", 0) or 0
+            )
 
-            # Si no hay ningún movimiento con patient_id, seguimos con los
-            # nombres históricos antes de aceptar un resumen vacío.
             if cantidad_pagos == 0 and cantidad_devoluciones == 0:
                 continue
 
@@ -4971,9 +5194,7 @@ def obtener_detalle_cobros_paciente(paciente):
         except Exception as e:
             ultimo_error = str(e)
 
-    # Si todas las consultas respondieron correctamente pero no había
-    # movimientos, el resumen es válido y simplemente está vacío.
-    if ultimo_error is None:
+    if resumen_ok or ultimo_error is None:
         return {
             "ok": True,
             "total_pagado": Decimal("0"),
