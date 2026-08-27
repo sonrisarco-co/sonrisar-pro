@@ -5448,6 +5448,17 @@ def patient_finances(request, id):
         reverse=True,
     )
 
+    # Citas y presupuestos pueden representar el mismo tratamiento, por lo que
+    # no se suman entre sí. Se usa el total mayor como obligación reconocida y
+    # el mayor total pagado como cobertura, evitando duplicar pagos asentados
+    # tanto en Sonrisar Cobros como localmente en los presupuestos.
+    total_cobrable_reconocido = max(total_citas, total_presupuestos_aceptados)
+    total_pagado_reconocido = max(total_pagado_cobros, total_pagado_presupuestos)
+    diferencia_saldo = total_cobrable_reconocido - total_pagado_reconocido
+    saldo_pendiente = max(diferencia_saldo, Decimal("0"))
+    saldo_a_favor = max(-diferencia_saldo, Decimal("0"))
+    saldo_actual = saldo_pendiente
+
     citas_data = []
     for cita in citas_cobrables[:60]:
         procedimientos = ", ".join([p.nombre for p in cita.procedimientos.all()])
