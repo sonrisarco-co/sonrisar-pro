@@ -22,7 +22,7 @@
                     <th>Fecha</th>
                     <th>Descripción</th>
                     <th>Total</th>
-                    <th style="width:180px;">Acciones</th>
+                    <th style="width:340px;">Acciones</th>
                 </tr>
             </thead>
 
@@ -30,13 +30,33 @@
             {% for p in presupuestos %}
                 <tr>
                     <td>{{ p.fecha|date:"d/m/Y" }}</td>
-                    <td>{{ p.descripcion|truncatechars:40 }}</td>
+                    <td>{{ p.diagnostico|default:"—"|truncatechars:40 }}</td>
                     <td>${{ p.total|floatformat:0 }}</td>
-                    <td>
-                        <a href="{% url 'budget_edit' p.id %}" class="btn btn-sm btn-sonrisar-outline">
-                            Abrir
+                    <td class="d-flex gap-1 flex-wrap">
+                        <a href="{% url 'budget_detail' p.id %}{% if next %}?next={{ next|urlencode }}{% endif %}"
+                           class="btn btn-sm btn-outline-primary">
+                            Ver
                         </a>
 
+                        <a href="{% url 'budget_edit' p.id %}{% if next %}?next={{ next|urlencode }}{% endif %}"
+                           class="btn btn-sm btn-sonrisar-outline">
+                            Editar
+                        </a>
+
+                        <form method="post"
+                              action="{% url 'budget_delete' p.id %}"
+                              class="d-inline"
+                              onsubmit="return confirm('¿Seguro que querés eliminar este presupuesto?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ next }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        </form>
+
+                        <a href="{% url 'budget_print' p.id %}"
+                           class="btn btn-sm btn-outline-secondary"
+                           target="_blank" rel="noopener">
+                            PDF
+                        </a>
                     </td>
                 </tr>
             {% endfor %}

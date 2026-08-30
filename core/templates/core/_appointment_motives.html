@@ -42,6 +42,46 @@
             {% endif %}
         {% endwith %}
     {% empty %}
-        <span class="badge bg-secondary">{{ cita.motivo }}</span>
+        {% with motivo=cita.motivo|lower|slugify %}
+            {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+                <span class="badge" style="background:#198754;">{{ cita.motivo }}</span>
+            {% elif "provisorio" in motivo %}
+                <span class="badge" style="background:#e67e22;">{{ cita.motivo }}</span>
+            {% elif "contencion" in motivo %}
+                <span class="badge" style="background:#287c8e;">{{ cita.motivo }}</span>
+            {% elif "placa-nmr" in motivo %}
+                <span class="badge" style="background:#8e6bbe;">{{ cita.motivo }}</span>
+            {% elif "control" in motivo %}
+                <span class="badge" style="background:#607d8b;">{{ cita.motivo }}</span>
+            {% elif "corona" in motivo %}
+                <span class="badge" style="background:#a66a00;">{{ cita.motivo }}</span>
+            {% elif "ajuste" in motivo and "limpieza" in motivo %}
+                <span class="badge" style="background:#00BFA5;">{{ cita.motivo }}</span>
+            {% elif "retiro" in motivo and "bracket" in motivo %}
+                <span class="badge" style="background:#795548;">{{ cita.motivo }}</span>
+            {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
+                <span class="badge" style="background:#26ABA5;">{{ cita.motivo }}</span>
+            {% elif "limpieza" in motivo %}
+                <span class="badge" style="background:#0dcaf0;">{{ cita.motivo }}</span>
+            {% elif "resina" in motivo %}
+                <span class="badge" style="background:#ffc107; color:#000;">{{ cita.motivo }}</span>
+            {% elif "nueva" in motivo %}
+                <span class="badge" style="background:#0d6efd;">{{ cita.motivo }}</span>
+            {% elif "endo" in motivo %}
+                <span class="badge" style="background:#6f42c1;">{{ cita.motivo }}</span>
+            {% elif "extra" in motivo %}
+                <span class="badge" style="background:#dc3545;">{{ cita.motivo }}</span>
+            {% elif "protes" in motivo %}
+                <span class="badge" style="background:#f11985;">{{ cita.motivo }}</span>
+            {% elif "urg" in motivo %}
+                <span class="badge" style="background:#fd7e14;">{{ cita.motivo }}</span>
+            {% elif "despeg" in motivo %}
+                <span class="badge" style="background:#ff6b6b;">{{ cita.motivo }}</span>
+            {% elif "blanqueamiento" in motivo %}
+                <span class="badge" style="background:#c8b6e2; color:#000;">{{ cita.motivo }}</span>
+            {% else %}
+                <span class="badge bg-secondary">{{ cita.motivo }}</span>
+            {% endif %}
+        {% endwith %}
     {% endfor %}
 </div>

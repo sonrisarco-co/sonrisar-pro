@@ -1319,6 +1319,7 @@ def budgets_list(request):
 
 def patient_budgets(request, patient_id):
     paciente = get_object_or_404(Patient, id=patient_id)
+    next_url = request.GET.get("next", "")
 
     presupuestos = Budget.objects.filter(
         paciente=paciente
@@ -1327,6 +1328,7 @@ def patient_budgets(request, patient_id):
     return render(request, "core/patient_budgets.html", {
         "paciente": paciente,
         "presupuestos": presupuestos,
+        "next": next_url,
     })
 
 
@@ -1414,6 +1416,7 @@ def budget_new(request, paciente_id):
 
 def budget_edit(request, id):
     presupuesto = get_object_or_404(Budget, id=id)
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
 
     if request.method == "POST":
         paciente_id = request.POST.get("paciente")
@@ -1471,12 +1474,16 @@ def budget_edit(request, id):
         presupuesto.total = total_general
         presupuesto.save()
 
-        return redirect("budgets_list")
+        url_ficha = reverse("patient_detail", args=[presupuesto.paciente_id])
+        if next_url:
+            return redirect(f"{url_ficha}?next={quote(next_url)}")
+        return redirect(url_ficha)
 
     return render(request, "core/budget_form.html", {
         "presupuesto": presupuesto,
         "items": presupuesto.items.all(),
-        "modo": "editar"
+        "modo": "editar",
+        "next": next_url,
     })
 
 
@@ -1488,21 +1495,28 @@ def budget_edit(request, id):
 
 def budget_delete(request, id):
     presupuesto = get_object_or_404(Budget, id=id)
+    paciente_id = presupuesto.paciente_id
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
 
     if request.method == "POST":
         presupuesto.delete()
         messages.success(request, "Presupuesto eliminado.")
 
-    return redirect("budgets_list")
+    url_presupuestos = reverse("patient_budgets", args=[paciente_id])
+    if next_url:
+        return redirect(f"{url_presupuestos}?next={quote(next_url)}")
+    return redirect(url_presupuestos)
 
 
 def budget_detail(request, id):
     presupuesto = get_object_or_404(Budget, id=id)
+    next_url = request.GET.get("next", "")
 
     return render(request, "core/budget_detail.html", {
         "presupuesto": presupuesto,
         "items": presupuesto.items.all(),
         "pagos": presupuesto.pagos.all().order_by("-id"),
+        "next": next_url,
     })
 
 
