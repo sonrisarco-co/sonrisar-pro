@@ -97,19 +97,19 @@ class AppointmentForm(forms.ModelForm):
 
     MOTIVOS = [(nombre, nombre) for nombre in MOTIVOS_NOMBRES]
 
-    motivo = forms.ChoiceField(
-        choices=MOTIVOS,
-        widget=forms.Select(attrs={
-            "class": "form-select motivo-color"
-        })
+    motivo = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput()
     )
 
     procedimientos = forms.ModelMultipleChoiceField(
         queryset=Procedure.objects.all().order_by("nombre"),
-        required=False,
-        widget=forms.SelectMultiple(attrs={
-            "class": "form-select",
-            "size": "6",
+        required=True,
+        error_messages={
+            "required": "Seleccioná al menos un motivo para la cita.",
+        },
+        widget=forms.CheckboxSelectMultiple(attrs={
+            "class": "motivo-grid",
         })
     )
 
@@ -173,8 +173,32 @@ class AppointmentForm(forms.ModelForm):
             .order_by("nombre")
         )
 
+        if (
+            not self.is_bound
+            and self.instance
+            and self.instance.pk
+            and not self.instance.procedimientos.exists()
+            and self.instance.motivo
+        ):
+            procedimiento = self.fields["procedimientos"].queryset.filter(
+                nombre=self.instance.motivo
+            ).first()
+            if procedimiento:
+                self.initial["procedimientos"] = [procedimiento.pk]
+
         self.fields["fecha"].input_formats = ["%Y-%m-%d"]
         self.fields["hora"].input_formats = ["%H:%M", "%H:%M:%S"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        motivos_seleccionados = cleaned_data.get("procedimientos")
+
+        # Conserva un motivo de referencia para colores y pantallas antiguas;
+        # la relación de procedimientos guarda la selección completa.
+        if motivos_seleccionados:
+            cleaned_data["motivo"] = motivos_seleccionados[0].nombre
+
+        return cleaned_data
 
 
 

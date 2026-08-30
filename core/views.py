@@ -987,17 +987,23 @@ def clinical_record_new(request, patient_id):
         form = ClinicalRecordForm()
 
         if cita:
-            procedimientos = [p.nombre for p in cita.procedimientos.all()]
-            procedimientos_txt = ", ".join(procedimientos)
+            tratamientos = list(dict.fromkeys(
+                p.nombre for p in cita.procedimientos.all()
+            ))
+            if not tratamientos and cita.motivo:
+                tratamientos = [cita.motivo]
+            tratamientos_txt = ", ".join(tratamientos)
 
             form.initial["motivo"] = cita.motivo
 
             fecha_hoy = timezone.localdate().strftime("%d/%m/%Y")
 
-            texto_evolucion = f"{fecha_hoy} – Motivo de cita: {cita.motivo}"
-            if procedimientos_txt:
-                texto_evolucion += f". Procedimientos: {procedimientos_txt}"
-            texto_evolucion += "."
+            texto_evolucion = (
+                f"{fecha_hoy} – Tratamiento: {tratamientos_txt}.\n"
+                "Arco sup:\n"
+                "Arco inf:\n"
+                "Próxima cita:"
+            )
 
             form.initial["evolucion"] = texto_evolucion
 
@@ -1056,6 +1062,7 @@ def clinical_record_detail(request, registro_id):
 def clinical_record_edit(request, registro_id):
     registro = get_object_or_404(ClinicalRecord, id=registro_id)
     paciente = registro.paciente
+    evolucion_anterior = (registro.evolucion or "").strip()
 
     # Debe definirse antes del bloque POST porque se usa al guardar.
     volver_url = request.GET.get("next") or request.POST.get("next")
@@ -1073,7 +1080,17 @@ def clinical_record_edit(request, registro_id):
         form = ClinicalRecordForm(request.POST, instance=registro)
 
         if form.is_valid():
-            form.save()
+            registro_actualizado = form.save(commit=False)
+
+            if cita:
+                evolucion_nueva = (form.cleaned_data.get("evolucion") or "").strip()
+                partes_evolucion = [
+                    parte for parte in (evolucion_nueva, evolucion_anterior) if parte
+                ]
+                registro_actualizado.evolucion = "\n\n".join(partes_evolucion)
+
+            registro_actualizado.save()
+            form.save_m2m()
             guardar_odontograma_desde_post(request, paciente)
 
             # Si la Historia Clínica se abrió desde una cita de Agenda,
@@ -1092,21 +1109,24 @@ def clinical_record_edit(request, registro_id):
         form = ClinicalRecordForm(instance=registro)
 
         hoy = timezone.localdate().strftime("%d/%m/%Y")
-        texto_actual = (registro.evolucion or "").strip()
+        texto_actual = evolucion_anterior
 
         if cita:
-            procedimientos = [p.nombre for p in cita.procedimientos.all()]
-            procedimientos_txt = ", ".join(procedimientos)
+            tratamientos = list(dict.fromkeys(
+                p.nombre for p in cita.procedimientos.all()
+            ))
+            if not tratamientos and cita.motivo:
+                tratamientos = [cita.motivo]
+            tratamientos_txt = ", ".join(tratamientos)
 
-            nuevo_bloque = f"{hoy} – Motivo de cita: {cita.motivo}"
-            if procedimientos_txt:
-                nuevo_bloque += f". Procedimientos: {procedimientos_txt}"
-            nuevo_bloque += "."
+            nuevo_bloque = (
+                f"{hoy} – Tratamiento: {tratamientos_txt}.\n"
+                "Arco sup:\n"
+                "Arco inf:\n"
+                "Próxima cita:"
+            )
 
-            if texto_actual:
-                form.initial["evolucion"] = f"{texto_actual}\n\n{nuevo_bloque}"
-            else:
-                form.initial["evolucion"] = nuevo_bloque
+            form.initial["evolucion"] = nuevo_bloque
 
             if not registro.motivo:
                 form.initial["motivo"] = cita.motivo
@@ -1131,6 +1151,7 @@ def clinical_record_edit(request, registro_id):
             "fecha_hoy_date": timezone.localdate(),
             "volver_url": volver_url,
             "appointment_id": cita.id if cita else "",
+            "evolucion_anterior": evolucion_anterior if cita else "",
             "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
             "avisos_clinicos": ClinicalAlert.objects.filter(
                 paciente=paciente,

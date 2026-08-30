@@ -103,8 +103,13 @@
                                             </div>
                                         {% endif %}
 
-                                        <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+                                        <div class="mt-1 mb-2">
+                                            {% include "core/_appointment_motives.html" %}
+                                        </div>
 
+                                        <div class="d-flex align-items-center flex-wrap" style="gap:10px;">
+
+                                            {% comment %}
                                             {% with motivo=cita.motivo|lower|slugify %}
 
                                                 {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
@@ -202,6 +207,7 @@
                                                 {% endif %}
 
                                             {% endwith %}
+                                            {% endcomment %}
 
                                             {% if cita.estado == "En espera" %}
                                                 <span class="badge" style="background:#c8b6e2; color:#000;">
@@ -323,6 +329,7 @@
                                                 Eliminar
                                             </a>
 
+                                            {% comment %}
                                             {% if cita.procedimientos %}
                                                 <div class="mt-2 w-100">
                                                     <small style="color:#495057; font-weight:600;">Procedimientos:</small>
@@ -333,6 +340,7 @@
                                                     </div>
                                                 </div>
                                             {% endif %}
+                                            {% endcomment %}
                                         </div>
 
                                     </div>
@@ -378,8 +386,13 @@
                                             </div>
                                         {% endif %}
 
-                                        <div class="d-flex align-items-center mt-1 flex-wrap" style="gap:10px;">
+                                        <div class="mt-1 mb-2">
+                                            {% include "core/_appointment_motives.html" %}
+                                        </div>
 
+                                        <div class="d-flex align-items-center flex-wrap" style="gap:10px;">
+
+                                            {% comment %}
                                             {% with motivo=cita.motivo|lower|slugify %}
 
                                                 {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
@@ -467,6 +480,7 @@
                                                 {% endif %}
 
                                             {% endwith %}
+                                            {% endcomment %}
 
                                             {% if cita.estado == "En espera" %}
                                                 <span class="badge" style="background:#c8b6e2; color:#000;">
@@ -572,6 +586,7 @@
                                                 Eliminar
                                             </a>
 
+                                            {% comment %}
                                             {% if cita.procedimientos %}
                                                 <div class="mt-2 w-100">
                                                     <small style="color:#495057; font-weight:600;">Procedimientos:</small>
@@ -582,6 +597,7 @@
                                                     </div>
                                                 </div>
                                             {% endif %}
+                                            {% endcomment %}
                                         </div>
 
                                     </div>

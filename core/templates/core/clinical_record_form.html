@@ -91,7 +91,23 @@
                     <p>Seguimiento clínico del paciente.</p>
                 </div>
             </div>
-            <div class="hc-field">{{ form.evolucion }}</div>
+            {% if evolucion_anterior %}
+                <div class="hc-evolucion-anterior-card">
+                    <div class="hc-evolucion-anterior-title">Historial anterior</div>
+                    <div id="evolucion-anterior" class="hc-evolucion-anterior"></div>
+                    <div id="evolucion-anterior-data" hidden>{{ evolucion_anterior }}</div>
+                </div>
+                <div class="hc-evolucion-nueva-title">Nueva evolución</div>
+            {% endif %}
+            <div class="hc-field hc-evolucion-field">
+                {{ form.evolucion }}
+                <div id="evolucion-editor"
+                     class="hc-evolucion-editor"
+                     contenteditable="true"
+                     role="textbox"
+                     aria-multiline="true"
+                     aria-label="Evolución clínica"></div>
+            </div>
         </section>
 
         <section class="hc-card">
@@ -539,6 +555,66 @@
     resize: vertical;
 }
 
+.hc-evolucion-field #id_evolucion {
+    display: none;
+}
+
+.hc-evolucion-editor {
+    width: 100%;
+    min-height: 175px;
+    border: 1px solid #d5e1e1;
+    border-radius: 13px;
+    padding: 11px 13px;
+    font-size: 15px;
+    line-height: 1.55;
+    background: #fbfefe;
+    outline: none;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.hc-evolucion-editor:focus {
+    border-color: #26ABA5;
+    box-shadow: 0 0 0 3px rgba(38,171,165,.12);
+    background: white;
+}
+
+.hc-evolucion-editor strong {
+    font-weight: 700;
+    color: #24353d;
+}
+
+.hc-evolucion-anterior-card {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border: 1px solid #d7e4e3;
+    border-left: 4px solid #7aa8a5;
+    border-radius: 11px;
+    background: #f5f8f8;
+}
+
+.hc-evolucion-anterior-title,
+.hc-evolucion-nueva-title {
+    margin-bottom: 8px;
+    color: #456562;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.hc-evolucion-anterior {
+    color: #4b5c64;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.hc-evolucion-anterior strong {
+    color: #344b49;
+    font-weight: 700;
+}
+
 .hc-small {
     max-width: 320px;
 }
@@ -802,6 +878,51 @@ document.querySelectorAll("textarea").forEach(function(textarea) {
     autoResize();
 });
 
+const evolucionTextarea = document.getElementById("id_evolucion");
+const evolucionEditor = document.getElementById("evolucion-editor");
+const historiaForm = document.getElementById("historia-form");
+
+if (evolucionTextarea && evolucionEditor) {
+    const fechaPattern = /^(\d{2}\/\d{2}\/\d{4})(.*)$/;
+    const etiquetaPattern = /^(Arco sup:|Arco inf:|Próxima cita:)(.*)$/;
+
+    function agregarLinea(destino, linea) {
+        const contenedor = document.createElement("div");
+        const coincidencia = linea.match(fechaPattern) || linea.match(etiquetaPattern);
+
+        if (coincidencia) {
+            const etiqueta = document.createElement("strong");
+            etiqueta.textContent = coincidencia[1];
+            contenedor.appendChild(etiqueta);
+            contenedor.appendChild(document.createTextNode(coincidencia[2]));
+        } else if (linea) {
+            contenedor.textContent = linea;
+        } else {
+            contenedor.appendChild(document.createElement("br"));
+        }
+
+        destino.appendChild(contenedor);
+    }
+
+    evolucionTextarea.value.split("\n").forEach(function(linea) {
+        agregarLinea(evolucionEditor, linea);
+    });
+
+    const evolucionAnterior = document.getElementById("evolucion-anterior");
+    const evolucionAnteriorData = document.getElementById("evolucion-anterior-data");
+    if (evolucionAnterior && evolucionAnteriorData) {
+        evolucionAnteriorData.textContent.split("\n").forEach(function(linea) {
+            agregarLinea(evolucionAnterior, linea);
+        });
+    }
+
+    historiaForm.addEventListener("submit", function() {
+        evolucionTextarea.value = evolucionEditor.innerText
+            .replace(/\u00a0/g, " ")
+            .replace(/\r/g, "")
+            .replace(/\n+$/, "");
+    });
+}
 
 </script>
 

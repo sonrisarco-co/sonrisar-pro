@@ -1,0 +1,47 @@
+<div class="d-flex align-items-center flex-wrap" style="gap:6px;">
+    {% for procedimiento in cita.procedimientos %}
+        {% with motivo=procedimiento|lower|slugify %}
+            {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+                <span class="badge" style="background:#198754;">{{ procedimiento }}</span>
+            {% elif "provisorio" in motivo %}
+                <span class="badge" style="background:#e67e22;">{{ procedimiento }}</span>
+            {% elif "contencion" in motivo %}
+                <span class="badge" style="background:#287c8e;">{{ procedimiento }}</span>
+            {% elif "placa-nmr" in motivo %}
+                <span class="badge" style="background:#8e6bbe;">{{ procedimiento }}</span>
+            {% elif "control" in motivo %}
+                <span class="badge" style="background:#607d8b;">{{ procedimiento }}</span>
+            {% elif "corona" in motivo %}
+                <span class="badge" style="background:#a66a00;">{{ procedimiento }}</span>
+            {% elif "ajuste" in motivo and "limpieza" in motivo %}
+                <span class="badge" style="background:#00BFA5;">{{ procedimiento }}</span>
+            {% elif "retiro" in motivo and "bracket" in motivo %}
+                <span class="badge" style="background:#795548;">{{ procedimiento }}</span>
+            {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
+                <span class="badge" style="background:#26ABA5;">{{ procedimiento }}</span>
+            {% elif "limpieza" in motivo %}
+                <span class="badge" style="background:#0dcaf0;">{{ procedimiento }}</span>
+            {% elif "resina" in motivo %}
+                <span class="badge" style="background:#ffc107; color:#000;">{{ procedimiento }}</span>
+            {% elif "nueva" in motivo %}
+                <span class="badge" style="background:#0d6efd;">{{ procedimiento }}</span>
+            {% elif "endo" in motivo %}
+                <span class="badge" style="background:#6f42c1;">{{ procedimiento }}</span>
+            {% elif "extra" in motivo %}
+                <span class="badge" style="background:#dc3545;">{{ procedimiento }}</span>
+            {% elif "protes" in motivo %}
+                <span class="badge" style="background:#f11985;">{{ procedimiento }}</span>
+            {% elif "urg" in motivo %}
+                <span class="badge" style="background:#fd7e14;">{{ procedimiento }}</span>
+            {% elif "despeg" in motivo %}
+                <span class="badge" style="background:#ff6b6b;">{{ procedimiento }}</span>
+            {% elif "blanqueamiento" in motivo %}
+                <span class="badge" style="background:#c8b6e2; color:#000;">{{ procedimiento }}</span>
+            {% else %}
+                <span class="badge bg-secondary">{{ procedimiento }}</span>
+            {% endif %}
+        {% endwith %}
+    {% empty %}
+        <span class="badge bg-secondary">{{ cita.motivo }}</span>
+    {% endfor %}
+</div>
