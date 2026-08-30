@@ -257,15 +257,22 @@
 
                                                                     {% endif %}
                                                                 ">
-                                                                <strong>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</strong>
-                                                                <small>{{ cita.motivo }}</small>
-
+                                                                <strong>
+                                                                    {{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}
+                                                                    {% if cita.es_primera_vez %}
+                                                                        <span style="display:inline-block; margin-left:4px; padding:2px 5px; border-radius:5px; background:#7c3aed; color:#fff; font-size:10px; line-height:1.2;">
+                                                                            Primera vez
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </strong>
                                                                 {% if cita.procedimientos %}
                                                                     <small>
                                                                         {% for procedimiento in cita.procedimientos %}
                                                                             {{ procedimiento }}{% if not forloop.last %}, {% endif %}
                                                                         {% endfor %}
                                                                     </small>
+                                                                {% elif cita.motivo %}
+                                                                    <small>{{ cita.motivo }}</small>
                                                                 {% endif %}
 
                                                                 <small>{{ cita.hora|time:"H:i" }}</small>

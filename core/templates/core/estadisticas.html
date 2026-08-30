@@ -25,7 +25,9 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e7efef;
     }
 
     .stats-header-icon {
@@ -44,8 +46,8 @@
     .stats-title {
         margin: 0;
         color: var(--text-main);
-        font-size: 1.55rem;
-        font-weight: 600;
+        font-size: 1.6rem;
+        font-weight: 750;
         line-height: 1.1;
     }
 
@@ -55,13 +57,58 @@
         font-size: 0.94rem;
     }
 
+    .stats-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 13px;
+        padding-bottom: 11px;
+        border-bottom: 1px solid #dce9e8;
+    }
+
+    .stats-section-icon {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: var(--sonrisar-soft);
+        font-size: 1.05rem;
+    }
+
+    .stats-section-title {
+        margin: 0;
+        color: #126f6b;
+        font-size: 1.12rem;
+        font-weight: 800;
+    }
+
+    .stats-section-description {
+        margin: 2px 0 0;
+        color: var(--text-muted);
+        font-size: 0.84rem;
+    }
+
+    .stats-section {
+        margin-bottom: 18px;
+        padding: 16px;
+        border: 1px solid #dce9e8;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #f7fbfb 0%, #fbfdfd 100%);
+        box-shadow: 0 5px 16px rgba(17, 24, 39, 0.035);
+    }
+
+    .stats-section .row {
+        margin-bottom: 0 !important;
+    }
+
     .stats-card {
         height: 100%;
         border: 1px solid #e8eeee;
-        border-radius: 14px;
+        border-radius: 12px;
         background: #ffffff;
         box-shadow: 0 6px 16px rgba(17, 24, 39, 0.045);
-        padding: 12px 14px;
+        padding: 10px 12px;
     }
 
     .stats-card:hover {
@@ -72,34 +119,34 @@
     .stats-card-inner {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 9px;
     }
 
     .stats-card-icon {
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
+        flex: 0 0 34px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         background: var(--sonrisar-soft);
         color: var(--sonrisar-dark);
-        font-size: 1.35rem;
+        font-size: 1.05rem;
     }
 
     .stats-card-label {
-        margin: 0 0 6px 0;
+        margin: 0 0 4px 0;
         color: var(--text-main);
         font-weight: 700;
-        font-size: 0.96rem;
+        font-size: 0.88rem;
         line-height: 1.15;
     }
 
     .stats-card-number {
         margin: 0;
         color: var(--sonrisar-dark);
-        font-size: 1.55rem;
+        font-size: 1.38rem;
         font-weight: 750;
         line-height: 1;
     }
@@ -107,7 +154,8 @@
     .stats-card-note {
         margin: 2px 0 0 0;
         color: var(--text-muted);
-        font-size: 0.84rem;
+        font-size: 0.77rem;
+        line-height: 1.25;
     }
 
     .stats-info-strip {
@@ -245,121 +293,141 @@
     <div class="stats-header">
         <div class="stats-header-icon">📊</div>
         <div>
-            <h2 class="stats-title">Indicadores Sonrisar Pro</h2>
-            <p class="stats-subtitle">Resumen general de pacientes, citas y colocaciones nuevas</p>
+            <h2 class="stats-title">Panel de estadísticas</h2>
+            <p class="stats-subtitle">Resumen operativo de Sonrisar Pro</p>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
+    <section class="stats-section">
+        <div class="stats-section-header">
+            <div class="stats-section-icon">🏥</div>
+            <div>
+                <h3 class="stats-section-title">Actividad general</h3>
+                <p class="stats-section-description">Panorama de pacientes y citas del mes actual</p>
+            </div>
+        </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-card-inner">
                     <div class="stats-card-icon">👥</div>
                     <div>
-                        <p class="stats-card-label">Total de pacientes</p>
+                        <p class="stats-card-label">Pacientes registrados</p>
                         <p class="stats-card-number">{{ total_pacientes }}</p>
-                        <p class="stats-card-note">Pacientes registrados</p>
+                        <p class="stats-card-note">Total histórico en el sistema</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-card-inner">
                     <div class="stats-card-icon">🗓️</div>
                     <div>
-                        <p class="stats-card-label">Citas del mes</p>
+                        <p class="stats-card-label">Citas agendadas</p>
                         <p class="stats-card-number">{{ citas_mes }}</p>
-                        <p class="stats-card-note">Citas agendadas</p>
+                        <p class="stats-card-note">Durante el mes actual</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-card-inner">
-                    <div class="stats-card-icon">🦷</div>
+                    <div class="stats-card-icon">✨</div>
                     <div>
-                        <p class="stats-card-label">Colocaciones nuevas del mes</p>
-                        <p class="stats-card-number">{{ colocaciones_mes }}</p>
-                        <p class="stats-card-note">Asistieron este mes</p>
+                        <p class="stats-card-label">Pacientes incorporados</p>
+                        <p class="stats-card-number">{{ pacientes_primera_vez_mes }}</p>
+                        <p class="stats-card-note">Primera cita este mes · {{ pacientes_primera_vez_anio }} en {{ anio_actual }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-            <div class="stats-card">
-                <div class="stats-card-inner">
-                    <div class="stats-card-icon">🏅</div>
-                    <div>
-                        <p class="stats-card-label">Pacientes nuevos</p>
-                        <p class="stats-card-number">{{ colocaciones_anio }}</p>
-                        <p class="stats-card-note">Por colocación nueva</p>
-                    </div>
-                </div>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="stats-section-header">
+            <div class="stats-section-icon">🦷</div>
+            <div>
+                <h3 class="stats-section-title">Actividad de ortodoncia</h3>
+                <p class="stats-section-description">Colocaciones y controles realizados durante el mes actual</p>
             </div>
         </div>
 
-</div>
+        <div class="row g-3 mb-4">
 
-<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stats-card">
+            <div class="stats-card-inner">
+                <div class="stats-card-icon">🌟</div>
+                <div>
+                    <p class="stats-card-label">Nuevos tratamientos</p>
+                    <p class="stats-card-number">{{ colocaciones_mes }}</p>
+                    <p class="stats-card-note">Colocaciones nuevas asistidas</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="col-md-4">
+    <div class="col-md-6 col-xl-3">
         <div class="stats-card">
             <div class="stats-card-inner">
                 <div class="stats-card-icon">🦷</div>
                 <div>
-                    <p class="stats-card-label">Ajustes de ortodoncia</p>
+                    <p class="stats-card-label">Ajustes realizados</p>
                     <p class="stats-card-number">
                         {{ ajustes_ortodoncia_mes }}
                     </p>
                     <p class="stats-card-note">
-                        Realizados este mes
+                        Citas de ajuste asistidas
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-6 col-xl-3">
         <div class="stats-card">
             <div class="stats-card-inner">
                 <div class="stats-card-icon">👤</div>
                 <div>
-                    <p class="stats-card-label">Ortodoncia activa</p>
+                    <p class="stats-card-label">Pacientes atendidos</p>
                     <p class="stats-card-number">
                         {{ pacientes_ortodoncia_activos }}
                     </p>
                     <p class="stats-card-note">
-                        Pacientes únicos este mes
+                        Con al menos un ajuste este mes
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-6 col-xl-3">
         <div class="stats-card">
             <div class="stats-card-inner">
                 <div class="stats-card-icon">📊</div>
                 <div>
-                    <p class="stats-card-label">Promedio controles</p>
+                    <p class="stats-card-label">Promedio de ajustes</p>
                     <p class="stats-card-number">
                         {{ promedio_ajustes_ortodoncia }}
                     </p>
                     <p class="stats-card-note">
-                        Ajustes por paciente
+                        Por paciente atendido
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
+        </div>
+    </section>
 
     <div class="row g-4">
         <div class="col-lg-6">
@@ -402,8 +470,8 @@
                 <div class="stats-panel-header">
                     <div class="stats-panel-icon">📈</div>
                     <div>
-                        <p class="stats-panel-title">Pacientes nuevos por mes - {{ anio_actual }}</p>
-                        <p class="stats-panel-subtitle">Pacientes únicos con primera colocación asistida</p>
+                        <p class="stats-panel-title">Pacientes de primera vez por mes - {{ anio_actual }}</p>
+                        <p class="stats-panel-subtitle">Pacientes únicos según la fecha de su primera cita</p>
                     </div>
                 </div>
 
@@ -416,7 +484,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in colocaciones_por_mes %}
+                            {% for item in primeras_veces_por_mes %}
                                 <tr>
                                     <td>{{ item.mes }}</td>
                                     <td class="text-end"><span class="stats-pill">{{ item.cantidad }}</span></td>

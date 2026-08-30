@@ -13,6 +13,8 @@
                 <span class="badge" style="background:#607d8b;">{{ procedimiento }}</span>
             {% elif "corona" in motivo %}
                 <span class="badge" style="background:#a66a00;">{{ procedimiento }}</span>
+            {% elif "puente-fijo" in motivo %}
+                <span class="badge" style="background:#4f46e5;">{{ procedimiento }}</span>
             {% elif "ajuste" in motivo and "limpieza" in motivo %}
                 <span class="badge" style="background:#00BFA5;">{{ procedimiento }}</span>
             {% elif "retiro" in motivo and "bracket" in motivo %}
@@ -55,6 +57,8 @@
                 <span class="badge" style="background:#607d8b;">{{ cita.motivo }}</span>
             {% elif "corona" in motivo %}
                 <span class="badge" style="background:#a66a00;">{{ cita.motivo }}</span>
+            {% elif "puente-fijo" in motivo %}
+                <span class="badge" style="background:#4f46e5;">{{ cita.motivo }}</span>
             {% elif "ajuste" in motivo and "limpieza" in motivo %}
                 <span class="badge" style="background:#00BFA5;">{{ cita.motivo }}</span>
             {% elif "retiro" in motivo and "bracket" in motivo %}

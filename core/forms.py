@@ -85,6 +85,7 @@ class AppointmentForm(forms.ModelForm):
         "Placa NMR",
         "Control",
         "Corona",
+        "Puente fijo",
         "Despegados",
         "Blanqueamiento",
         "Retiro de brackets",

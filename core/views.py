@@ -6,7 +6,7 @@ from django.utils.text import slugify
 
 import calendar
 #from core.models import Cita
-from django.db.models import Q, F, Max, Sum
+from django.db.models import Q, F, Max, Min, Sum, OuterRef, Subquery
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.contrib import messages
@@ -2981,6 +2981,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "patient_id": cita.paciente.id,
         "hora_real": cita.hora,
         "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+        "es_primera_vez": cita.id == getattr(cita, "primera_cita_id", None),
         "edad": edad,
         "motivo": cita.motivo,
         "motivo_slug": slugify(cita.motivo or ""),
@@ -3023,8 +3024,16 @@ def agenda_day(request, day, month, year):
         for bloqueo in TimeBlock.objects.filter(fecha=fecha)
     }
 
+    primera_cita_paciente = (
+        Appointment.objects
+        .filter(paciente_id=OuterRef("paciente_id"))
+        .order_by("fecha", "hora", "id")
+        .values("id")[:1]
+    )
+
     citas = list(
         Appointment.objects.filter(fecha=fecha)
+        .annotate(primera_cita_id=Subquery(primera_cita_paciente))
         .select_related("paciente")
         .prefetch_related("procedimientos")
         .order_by("hora", "id")
@@ -4598,6 +4607,9 @@ def color_cita_por_motivo(motivo):
     if "corona" in m:
         return "#a66a00"  # dorado oscuro
 
+    if "puente fijo" in m:
+        return "#4f46e5"  # índigo
+
     if "colocación nueva" in m or "colocacion nueva" in m:
         return "#2563eb"  # azul
 
@@ -4663,9 +4675,17 @@ def agenda_pro(request):
         for bloqueo in bloqueos_horarios_semana
     }
 
+    primera_cita_paciente = (
+        Appointment.objects
+        .filter(paciente_id=OuterRef("paciente_id"))
+        .order_by("fecha", "hora", "id")
+        .values("id")[:1]
+    )
+
     citas_semana = (
         Appointment.objects
         .filter(fecha__range=[inicio_semana, fin_semana])
+        .annotate(primera_cita_id=Subquery(primera_cita_paciente))
         .select_related("paciente")
         .prefetch_related("procedimientos")
         .order_by("fecha", "hora")
@@ -4749,6 +4769,7 @@ def agenda_pro(request):
                     citas_preparadas.append({
                         "id": cita.id,
                         "paciente": cita.paciente,
+                        "es_primera_vez": cita.id == cita.primera_cita_id,
                         "motivo": cita.motivo,
                         "procedimientos": [p.nombre for p in cita.procedimientos.all()],
                         "hora": cita.hora,
@@ -5727,11 +5748,26 @@ def estadisticas(request):
         estado="asistio"
     ).values("paciente").distinct().count()
 
-    colocaciones_anio = Appointment.objects.filter(
-        fecha__year=hoy.year,
-        motivo="Colocación nueva",
-        estado="asistio"
-    ).values("paciente").distinct().count()
+    primeras_fechas = list(
+        Appointment.objects
+        .values("paciente_id")
+        .annotate(fecha_primera=Min("fecha"))
+        .values_list("fecha_primera", flat=True)
+    )
+
+    pacientes_primera_vez_anio = sum(
+        1 for fecha_primera in primeras_fechas
+        if fecha_primera and fecha_primera.year == hoy.year
+    )
+
+    pacientes_primera_vez_mes = sum(
+        1 for fecha_primera in primeras_fechas
+        if (
+            fecha_primera
+            and fecha_primera.year == hoy.year
+            and fecha_primera.month == hoy.month
+        )
+    )
 
     ajustes_ortodoncia_mes = Appointment.objects.filter(
         fecha__year=hoy.year,
@@ -5769,17 +5805,19 @@ def estadisticas(request):
         "Setiembre", "Octubre", "Noviembre", "Diciembre"
     ]
 
-    colocaciones_por_mes = []
+    primeras_veces_por_mes = []
 
     for mes in range(1, 13):
-        cantidad = Appointment.objects.filter(
-            fecha__year=hoy.year,
-            fecha__month=mes,
-            motivo="Colocación nueva",
-            estado="asistio"
-        ).values("paciente").distinct().count()
+        cantidad = sum(
+            1 for fecha_primera in primeras_fechas
+            if (
+                fecha_primera
+                and fecha_primera.year == hoy.year
+                and fecha_primera.month == mes
+            )
+        )
 
-        colocaciones_por_mes.append({
+        primeras_veces_por_mes.append({
             "mes": nombres_meses[mes],
             "cantidad": cantidad,
         })
@@ -5791,9 +5829,10 @@ def estadisticas(request):
             "total_pacientes": total_pacientes,
             "citas_mes": citas_mes,
             "colocaciones_mes": colocaciones_mes,
-            "colocaciones_anio": colocaciones_anio,
+            "pacientes_primera_vez_mes": pacientes_primera_vez_mes,
+            "pacientes_primera_vez_anio": pacientes_primera_vez_anio,
             "motivos": motivos,
-            "colocaciones_por_mes": colocaciones_por_mes,
+            "primeras_veces_por_mes": primeras_veces_por_mes,
             "anio_actual": hoy.year,
 
             "ajustes_ortodoncia_mes": ajustes_ortodoncia_mes,
