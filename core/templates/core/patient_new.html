@@ -64,29 +64,33 @@
     <form method="post" class="sonrisar-form">
         {% csrf_token %}
 
+        {% for message in messages %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% endfor %}
+
         <!-- 🔹 Esto permite volver a la agenda después de guardar -->
         <input type="hidden" name="next" value="{{ next }}">
 
         <label>Nombre</label>
-        <input type="text" name="nombre" required>
+        <input type="text" name="nombre" value="{{ form_data.nombre|default:'' }}" required>
 
         <label>Apellido</label>
-        <input type="text" name="apellido" required>
+        <input type="text" name="apellido" value="{{ form_data.apellido|default:'' }}" required>
 
         <label>C.I.</label>
-        <input type="text" name="ci" required>
+        <input type="text" name="ci" value="{{ form_data.ci|default:'' }}" required>
 
         <label>Fecha de nacimiento</label>
-        <input type="date" name="fecha_nacimiento">
+        <input type="date" name="fecha_nacimiento" value="{{ form_data.fecha_nacimiento|default:'' }}">
 
         <label>Teléfono</label>
-        <input type="text" name="telefono">
+        <input type="text" name="telefono" value="{{ form_data.telefono|default:'' }}" required>
 
         <label>Correo electrónico</label>
-        <input type="email" name="email">
+        <input type="email" name="email" value="{{ form_data.email|default:'' }}">
 
         <label>Dirección</label>
-        <input type="text" name="direccion">
+        <input type="text" name="direccion" value="{{ form_data.direccion|default:'' }}">
 
         <div class="sonrisar-actions">
             <a href="{% url 'patient_list' %}" class="btn-secondary">← Volver</a>

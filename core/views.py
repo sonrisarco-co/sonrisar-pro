@@ -312,12 +312,22 @@ def patient_new(request):
     next_url = request.GET.get("next") or request.POST.get("next") or ""
 
     if request.method == "POST":
+        ci = request.POST.get("ci", "").strip()
+        telefono = request.POST.get("telefono", "").strip()
+
+        if not ci or not telefono:
+            messages.error(request, "La cédula y el teléfono son obligatorios.")
+            return render(request, "core/patient_new.html", {
+                "next": next_url,
+                "form_data": request.POST,
+            })
+
         paciente = Patient.objects.create(
             nombre=request.POST.get("nombre", "").strip(),
             apellido=request.POST.get("apellido", "").strip(),
-            ci=request.POST.get("ci", "").strip(),
+            ci=ci,
             fecha_nacimiento=request.POST.get("fecha_nacimiento") or None,
-            telefono=request.POST.get("telefono", "").strip(),
+            telefono=telefono,
             email=request.POST.get("email", "").strip(),
             direccion=request.POST.get("direccion", "").strip(),
         )
@@ -344,12 +354,21 @@ def patient_quick_new(request):
     POST -> crea paciente y devuelve JSON con id + texto
     """
     if request.method == "POST":
+        ci = request.POST.get("ci", "").strip()
+        telefono = request.POST.get("telefono", "").strip()
+
+        if not ci or not telefono:
+            return JsonResponse({
+                "success": False,
+                "error": "La cédula y el teléfono son obligatorios.",
+            }, status=400)
+
         paciente = Patient.objects.create(
             nombre=request.POST.get("nombre", "").strip(),
             apellido=request.POST.get("apellido", "").strip(),
-            ci=request.POST.get("ci", "").strip(),
+            ci=ci,
             fecha_nacimiento=request.POST.get("fecha_nacimiento") or None,
-            telefono=request.POST.get("telefono", "").strip(),
+            telefono=telefono,
             email=request.POST.get("email", "").strip(),
             direccion=request.POST.get("direccion", "").strip(),
         )
@@ -372,11 +391,22 @@ def patient_edit(request, id):
     next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
+        ci = request.POST.get("ci", "").strip()
+        telefono = request.POST.get("telefono", "").strip()
+
+        if not ci or not telefono:
+            messages.error(request, "La cédula y el teléfono son obligatorios.")
+            return render(request, "core/patient_edit.html", {
+                "paciente": paciente,
+                "next": next_url,
+                "form_data": request.POST,
+            })
+
         paciente.nombre = request.POST.get("nombre", "").strip()
         paciente.apellido = request.POST.get("apellido", "").strip()
-        paciente.ci = request.POST.get("ci", "").strip()
+        paciente.ci = ci
         paciente.fecha_nacimiento = request.POST.get("fecha_nacimiento") or None
-        paciente.telefono = request.POST.get("telefono", "").strip()
+        paciente.telefono = telefono
         paciente.email = request.POST.get("email", "").strip()
         paciente.direccion = request.POST.get("direccion", "").strip()
         paciente.save()

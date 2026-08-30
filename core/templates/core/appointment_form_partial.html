@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const postData = await postRes.json();
 
                 if (!postData.success) {
-                    alert("No se pudo guardar el paciente.");
+                    alert(postData.error || "No se pudo guardar el paciente.");
                     return;
                 }
 
