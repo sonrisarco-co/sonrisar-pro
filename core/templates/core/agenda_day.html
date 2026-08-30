@@ -57,7 +57,8 @@
             <div class="list-group">
 
                 {% for h in horarios %}
-                    <div class="list-group-item d-flex align-items-start {% if not h.bloqueado %}drop-slot{% endif %}"
+                    <div id="hora-{{ h.hora|time:'Hi' }}"
+                         class="list-group-item d-flex align-items-start {% if not h.bloqueado %}drop-slot{% endif %}"
                          {% if not h.bloqueado %}data-hora="{{ h.hora|time:'H:i' }}"{% endif %}>
 
                         <div class="me-3" style="width:70px; font-weight:bold;">
@@ -323,7 +324,7 @@
                                                 </a>
                                             {% endif %}
 
-                                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}&amp;volver_hora={{ h.hora|time:'H:i'|urlencode }}"
                                                class="btn btn-sm btn-primary ms-2">
                                                 Editar
                                             </a>
@@ -585,7 +586,7 @@
                                                 </a>
                                             {% endif %}
 
-                                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}"
+                                            <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}&amp;volver_hora={{ h.hora|time:'H:i'|urlencode }}"
                                                class="btn btn-sm btn-primary ms-2">
                                                 Editar
                                             </a>

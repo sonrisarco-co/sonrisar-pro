@@ -198,7 +198,7 @@
                         <table class="table agenda-pro-table">
                             <tbody>
                                 {% for fila in filas %}
-                                <tr>
+                                <tr id="hora-{{ fila.hora|time:'Hi' }}">
                                     <td class="hora-col">{{ fila.hora|time:"H:i" }}</td>
 
                                     {% for celda in fila.celdas %}
@@ -211,7 +211,7 @@
                                             <div class="cita-stack">
                                                 {% for cita in celda.citas %}
                                                     <div class="cita-card-wrapper">
-                                                        <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}"
+                                                        <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}&amp;volver_hora={{ celda.hora|time:'H:i'|urlencode }}"
                                                            class="cita-edit-btn"
                                                            title="Editar cita">✏
                                                         </a>

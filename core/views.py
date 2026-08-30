@@ -557,6 +557,15 @@ def appointment_edit(request, id):
     if not next_url:
         next_url = reverse("agenda_pro")
 
+    # Al editar desde el calendario, vuelve a la misma fila horaria.
+    volver_hora = request.GET.get("volver_hora")
+    if volver_hora and "#hora-" not in next_url:
+        try:
+            hora_ancla = datetime.strptime(volver_hora, "%H:%M").strftime("%H%M")
+            next_url = f"{next_url}#hora-{hora_ancla}"
+        except ValueError:
+            pass
+
     es_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     if request.method == "POST":
