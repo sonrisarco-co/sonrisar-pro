@@ -148,7 +148,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # MEDIA (archivos subidos)
 # ==========================================
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join('/var/data', 'media')
+MEDIA_ROOT = Path('/var/data/media') if IS_RENDER else BASE_DIR / 'media'
 
 # ==========================================
 # CONFIG GENERAL
@@ -212,6 +212,5 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     'https://*.tail7ab5ac.ts.net',
 ]
-
 
 
