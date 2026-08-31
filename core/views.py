@@ -3021,6 +3021,8 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
 
 
 def agenda_day(request, day, month, year):
+    import calendar
+
     fecha = date(year, month, day)
     print("DEBUG AGENDA_DAY EJECUTADA", fecha)
 
@@ -3288,11 +3290,69 @@ def agenda_day(request, day, month, year):
         Decimal("0")
     )
 
+    almanaque_mes_str = request.GET.get("almanaque_mes", "").strip()
+    try:
+        almanaque_base = datetime.strptime(almanaque_mes_str, "%Y-%m-%d").date()
+    except ValueError:
+        almanaque_base = fecha
+
+    calendario = calendar.Calendar(firstweekday=0)
+    semanas_raw = calendario.monthdatescalendar(
+        almanaque_base.year,
+        almanaque_base.month,
+    )
+    inicio_mes_visible = semanas_raw[0][0]
+    fin_mes_visible = semanas_raw[-1][-1]
+    fechas_con_citas = set(
+        Appointment.objects
+        .filter(fecha__range=[inicio_mes_visible, fin_mes_visible])
+        .values_list("fecha", flat=True)
+    )
+    semanas_almanaque = []
+    hoy = date.today()
+    for semana in semanas_raw:
+        semanas_almanaque.append([
+            {
+                "fecha": dia,
+                "numero": dia.day,
+                "es_del_mes": dia.month == almanaque_base.month,
+                "seleccionado": dia == fecha,
+                "es_hoy": dia == hoy,
+                "tiene_citas": dia in fechas_con_citas,
+            }
+            for dia in semana
+        ])
+
+    primer_dia_mes = almanaque_base.replace(day=1)
+    mes_anterior = (primer_dia_mes - timedelta(days=1)).replace(day=1)
+    if almanaque_base.month == 12:
+        mes_siguiente = almanaque_base.replace(
+            year=almanaque_base.year + 1,
+            month=1,
+            day=1,
+        )
+    else:
+        mes_siguiente = almanaque_base.replace(
+            month=almanaque_base.month + 1,
+            day=1,
+        )
+
+    nombres_meses = [
+        "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
     return render(
         request,
         "core/agenda_day.html",
         {
             "fecha": fecha,
+            "fecha_anterior": fecha - timedelta(days=1),
+            "fecha_siguiente": fecha + timedelta(days=1),
+            "almanaque_titulo": f"{nombres_meses[almanaque_base.month]} {almanaque_base.year}",
+            "almanaque_semanas": semanas_almanaque,
+            "mes_anterior": mes_anterior,
+            "mes_siguiente": mes_siguiente,
             "horarios": horarios,
             "deudores": deudores,
             "total_deuda_dia": total_deuda_dia,

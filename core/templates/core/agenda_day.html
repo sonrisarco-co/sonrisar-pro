@@ -4,21 +4,39 @@
 
 {% block content %}
 
-<div class="container-fluid mt-4">
+<div class="agenda-day-fullbleed">
 
-    {% if request.GET.next %}
-        <a href="{{ request.GET.next }}" class="btn btn-light mb-3">
-            ← Volver al calendario
-        </a>
-    {% else %}
-        <a href="{% url 'agenda_pro' %}" class="btn btn-light mb-3">
-            ← Volver al calendario
-        </a>
-    {% endif %}
+    <div class="agenda-day-sticky-navigation" id="agendaDayStickyNavigation">
+        <div class="agenda-day-navigation-row">
+            <div class="agenda-day-navigation-left">
+                {% if request.GET.next %}
+                    <a href="{{ request.GET.next }}" class="btn btn-light btn-sm agenda-day-back-button">
+                        <span aria-hidden="true">▦</span> Calendario
+                    </a>
+                {% else %}
+                    <a href="{% url 'agenda_pro' %}" class="btn btn-light btn-sm agenda-day-back-button">
+                        <span aria-hidden="true">▦</span> Calendario
+                    </a>
+                {% endif %}
 
-    <h3 class="mb-3">
-        Agenda del {{ fecha|date:"d/m/Y" }}
-    </h3>
+            <a href="{% url 'agenda_day' day=fecha_anterior.day month=fecha_anterior.month year=fecha_anterior.year %}"
+               class="btn btn-outline-secondary btn-sm agenda-day-arrow-button"
+               title="Día anterior">
+                ‹ Anterior
+            </a>
+            </div>
+
+            <h3 class="agenda-day-current-date">
+                Agenda del {{ fecha|date:"d/m/Y" }}
+            </h3>
+
+            <a href="{% url 'agenda_day' day=fecha_siguiente.day month=fecha_siguiente.month year=fecha_siguiente.year %}"
+               class="btn btn-outline-secondary btn-sm agenda-day-arrow-button agenda-day-next-button"
+               title="Día siguiente">
+                Siguiente ›
+            </a>
+        </div>
+    </div>
 
     {% if request.GET.cobro == "ok" %}
         {% if request.GET.cfe == "emitido" %}
@@ -51,8 +69,47 @@
         {% endif %}
     {% endif %}
 
-    <div class="row">
-        <div class="col-lg-8">
+    <div class="agenda-day-layout">
+        <aside class="agenda-day-calendar-column">
+            <div class="card shadow-sm agenda-day-calendar">
+                <div class="card-body">
+                    <div class="agenda-day-calendar-header">
+                        <h5 class="mb-0">Almanaque</h5>
+                        <div class="agenda-day-calendar-nav">
+                            <a href="{% url 'agenda_day' day=fecha.day month=fecha.month year=fecha.year %}?almanaque_mes={{ mes_anterior|date:'Y-m-d' }}"
+                               title="Mes anterior">◀</a>
+                            <strong>{{ almanaque_titulo }}</strong>
+                            <a href="{% url 'agenda_day' day=fecha.day month=fecha.month year=fecha.year %}?almanaque_mes={{ mes_siguiente|date:'Y-m-d' }}"
+                               title="Mes siguiente">▶</a>
+                        </div>
+                    </div>
+
+                    <table class="agenda-day-calendar-table">
+                        <thead>
+                            <tr>
+                                <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for semana in almanaque_semanas %}
+                                <tr>
+                                    {% for dia in semana %}
+                                        <td>
+                                            <a href="{% url 'agenda_day' day=dia.fecha.day month=dia.fecha.month year=dia.fecha.year %}"
+                                               class="agenda-day-calendar-day{% if not dia.es_del_mes %} other-month{% endif %}{% if dia.es_hoy %} today{% endif %}{% if dia.seleccionado %} selected{% endif %}{% if dia.tiene_citas %} has-appointments{% endif %}">
+                                                {{ dia.numero }}
+                                            </a>
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </aside>
+
+        <main class="agenda-day-schedule-column">
 
             <div class="list-group">
 
@@ -623,9 +680,9 @@
 
             </div>
 
-        </div>
+        </main>
 
-        <div class="col-lg-4 mt-4 mt-lg-0">
+        <aside class="agenda-day-debt-column">
             <div class="card shadow-sm panel-deudores-dia">
                 <div class="card-body">
                     <h5 class="mb-2 panel-deudores-titulo">
@@ -662,13 +719,239 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
+        </aside>
 
     </div>
 
 </div>
 
 <style>
+.agenda-day-fullbleed {
+    --agenda-day-header-offset: 0px;
+    --agenda-day-side-offset: 12px;
+}
+
+.agenda-day-sticky-navigation {
+    position: sticky;
+    top: var(--agenda-day-header-offset);
+    z-index: 100;
+    padding: 4px 0 6px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.98);
+    border-bottom: 1px solid #e4ecec;
+}
+
+.agenda-day-back-button {
+    white-space: nowrap;
+    padding: 5px 12px !important;
+    border: 1px solid #159f99 !important;
+    border-radius: 8px !important;
+    background: #26aba5 !important;
+    color: #fff !important;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 6px rgba(38, 171, 165, 0.22);
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.agenda-day-back-button:hover,
+.agenda-day-back-button:focus {
+    background: #168f89 !important;
+    border-color: #168f89 !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(38, 171, 165, 0.28);
+}
+
+.agenda-day-navigation-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+.agenda-day-navigation-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.agenda-day-current-date {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.agenda-day-arrow-button {
+    padding: 3px 9px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.agenda-day-next-button {
+    justify-self: end;
+}
+
+.agenda-day-fullbleed {
+    width: calc(100vw - 28px);
+    margin-left: calc(50% - 50vw + 14px);
+    margin-right: 14px;
+    padding: 14px 0 26px;
+    box-sizing: border-box;
+}
+
+.agenda-day-layout {
+    display: grid;
+    grid-template-columns: 235px minmax(700px, 1fr) 300px;
+    gap: 14px;
+    align-items: start;
+}
+
+.agenda-day-calendar-column,
+.agenda-day-schedule-column,
+.agenda-day-debt-column {
+    min-width: 0;
+}
+
+.agenda-day-calendar-column,
+.agenda-day-debt-column {
+    position: sticky;
+    top: var(--agenda-day-side-offset);
+    align-self: start;
+}
+
+.agenda-day-calendar {
+    border: 1px solid #dce9e8;
+    border-radius: 14px;
+}
+
+.agenda-day-calendar .card-body {
+    padding: 12px;
+}
+
+.agenda-day-calendar-header {
+    margin-bottom: 8px;
+    color: #126f6b;
+}
+
+.agenda-day-calendar-header h5 {
+    font-size: 1rem;
+    margin-bottom: 7px !important;
+}
+
+.agenda-day-calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.82rem;
+}
+
+.agenda-day-calendar-nav a {
+    color: #159f99;
+    text-decoration: none;
+    padding: 3px 6px;
+}
+
+.agenda-day-calendar-table {
+    width: 100%;
+    table-layout: fixed;
+    text-align: center;
+}
+
+.agenda-day-calendar-table th {
+    padding: 4px 0 6px;
+    color: #6b7280;
+    font-size: 0.76rem;
+}
+
+.agenda-day-calendar-table td {
+    padding: 2px;
+}
+
+.agenda-day-calendar-day {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin: auto;
+    border-radius: 9px;
+    color: #263238;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.agenda-day-calendar-day:hover {
+    background: #e7f7f6;
+    color: #087c77;
+}
+
+.agenda-day-calendar-day.other-month {
+    color: #b4bfc1;
+}
+
+.agenda-day-calendar-day.today {
+    box-shadow: inset 0 0 0 2px #26aba5;
+}
+
+.agenda-day-calendar-day.selected {
+    background: #26aba5;
+    color: #fff;
+}
+
+.agenda-day-calendar-day.has-appointments::after {
+    content: "";
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #7c3aed;
+}
+
+.agenda-day-calendar-day.selected.has-appointments::after {
+    background: #fff;
+}
+
+@media (max-width: 1250px) {
+    .agenda-day-layout {
+        grid-template-columns: 225px minmax(520px, 1fr);
+    }
+
+    .agenda-day-debt-column {
+        grid-column: 1 / -1;
+        position: static;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 900px) {
+    .agenda-day-fullbleed {
+        width: calc(100vw - 16px);
+        margin-left: calc(50% - 50vw + 8px);
+        margin-right: 8px;
+    }
+
+    .agenda-day-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-day-debt-column {
+        grid-column: auto;
+    }
+
+    .agenda-day-calendar-column,
+    .agenda-day-debt-column {
+        position: static;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
 .draggable-cita {
     cursor: grab;
     border-radius: 8px;
@@ -734,8 +1017,7 @@
 }
 
 .panel-deudores-dia {
-    position: sticky;
-    top: 130px;
+    position: static;
     border-radius: 14px;
     border: 1px solid #dfe7ea;
     background: #ffffff;
@@ -834,6 +1116,25 @@ function getCookie(name) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    const agendaRoot = document.querySelector(".agenda-day-fullbleed");
+    const stickyNavigation = document.getElementById("agendaDayStickyNavigation");
+
+    function actualizarPosicionesFijas() {
+        if (!agendaRoot || !stickyNavigation) return;
+
+        const header = document.querySelector(".header-fijo-sonrisar");
+        const headerOffset = header
+            ? Math.ceil(header.getBoundingClientRect().bottom)
+            : 0;
+        const sideOffset = headerOffset + stickyNavigation.offsetHeight + 10;
+
+        agendaRoot.style.setProperty("--agenda-day-header-offset", `${headerOffset}px`);
+        agendaRoot.style.setProperty("--agenda-day-side-offset", `${sideOffset}px`);
+    }
+
+    actualizarPosicionesFijas();
+    window.addEventListener("resize", actualizarPosicionesFijas);
+
     let draggedId = null;
 
     document.querySelectorAll(".draggable-cita").forEach(el => {
