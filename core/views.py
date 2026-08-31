@@ -93,6 +93,78 @@ from django.db.models import Count
 def home(request):
     today = date.today()
 
+    primera_cita_paciente = (
+        Appointment.objects
+        .filter(paciente_id=OuterRef("paciente_id"))
+        .order_by("fecha", "hora", "id")
+        .values("id")[:1]
+    )
+
+    citas_hoy = list(
+        Appointment.objects
+        .filter(fecha=today)
+        .annotate(primera_cita_id=Subquery(primera_cita_paciente))
+        .select_related("paciente")
+        .prefetch_related("procedimientos")
+        .order_by("hora", "id")
+    )
+
+    pacientes_primera_vez_hoy = sum(
+        1 for cita in citas_hoy if cita.id == cita.primera_cita_id
+    )
+    citas_hoy_pendientes = sum(cita.estado == "pendiente" for cita in citas_hoy)
+    citas_hoy_confirmadas = sum(cita.estado == "confirmado" for cita in citas_hoy)
+    citas_hoy_atendidas = sum(cita.estado == "asistio" for cita in citas_hoy)
+
+    contextos_financieros_hoy = _obtener_contexto_financiero_citas(
+        citas_hoy,
+        today,
+    ) if citas_hoy else {}
+
+    total_cobrado_hoy = sum(
+        (
+            _decimal_seguro(contextos_financieros_hoy.get(cita.id, {}).get("pago_cita", 0))
+            for cita in citas_hoy
+        ),
+        Decimal("0"),
+    )
+    deuda_por_paciente = {}
+    for cita in citas_hoy:
+        deuda_por_paciente[cita.paciente_id] = _decimal_seguro(
+            contextos_financieros_hoy.get(cita.id, {}).get("deuda_cita", 0)
+        )
+    deuda_pendiente_hoy = sum(
+        (max(deuda, Decimal("0")) for deuda in deuda_por_paciente.values()),
+        Decimal("0"),
+    )
+
+    citas_futuras = (
+        Appointment.objects
+        .filter(fecha__gt=today)
+        .exclude(estado="cancelado")
+    )
+    proxima_fecha = citas_futuras.order_by("fecha").values_list("fecha", flat=True).first()
+    proximas_citas = list(
+        citas_futuras
+        .filter(fecha=proxima_fecha)
+        .select_related("paciente")
+        .prefetch_related("procedimientos")
+        .order_by("hora", "id")
+    )
+
+    alertas_clinicas = list(
+        ClinicalAlert.objects
+        .filter(realizado=False)
+        .select_related("paciente")
+        .order_by("fecha_revision", "-creado")[:6]
+    )
+    alertas_administrativas = list(
+        AgendaReminder.objects
+        .filter(realizado=False)
+        .select_related("paciente")
+        .order_by("fecha", "-id")[:6]
+    )
+
     month = int(request.GET.get("month", today.month))
     year = int(request.GET.get("year", today.year))
 
@@ -135,6 +207,19 @@ def home(request):
     next_year = year + 1 if month == 12 else year
 
     context = {
+        "today": today,
+        "citas_hoy": citas_hoy,
+        "total_citas_hoy": len(citas_hoy),
+        "pacientes_primera_vez_hoy": pacientes_primera_vez_hoy,
+        "citas_hoy_pendientes": citas_hoy_pendientes,
+        "citas_hoy_confirmadas": citas_hoy_confirmadas,
+        "citas_hoy_atendidas": citas_hoy_atendidas,
+        "total_cobrado_hoy": total_cobrado_hoy,
+        "deuda_pendiente_hoy": deuda_pendiente_hoy,
+        "proximas_citas": proximas_citas,
+        "proxima_fecha": proxima_fecha,
+        "alertas_clinicas": alertas_clinicas,
+        "alertas_administrativas": alertas_administrativas,
         "total": total,
         "asistieron": asistieron,
         "no_asistieron": no_asistieron,
