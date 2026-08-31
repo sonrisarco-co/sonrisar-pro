@@ -2205,7 +2205,7 @@ def _configuracion_inicial_orden(protesis):
 
     initial = {
         "estado": "pendiente",
-        "odontologo": "Rodrigo",
+        "odontologo": "Dr. Rodrigo Suma",
     }
 
     mapa_trabajos = {

@@ -68,7 +68,7 @@
 
                         <div class="row align-items-start g-3">
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="label-card">Paciente</div>
                                 <div class="paciente-card">
                                     {{ item.paciente }}
@@ -86,13 +86,20 @@
                             </div>
 
                             <div class="col-md-2">
+                                <div class="label-card">Color</div>
+                                <div class="dato-card">
+                                    {{ item.color|default:"—" }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-2">
                                 <div class="label-card">Etapa</div>
                                 <span class="badge-etapa">
                                     {{ item.get_etapa_display }}
                                 </span>
                             </div>
 
-                            <div class="col-md-3 text-md-end">
+                            <div class="col-md-2 text-md-end">
                                 <div class="label-card">Estado</div>
                                 <span class="badge-estado estado-{{ item.estado }}">
                                     {{ item.get_estado_display }}

@@ -12,29 +12,29 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
 .no-print{width:210mm;margin:6px auto;text-align:right;padding-right:6mm}
 .no-print button,.no-print a{display:inline-block;padding:6px 10px;border-radius:6px;border:0;color:#fff;text-decoration:none;font-size:11px;margin-left:5px}
 .btn-print{background:#198754}.btn-back{background:#6c757d}
-.sheet{width:210mm;height:148.5mm;min-height:148.5mm;max-height:148.5mm;margin:0 auto;background:#fff;padding:5mm 7mm;overflow:hidden}
-.header{display:grid;grid-template-columns:34mm 1fr 30mm;align-items:center;gap:3mm;border-bottom:1.5px solid #0b7774;padding-bottom:2.5mm}
-.logo{width:30mm;max-height:15mm;object-fit:contain}
-.title{text-align:center;color:#0b7774;font-size:14px;font-weight:800;letter-spacing:.5px}
-.order{text-align:center;border:1px solid #b9dddd;border-radius:6px;padding:2mm}
-.label{font-size:6.5px;color:#0b7774;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-.value{font-size:9px;font-weight:700;margin-top:.7mm}
-.summary{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:1.8mm;margin:2mm 0}
-.box{border:1px solid #b9dddd;border-radius:6px;padding:2mm}
-.work{border:1.5px solid #0b7774;background:#f1fbfb;border-radius:7px;padding:2mm;margin-bottom:2mm}
-.work .value{font-size:11px}
-.work-meta{font-size:9.5px;line-height:1.35;margin-top:1.2mm;font-weight:600;color:#20262c}
+.sheet{width:210mm;height:148.5mm;min-height:148.5mm;max-height:148.5mm;margin:0 auto;background:#fff;padding:6mm 8mm;overflow:hidden;border-bottom:1px dashed #9aa5ad}
+.header{display:grid;grid-template-columns:36mm 1fr 32mm;align-items:center;gap:4mm;border-bottom:1.5px solid #0b7774;padding-bottom:3mm}
+.logo{width:33mm;max-height:17mm;object-fit:contain}
+.title{text-align:center;color:#0b7774;font-size:18px;font-weight:800;letter-spacing:.5px}
+.order{text-align:center;border:1px solid #b9dddd;border-radius:7px;padding:2.5mm}
+.label{font-size:8.5px;color:#0b7774;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.value{font-size:11.5px;font-weight:700;margin-top:1mm}
+.summary{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:2.4mm;margin:3mm 0}
+.box{border:1px solid #b9dddd;border-radius:7px;padding:2.6mm}
+.work{border:1.5px solid #0b7774;background:#f1fbfb;border-radius:8px;padding:2.7mm;margin-bottom:2.7mm}
+.work .value{font-size:14px}
+.work-meta{font-size:11px;line-height:1.4;margin-top:1.5mm;font-weight:600;color:#20262c}
 .work-meta strong{font-weight:800;color:#0b7774}
-.section{border:1px solid #b9dddd;border-radius:7px;padding:1.8mm;margin-bottom:1.8mm}
-.section-title{color:#0b7774;text-transform:uppercase;font-size:7px;font-weight:800;margin-bottom:1.3mm}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.8mm}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1mm 2mm}
-.item{font-size:8px;line-height:1.35;margin-bottom:.5mm}
-.check{display:inline-block;width:3.2mm;height:3.2mm;border:1px solid #0b7774;border-radius:1px;text-align:center;line-height:2.9mm;margin-right:1mm;color:#0b7774;font-weight:800;font-size:8px}
-.note{min-height:9mm;max-height:13mm;overflow:hidden;white-space:pre-line;font-size:8px;line-height:1.25}
+.section{border:1px solid #b9dddd;border-radius:8px;padding:2.4mm;margin-bottom:2.2mm}
+.section-title{color:#0b7774;text-transform:uppercase;font-size:9px;font-weight:800;margin-bottom:1.7mm}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:2.4mm}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3mm 2.5mm}
+.item{font-size:10px;line-height:1.4;margin-bottom:.8mm}
+.check{display:inline-block;width:3.8mm;height:3.8mm;border:1px solid #0b7774;border-radius:1px;text-align:center;line-height:3.5mm;margin-right:1.2mm;color:#0b7774;font-weight:800;font-size:9px}
+.note{min-height:14mm;max-height:20mm;overflow:hidden;white-space:pre-line;font-size:10px;line-height:1.35}
 .signature{display:none}
 .line{border-top:1px solid #555;text-align:center;padding-top:1.3mm;font-size:7px}
-.footer{border-top:1.5px solid #0b7774;margin-top:1.8mm;padding-top:1.5mm;text-align:center;font-size:6.5px;color:#4b5563}
+.footer{border-top:1.5px solid #0b7774;margin-top:2.2mm;padding-top:1.8mm;text-align:center;font-size:8px;color:#4b5563}
 @media print{
         html,body{
             width:210mm;
@@ -51,7 +51,7 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
             min-height:148.5mm;
             max-height:148.5mm;
             margin:0;
-            padding:5mm 7mm;
+            padding:6mm 8mm;
             overflow:hidden;
             page-break-after:avoid;
             break-after:avoid;
@@ -93,14 +93,14 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
 <div class="work">
 <div class="label">Trabajo</div>
 <div class="value">{{ orden.resumen_trabajo }}</div>
-<div class="work-meta"><strong>Tipo:</strong> {{ protesis.get_tipo_protesis_display }} &nbsp;|&nbsp; <strong>Arcada:</strong> {{ orden.get_arcada_display|default:"—" }}</div>
+<div class="work-meta"><strong>Tipo:</strong> {{ protesis.get_tipo_protesis_display }} &nbsp;|&nbsp; <strong>Color:</strong> {{ protesis.color|default:"—" }} &nbsp;|&nbsp; <strong>Arcada:</strong> {{ orden.get_arcada_display|default:"—" }}</div>
 {% if orden.piezas_removible %}<div class="item"><strong>Piezas:</strong> {{ orden.piezas_removible }}</div>{% endif %}
 {% if orden.piezas_fija %}<div class="item"><strong>Piezas:</strong> {{ orden.piezas_fija }}</div>{% endif %}
 </div>
 
 <div class="grid2">
 <div>
-{% if orden.impresion_primaria or orden.impresion_inicial or orden.impresion_definitiva or orden.antagonista or orden.registro_mordida or orden.enfilado_enviado or orden.protesis_a_reparar %}
+{% if orden.impresion_primaria or orden.impresion_inicial or orden.impresion_definitiva or orden.antagonista or orden.registro_mordida or orden.enfilado_enviado or orden.protesis_a_reparar or orden.modelo_trabajo %}
 <div class="section"><div class="section-title">Se envía</div>
 {% if orden.impresion_primaria or orden.impresion_inicial %}<div class="item"><span class="check">✓</span>Impresión primaria</div>{% endif %}
 {% if orden.impresion_definitiva %}<div class="item"><span class="check">✓</span>Impresión definitiva</div>{% endif %}
@@ -108,10 +108,11 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
 {% if orden.registro_mordida %}<div class="item"><span class="check">✓</span>Registro de mordida</div>{% endif %}
 {% if orden.enfilado_enviado %}<div class="item"><span class="check">✓</span>Enfilado</div>{% endif %}
 {% if orden.protesis_a_reparar %}<div class="item"><span class="check">✓</span>Prótesis a reparar</div>{% endif %}
+{% if orden.modelo_trabajo %}<div class="item"><span class="check">✓</span>Modelo de trabajo</div>{% endif %}
 </div>
 {% endif %}
 
-{% if orden.solicita_cubeta_individual or orden.solicita_placa_articular or orden.solicita_enfilado or orden.solicita_terminacion or orden.solicita_cromo or orden.prueba_estructura or orden.prueba_estetica or orden.glaseado %}
+{% if orden.solicita_cubeta_individual or orden.solicita_placa_articular or orden.solicita_enfilado or orden.solicita_terminacion or orden.solicita_cromo or orden.prueba_estructura or orden.prueba_estetica or orden.glaseado or orden.solicita_bizcocho %}
 <div class="section"><div class="section-title">Solicito</div>
 {% if orden.solicita_cubeta_individual %}<div class="item"><span class="check">✓</span>Cubeta individual</div>{% endif %}
 {% if orden.solicita_placa_articular %}<div class="item"><span class="check">✓</span>Placa articular</div>{% endif %}
@@ -121,6 +122,7 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
 {% if orden.prueba_estructura %}<div class="item"><span class="check">✓</span>Prueba de estructura</div>{% endif %}
 {% if orden.prueba_estetica %}<div class="item"><span class="check">✓</span>Prueba estética</div>{% endif %}
 {% if orden.glaseado %}<div class="item"><span class="check">✓</span>Glaseado</div>{% endif %}
+{% if orden.solicita_bizcocho %}<div class="item"><span class="check">✓</span>Bizcocho</div>{% endif %}
 </div>
 {% endif %}
 </div>
@@ -140,7 +142,7 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
 
 <div class="section"><div class="section-title">Datos</div>
 <div class="item"><strong>Estado:</strong> {{ orden.get_estado_display }}</div>
-<div class="item"><strong>Odontólogo:</strong> {{ orden.odontologo|default:"Rodrigo" }}</div>
+<div class="item"><strong>Odontólogo:</strong> {{ orden.odontologo|default:"Dr. Rodrigo Suma" }}</div>
 {% if orden.fecha_envio %}<div class="item"><strong>Envío:</strong> {{ orden.fecha_envio|date:"d/m/Y" }}</div>{% endif %}
 </div>
 </div>

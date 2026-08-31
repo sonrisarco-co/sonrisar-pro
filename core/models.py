@@ -570,6 +570,13 @@ class Prosthesis(models.Model):
         blank=True
     )
 
+    color = models.CharField(
+        "Color",
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
     monto_total = models.DecimalField(
         "Monto total",
         max_digits=10,
@@ -692,7 +699,7 @@ class OrdenLaboratorio(models.Model):
     )
     piezas_removible = models.CharField(max_length=100, blank=True)
     piezas_fija = models.CharField(max_length=100, blank=True)
-    odontologo = models.CharField(max_length=150, blank=True, default="Rodrigo")
+    odontologo = models.CharField(max_length=150, blank=True, default="Dr. Rodrigo Suma")
 
     # Removible
     parcial_cromo = models.BooleanField(default=False)
@@ -708,6 +715,7 @@ class OrdenLaboratorio(models.Model):
     impresion_primaria = models.BooleanField(default=False)
     antagonista = models.BooleanField(default=False)
     enfilado_enviado = models.BooleanField(default=False)
+    modelo_trabajo = models.BooleanField(default=False)
 
     # Solicito V2
     solicita_cubeta_individual = models.BooleanField(default=False)
@@ -718,6 +726,7 @@ class OrdenLaboratorio(models.Model):
     prueba_estructura = models.BooleanField(default=False)
     prueba_estetica = models.BooleanField(default=False)
     glaseado = models.BooleanField(default=False)
+    solicita_bizcocho = models.BooleanField(default=False)
 
     # Material de prótesis fija
     material_metal = models.BooleanField(default=False)

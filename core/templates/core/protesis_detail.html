@@ -31,17 +31,22 @@
         <div class="card-body">
             <div class="row">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <strong>Paciente</strong><br>
                     {{ protesis.paciente }}
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <strong>Trabajo</strong><br>
                     {{ protesis.trabajo }}
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <strong>Color</strong><br>
+                    {{ protesis.color|default:"—" }}
+                </div>
+
+                <div class="col-md-3">
                     <strong>Etapa</strong><br>
                     {{ protesis.get_etapa_display }}
                 </div>

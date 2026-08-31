@@ -470,6 +470,7 @@ class ProsthesisForm(forms.ModelForm):
             "paciente",
             "tipo_protesis",
             "trabajo",
+            "color",
             "fecha_inicio",
             "monto_total",
             "estado",
@@ -483,6 +484,10 @@ class ProsthesisForm(forms.ModelForm):
             }),
             "tipo_protesis": forms.Select(attrs={
                 "class": "form-select",
+            }),
+            "color": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ej.: A2, A3, B1...",
             }),
             "fecha_inicio": forms.DateInput(
                 format="%Y-%m-%d",

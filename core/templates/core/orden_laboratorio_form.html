@@ -42,22 +42,28 @@
 </div>
 
 <div class="row g-2 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="resumen-trabajo h-100">
             <div class="resumen-label">Paciente</div>
             <div class="resumen-value">{{ protesis.paciente }}</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="resumen-trabajo h-100">
             <div class="resumen-label">Tipo</div>
             <div class="resumen-value">{{ protesis.get_tipo_protesis_display }}</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="resumen-trabajo h-100">
             <div class="resumen-label">Trabajo principal</div>
             <div class="resumen-value">{{ trabajo_principal|default:"Sin especificar" }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="resumen-trabajo h-100">
+            <div class="resumen-label">Color</div>
+            <div class="resumen-value">{{ protesis.color|default:"Sin especificar" }}</div>
         </div>
     </div>
 </div>
@@ -152,6 +158,7 @@
                 <label class="check-item">{{ form.registro_mordida }} Registro de mordida</label>
                 <label class="check-item">{{ form.enfilado_enviado }} Enfilado</label>
                 <label class="check-item">{{ form.protesis_a_reparar }} Prótesis a reparar</label>
+                <label class="check-item">{{ form.modelo_trabajo }} Modelo de trabajo</label>
             </div>
         </div>
     </div>
@@ -168,6 +175,7 @@
                 <label class="check-item">{{ form.prueba_estructura }} Prueba de estructura</label>
                 <label class="check-item">{{ form.prueba_estetica }} Prueba estética</label>
                 <label class="check-item">{{ form.glaseado }} Glaseado</label>
+                <label class="check-item">{{ form.solicita_bizcocho }} Bizcocho</label>
             </div>
         </div>
     </div>
