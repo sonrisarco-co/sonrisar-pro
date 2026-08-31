@@ -6,6 +6,7 @@
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url|default:'' }}">
 
     <div>
         <label>Imagen</label><br>
@@ -23,7 +24,7 @@
         💾 Guardar
     </button>
 
-    <a href="{% url 'rayos_x_list' paciente.id %}"
+    <a href="{% url 'rayos_x_list' paciente.id %}{% if next_url %}?next={{ next_url|urlencode }}{% endif %}"
        class="btn-sonrisar btn-volver">
        ⬅ Volver
     </a>

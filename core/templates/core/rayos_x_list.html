@@ -3,7 +3,7 @@
 
 <h1>Rayos X – {{ paciente.nombre }} {{ paciente.apellido }}</h1>
 
-<a href="{% url 'rayos_x_new' paciente.id %}"
+<a href="{% url 'rayos_x_new' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
    class="btn-sonrisar btn-primario">
    ➕ Agregar Rayos X
 </a>
@@ -39,9 +39,9 @@
 <p>No hay placas cargadas.</p>
 {% endif %}
 
-<a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
+<a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'patient_detail' paciente.id %}{% endif %}"
    class="btn-sonrisar btn-volver">
-   ⬅ Volver a ficha
+   ⬅ Volver
 </a>
 
 <!-- MODAL -->

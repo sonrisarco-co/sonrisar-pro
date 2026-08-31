@@ -4347,6 +4347,7 @@ def rayos_x_list(request, paciente_id):
 
 def rayos_x_new(request, paciente_id):
     paciente = get_object_or_404(Patient, id=paciente_id)
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
 
     if request.method == "POST":
         form = RayosXForm(request.POST, request.FILES)
@@ -4354,7 +4355,10 @@ def rayos_x_new(request, paciente_id):
             rx = form.save(commit=False)
             rx.paciente = paciente
             rx.save()
-            return redirect("rayos_x_list", paciente_id=paciente.id)
+            url_lista = reverse("rayos_x_list", args=[paciente.id])
+            if next_url:
+                url_lista += "?" + urlencode({"next": next_url})
+            return redirect(url_lista)
     else:
         form = RayosXForm()
 
@@ -4364,6 +4368,7 @@ def rayos_x_new(request, paciente_id):
         {
             "form": form,
             "paciente": paciente,
+            "next_url": next_url,
         }
     )
 

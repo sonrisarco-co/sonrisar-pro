@@ -71,9 +71,15 @@
             </p>
         </div>
 
-        <div class="hc-date">
-            <small>Fecha</small>
-            <strong>{{ fecha_hoy }}</strong>
+        <div class="hc-header-side">
+            <div class="hc-header-tools" aria-label="Accesos clínicos del paciente">
+                <a href="{% url 'odontograma_profesional' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="hc-tool-btn">🦷 Odontograma</a>
+                <a href="{% url 'rayos_x_list' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="hc-tool-btn">▣ Rayos X</a>
+            </div>
+            <div class="hc-date">
+                <small>Fecha</small>
+                <strong>{{ fecha_hoy }}</strong>
+            </div>
         </div>
     </div>
 
@@ -462,6 +468,41 @@
     color: #146B6C;
 }
 
+.hc-header-side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hc-header-tools {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.hc-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid #9ed8d5;
+    border-radius: 9px;
+    background: rgba(255,255,255,.82);
+    color: #147674;
+    font-size: .75rem;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: .15s ease;
+}
+
+.hc-tool-btn:hover {
+    border-color: #26ABA5;
+    background: #ffffff;
+    color: #0d6663;
+    transform: translateY(-1px);
+}
+
 .hc-form {
     display: flex;
     flex-direction: column;
@@ -823,6 +864,12 @@
 @media (max-width: 768px) {
     .hc-header {
         flex-direction: column;
+    }
+
+    .hc-header-side {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .hc-grid,
