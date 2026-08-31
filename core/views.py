@@ -3024,6 +3024,11 @@ def agenda_day(request, day, month, year):
     import calendar
 
     fecha = date(year, month, day)
+    volver_dia_str = request.GET.get("volver_dia", "").strip()
+    try:
+        volver_dia = datetime.strptime(volver_dia_str, "%Y-%m-%d").date()
+    except ValueError:
+        volver_dia = None
     print("DEBUG AGENDA_DAY EJECUTADA", fecha)
 
     dia_bloqueado = DayBlock.objects.filter(
@@ -3349,6 +3354,7 @@ def agenda_day(request, day, month, year):
             "fecha": fecha,
             "fecha_anterior": fecha - timedelta(days=1),
             "fecha_siguiente": fecha + timedelta(days=1),
+            "volver_dia": volver_dia,
             "almanaque_titulo": f"{nombres_meses[almanaque_base.month]} {almanaque_base.year}",
             "almanaque_semanas": semanas_almanaque,
             "mes_anterior": mes_anterior,

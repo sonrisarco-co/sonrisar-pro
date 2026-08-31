@@ -19,6 +19,14 @@
                     </a>
                 {% endif %}
 
+                {% if volver_dia %}
+                    <a href="{% url 'agenda_day' day=volver_dia.day month=volver_dia.month year=volver_dia.year %}"
+                       class="btn btn-sm agenda-day-return-button"
+                       title="Volver al día consultado anteriormente">
+                        ↩ {{ volver_dia|date:"d/m" }}
+                    </a>
+                {% endif %}
+
             <a href="{% url 'agenda_day' day=fecha_anterior.day month=fecha_anterior.month year=fecha_anterior.year %}"
                class="btn btn-outline-secondary btn-sm agenda-day-arrow-button"
                title="Día anterior">
@@ -95,7 +103,7 @@
                                 <tr>
                                     {% for dia in semana %}
                                         <td>
-                                            <a href="{% url 'agenda_day' day=dia.fecha.day month=dia.fecha.month year=dia.fecha.year %}"
+                                            <a href="{% url 'agenda_day' day=dia.fecha.day month=dia.fecha.month year=dia.fecha.year %}?volver_dia={{ fecha|date:'Y-m-d' }}"
                                                class="agenda-day-calendar-day{% if not dia.es_del_mes %} other-month{% endif %}{% if dia.es_hoy %} today{% endif %}{% if dia.seleccionado %} selected{% endif %}{% if dia.tiene_citas %} has-appointments{% endif %}">
                                                 {{ dia.numero }}
                                             </a>
@@ -761,6 +769,23 @@
     color: #fff !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(38, 171, 165, 0.28);
+}
+
+.agenda-day-return-button {
+    padding: 3px 8px !important;
+    border: 1px solid #26aba5 !important;
+    border-radius: 7px !important;
+    background: #e8f7f6 !important;
+    color: #087c77 !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap;
+}
+
+.agenda-day-return-button:hover,
+.agenda-day-return-button:focus {
+    background: #d3f0ee !important;
+    color: #066b67 !important;
 }
 
 .agenda-day-navigation-row {
