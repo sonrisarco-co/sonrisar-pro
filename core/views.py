@@ -2845,6 +2845,27 @@ def _obtener_pagos_cobros_citas_bulk(appointment_ids, base_url=None):
         return None
 
 
+def _combinar_pagos_citas(*fuentes):
+    """Une Cobros local y web sin duplicar una misma cita."""
+    combinados = {}
+
+    for fuente in fuentes:
+        if not fuente:
+            continue
+
+        for appointment_id, pago_info in fuente.items():
+            actual = combinados.get(appointment_id)
+            total_nuevo = _decimal_seguro(pago_info.get("total_pagado", 0))
+            total_actual = _decimal_seguro(
+                actual.get("total_pagado", 0) if actual else 0
+            )
+
+            if actual is None or total_nuevo > total_actual:
+                combinados[appointment_id] = pago_info
+
+    return combinados
+
+
 def _obtener_contexto_financiero_citas(citas_dia, fecha):
     """
     Calcula pagos, deuda y saldo a favor de forma cronológica por paciente.
@@ -2889,37 +2910,18 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
             appointment_ids.append(cita.id)
 
 
-    # Pagos históricos: se consultan EXACTAMENTE como antes.
+    # Pagos históricos desde la fuente configurada.
     pagos_bulk = _obtener_pagos_cobros_citas_bulk(appointment_ids)
 
-    # En desarrollo local únicamente, superponemos pagos hechos en Cobros local
-    # SOLO para las citas que se están viendo en la Agenda del día.
-    # Esto permite probar Agenda -> Cobrar -> volver a Agenda sin cambiar
-    # la deuda histórica del resto de los pacientes.
+    # En desarrollo local combinamos el historial real de Cobros web con los
+    # pagos de Cobros local. Si una cita está en ambos, conservamos el total
+    # mayor para evitar duplicar importes.
     if settings.DEBUG:
-        appointment_ids_dia = [
-            cita.id
-            for cita in citas_dia
-            if getattr(cita, "id", None)
-        ]
-
-        pagos_locales_dia = _obtener_pagos_cobros_citas_bulk(
-            appointment_ids_dia,
-            base_url="http://127.0.0.1:8001",
+        pagos_web = _obtener_pagos_cobros_citas_bulk(
+            appointment_ids,
+            base_url="https://sonrisar-cobros-1.onrender.com",
         )
-
-        if pagos_locales_dia:
-            if pagos_bulk is None:
-                pagos_bulk = {}
-
-            for appointment_id, pago_local in pagos_locales_dia.items():
-                total_local = _decimal_seguro(
-                    pago_local.get("total_pagado", 0)
-                )
-
-                # Solo reemplazamos si realmente existe un pago local.
-                if total_local > 0:
-                    pagos_bulk[appointment_id] = pago_local
+        pagos_bulk = _combinar_pagos_citas(pagos_bulk, pagos_web)
 
     for patient_id, citas_paciente in citas_por_paciente.items():
 
@@ -3030,7 +3032,11 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
     tiene_entrega_parcial = tiene_pago_cita and deuda_cita > 0
     cita_pagada_visual = tiene_monto and deuda_cita <= 0
 
+    # El distintivo de la agenda debe reflejar el saldo que el paciente tiene
+    # disponible en este momento, no solamente el excedente generado por esta
+    # cita. Así el crédito sigue visible en las citas posteriores hasta usarse.
     tiene_saldo_generado = saldo_generado > 0
+    tiene_saldo_a_favor = saldo_a_favor_restante > 0
     usa_saldo_a_favor = saldo_usado > 0
     es_pago_mixto = tiene_pago_cita and saldo_usado > 0
 
@@ -3093,10 +3099,10 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "debe": deuda_cita,
         "deuda_cita": deuda_cita,
         "deuda_total_paciente": deuda_cita,
-        "saldo_a_favor": saldo_generado,
+        "saldo_a_favor": saldo_a_favor_restante,
         "saldo_a_favor_restante": saldo_a_favor_restante,
         "saldo_usado": saldo_usado,
-        "tiene_saldo_a_favor": tiene_saldo_generado,
+        "tiene_saldo_a_favor": tiene_saldo_a_favor,
         "usa_saldo_a_favor": usa_saldo_a_favor,
         "es_pago_mixto": es_pago_mixto,
         "cobros_error": contexto_financiero.get("cobros_error"),
