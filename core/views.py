@@ -683,6 +683,25 @@ def appointment_edit(request, id):
     )
 
 
+@require_POST
+def appointment_confirm(request, id):
+    cita = get_object_or_404(Appointment, id=id)
+
+    if cita.estado not in {"pendiente", "En espera"}:
+        return JsonResponse({
+            "success": False,
+            "error": "Esta cita ya no está pendiente de confirmación.",
+        }, status=409)
+
+    cita.estado = "confirmado"
+    cita.save(update_fields=["estado"])
+
+    return JsonResponse({
+        "success": True,
+        "estado": cita.get_estado_display(),
+    })
+
+
 def appointment_delete(request, id):
     cita = get_object_or_404(Appointment, id=id)
     next_url = request.GET.get("next") or request.POST.get("next") or ""

@@ -281,11 +281,23 @@
                                             {% endcomment %}
 
                                             {% if cita.estado == "En espera" %}
-                                                <span class="badge" style="background:#c8b6e2; color:#000;">
-                                                    En espera
+                                                <span class="js-estado-cita">
+                                                    <span class="badge" style="background:#c8b6e2; color:#000;">En espera</span>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary js-confirmar-cita"
+                                                            data-url="{% url 'appointment_confirm' cita.id %}">
+                                                        ✓ Marcar confirmado
+                                                    </button>
                                                 </span>
                                             {% elif cita.estado_slug == "pendiente" %}
-                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                                <span class="js-estado-cita">
+                                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary js-confirmar-cita"
+                                                            data-url="{% url 'appointment_confirm' cita.id %}">
+                                                        ✓ Marcar confirmado
+                                                    </button>
+                                                </span>
                                             {% elif cita.estado_slug == "confirmado" %}
                                                 <span class="badge bg-primary">Confirmado</span>
                                             {% elif cita.estado_slug == "asistio" %}
@@ -559,11 +571,23 @@
                                             {% endcomment %}
 
                                             {% if cita.estado == "En espera" %}
-                                                <span class="badge" style="background:#c8b6e2; color:#000;">
-                                                    En espera
+                                                <span class="js-estado-cita">
+                                                    <span class="badge" style="background:#c8b6e2; color:#000;">En espera</span>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary js-confirmar-cita"
+                                                            data-url="{% url 'appointment_confirm' cita.id %}">
+                                                        ✓ Marcar confirmado
+                                                    </button>
                                                 </span>
                                             {% elif cita.estado_slug == "pendiente" %}
-                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                                <span class="js-estado-cita">
+                                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary js-confirmar-cita"
+                                                            data-url="{% url 'appointment_confirm' cita.id %}">
+                                                        ✓ Marcar confirmado
+                                                    </button>
+                                                </span>
                                             {% elif cita.estado_slug == "confirmado" %}
                                                 <span class="badge bg-primary">Confirmado</span>
                                             {% elif cita.estado_slug == "asistio" %}
@@ -1144,6 +1168,38 @@ document.addEventListener("DOMContentLoaded", function () {
     const agendaRoot = document.querySelector(".agenda-day-fullbleed");
     const stickyNavigation = document.getElementById("agendaDayStickyNavigation");
     const scrollStorageKey = "agendaDiaPosicionAntesDeEditar";
+
+    document.querySelectorAll(".js-confirmar-cita").forEach(button => {
+        button.addEventListener("click", async function () {
+            const textoOriginal = button.textContent;
+            button.disabled = true;
+            button.textContent = "Confirmando...";
+
+            try {
+                const response = await fetch(button.dataset.url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "No se pudo confirmar la cita.");
+                }
+
+                const estadoConfirmado = document.createElement("span");
+                estadoConfirmado.className = "badge bg-primary";
+                estadoConfirmado.textContent = data.estado || "Confirmado";
+                button.closest(".js-estado-cita").replaceWith(estadoConfirmado);
+            } catch (error) {
+                button.disabled = false;
+                button.textContent = textoOriginal;
+                alert(error.message || "No se pudo confirmar la cita.");
+            }
+        });
+    });
 
     // Conserva el punto exacto de la pantalla. El ancla por horario queda como
     // respaldo para navegadores que no permiten usar sessionStorage.
