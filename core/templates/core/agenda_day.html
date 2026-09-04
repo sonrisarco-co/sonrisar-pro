@@ -390,7 +390,7 @@
                                             {% endif %}
 
                                             <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}&amp;volver_hora={{ h.hora|time:'H:i'|urlencode }}"
-                                               class="btn btn-sm btn-primary ms-2">
+                                               class="btn btn-sm btn-primary ms-2 js-editar-cita-agenda">
                                                 Editar
                                             </a>
 
@@ -652,7 +652,7 @@
                                             {% endif %}
 
                                             <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}&amp;volver_hora={{ h.hora|time:'H:i'|urlencode }}"
-                                               class="btn btn-sm btn-primary ms-2">
+                                               class="btn btn-sm btn-primary ms-2 js-editar-cita-agenda">
                                                 Editar
                                             </a>
 
@@ -1143,6 +1143,49 @@ function getCookie(name) {
 document.addEventListener("DOMContentLoaded", function () {
     const agendaRoot = document.querySelector(".agenda-day-fullbleed");
     const stickyNavigation = document.getElementById("agendaDayStickyNavigation");
+    const scrollStorageKey = "agendaDiaPosicionAntesDeEditar";
+
+    // Conserva el punto exacto de la pantalla. El ancla por horario queda como
+    // respaldo para navegadores que no permiten usar sessionStorage.
+    document.querySelectorAll(".js-editar-cita-agenda").forEach(link => {
+        link.addEventListener("click", function () {
+            try {
+                sessionStorage.setItem(scrollStorageKey, JSON.stringify({
+                    url: window.location.pathname + window.location.search,
+                    x: window.scrollX,
+                    y: window.scrollY,
+                    guardadoEn: Date.now()
+                }));
+            } catch (error) {
+                // La navegación sigue funcionando mediante #hora-... .
+            }
+        });
+    });
+
+    try {
+        const posicionGuardada = JSON.parse(sessionStorage.getItem(scrollStorageKey));
+        const urlActual = window.location.pathname + window.location.search;
+        const posicionVigente = posicionGuardada
+            && posicionGuardada.url === urlActual
+            && Date.now() - posicionGuardada.guardadoEn < 10 * 60 * 1000;
+
+        if (posicionVigente) {
+            sessionStorage.removeItem(scrollStorageKey);
+            if ("scrollRestoration" in history) {
+                history.scrollRestoration = "manual";
+            }
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window.scrollTo(posicionGuardada.x || 0, posicionGuardada.y || 0);
+                });
+            });
+        } else if (posicionGuardada) {
+            sessionStorage.removeItem(scrollStorageKey);
+        }
+    } catch (error) {
+        // Si el navegador bloquea sessionStorage, se conserva el retorno por hora.
+    }
 
     function actualizarPosicionesFijas() {
         if (!agendaRoot || !stickyNavigation) return;

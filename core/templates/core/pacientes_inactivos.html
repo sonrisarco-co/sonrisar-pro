@@ -37,6 +37,7 @@
                                 <th>Teléfono</th>
                                 <th>Última cita</th>
                                 <th>Días sin venir</th>
+                                <th class="text-end">Contacto</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -46,6 +47,14 @@
                                 <td>{{ p.telefono|default:"-" }}</td>
                                 <td>{{ p.ultima_cita|date:"d/m/Y" }}</td>
                                 <td>{{ p.dias_sin_venir }}</td>
+                                <td class="text-end">
+                                    <a href="#"
+                                       class="btn btn-success btn-sm js-whatsapp-inactivo"
+                                       data-telefono="{{ p.telefono|default:'' }}"
+                                       aria-label="Escribir por WhatsApp a {{ p.nombre }} {{ p.apellido }}">
+                                        WhatsApp
+                                    </a>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -58,4 +67,41 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".js-whatsapp-inactivo").forEach(function (enlace) {
+        enlace.addEventListener("click", function (event) {
+            event.preventDefault();
+
+            let telefono = (enlace.dataset.telefono || "").replace(/\D/g, "");
+
+            if (!telefono) {
+                alert("Este paciente no tiene teléfono registrado.");
+                return;
+            }
+
+            if (telefono.startsWith("549")) {
+                // El número de Argentina ya está completo para WhatsApp.
+            } else if (telefono.startsWith("54")) {
+                telefono = "549" + telefono.substring(2);
+            } else if (telefono.startsWith("11") && telefono.length === 10) {
+                telefono = "549" + telefono;
+            } else if (telefono.startsWith("598")) {
+                // El número de Uruguay ya incluye el código de país.
+            } else {
+                if (telefono.startsWith("0")) {
+                    telefono = telefono.substring(1);
+                }
+                telefono = "598" + telefono;
+            }
+
+            window.open(
+                "https://web.whatsapp.com/send?phone=" + telefono,
+                "sonrisar_whatsapp"
+            );
+        });
+    });
+});
+</script>
 {% endblock %}
