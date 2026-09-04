@@ -75,6 +75,7 @@ urlpatterns = [
     path("agenda/nueva/", views.appointment_new, name="appointment_new"),
     path("agenda/editar/<int:id>/", views.appointment_edit, name="appointment_edit"),
     path("agenda/confirmar/<int:id>/", views.appointment_confirm, name="appointment_confirm"),
+    path("agenda/monto/<int:id>/", views.appointment_update_amount, name="appointment_update_amount"),
     path("agenda/eliminar/<int:id>/", views.appointment_delete, name="appointment_delete"),
     path(
         "agenda/cobrar/<int:appointment_id>/",

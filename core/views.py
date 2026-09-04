@@ -702,6 +702,43 @@ def appointment_confirm(request, id):
     })
 
 
+@require_POST
+def appointment_update_amount(request, id):
+    cita = get_object_or_404(Appointment, id=id)
+    monto_texto = (request.POST.get("monto_total") or "").strip()
+    monto_texto = monto_texto.replace("$", "").replace(" ", "")
+
+    if "," in monto_texto and "." in monto_texto:
+        if monto_texto.rfind(",") > monto_texto.rfind("."):
+            monto_texto = monto_texto.replace(".", "").replace(",", ".")
+        else:
+            monto_texto = monto_texto.replace(",", "")
+    else:
+        monto_texto = monto_texto.replace(",", ".")
+
+    try:
+        monto = Decimal(monto_texto).quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError):
+        return JsonResponse({
+            "success": False,
+            "error": "Ingresá un monto válido.",
+        }, status=400)
+
+    if monto < 0 or monto > Decimal("99999999.99"):
+        return JsonResponse({
+            "success": False,
+            "error": "El monto debe estar entre $0 y $99.999.999,99.",
+        }, status=400)
+
+    cita.monto_total = monto
+    cita.save(update_fields=["monto_total"])
+
+    return JsonResponse({
+        "success": True,
+        "monto_total": str(monto),
+    })
+
+
 def appointment_delete(request, id):
     cita = get_object_or_404(Appointment, id=id)
     next_url = request.GET.get("next") or request.POST.get("next") or ""

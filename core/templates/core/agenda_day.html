@@ -401,6 +401,13 @@
                                                 </a>
                                             {% endif %}
 
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-dark js-editar-monto"
+                                                    data-url="{% url 'appointment_update_amount' cita.id %}"
+                                                    data-monto="{{ cita.monto_total|floatformat:2 }}">
+                                                Monto
+                                            </button>
+
                                             <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}&amp;volver_hora={{ h.hora|time:'H:i'|urlencode }}"
                                                class="btn btn-sm btn-primary ms-2 js-editar-cita-agenda">
                                                 Editar
@@ -674,6 +681,13 @@
                                                     Cobrar
                                                 </a>
                                             {% endif %}
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-dark js-editar-monto"
+                                                    data-url="{% url 'appointment_update_amount' cita.id %}"
+                                                    data-monto="{{ cita.monto_total|floatformat:2 }}">
+                                                Monto
+                                            </button>
 
                                             <a href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}&amp;volver_hora={{ h.hora|time:'H:i'|urlencode }}"
                                                class="btn btn-sm btn-primary ms-2 js-editar-cita-agenda">
@@ -1168,6 +1182,62 @@ document.addEventListener("DOMContentLoaded", function () {
     const agendaRoot = document.querySelector(".agenda-day-fullbleed");
     const stickyNavigation = document.getElementById("agendaDayStickyNavigation");
     const scrollStorageKey = "agendaDiaPosicionAntesDeEditar";
+
+    document.querySelectorAll(".js-editar-monto").forEach(button => {
+        button.addEventListener("click", async function () {
+            const montoActual = button.dataset.monto === "0,00"
+                || button.dataset.monto === "0.00"
+                ? ""
+                : button.dataset.monto;
+            const montoIngresado = window.prompt(
+                "Ingresá el monto total de la cita:",
+                montoActual
+            );
+
+            if (montoIngresado === null) return;
+
+            const montoLimpio = montoIngresado.trim();
+            if (!montoLimpio) {
+                alert("Ingresá un monto válido.");
+                return;
+            }
+
+            button.disabled = true;
+
+            try {
+                const response = await fetch(button.dataset.url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({monto_total: montoLimpio}),
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "No se pudo guardar el monto.");
+                }
+
+                try {
+                    sessionStorage.setItem(scrollStorageKey, JSON.stringify({
+                        url: window.location.pathname + window.location.search,
+                        x: window.scrollX,
+                        y: window.scrollY,
+                        guardadoEn: Date.now()
+                    }));
+                } catch (error) {
+                    // Si no hay almacenamiento, la Agenda igualmente se actualiza.
+                }
+
+                window.location.reload();
+            } catch (error) {
+                button.disabled = false;
+                alert(error.message || "No se pudo guardar el monto.");
+            }
+        });
+    });
 
     document.querySelectorAll(".js-confirmar-cita").forEach(button => {
         button.addEventListener("click", async function () {
