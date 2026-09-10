@@ -75,6 +75,71 @@ class FinanzasSaldoCitasTests(TestCase):
         self.assertEqual(contexto["presupuestos"][0]["saldo"], 18700)
 
 
+class AgendaNoAsistioTests(TestCase):
+    def setUp(self):
+        paciente = Patient.objects.create(nombre="Prueba", apellido="Agenda")
+        self.cita = Appointment.objects.create(
+            paciente=paciente, fecha=date(2026, 9, 9), hora=time(10),
+            estado="confirmado", monto_total=900, pagado=True,
+            historia_actualizada=True,
+        )
+        from django.urls import reverse
+        self.url = reverse("appointment_no_show", args=[self.cita.id])
+
+    def test_cambia_solo_la_asistencia_y_admite_repetir(self):
+        for _ in range(2):
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["estado"], "No asistió")
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "no_asistio")
+        self.assertEqual(self.cita.monto_total, 900)
+        self.assertTrue(self.cita.pagado)
+        self.assertTrue(self.cita.historia_actualizada)
+
+    def test_get_no_cambia_estado(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "confirmado")
+
+    def test_cancelada_no_cambia(self):
+        self.cita.estado = "cancelado"
+        self.cita.save()
+        self.assertEqual(self.client.post(self.url).status_code, 409)
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "cancelado")
+
+    def test_requiere_csrf(self):
+        from django.test import Client
+        self.assertEqual(Client(enforce_csrf_checks=True).post(self.url).status_code, 403)
+
+    def test_plantilla_agenda_compila(self):
+        from django.template.loader import get_template
+        get_template("core/agenda_day.html")
+
+
+class AgendaAsistioTests(AgendaNoAsistioTests):
+    def setUp(self):
+        super().setUp()
+        from django.urls import reverse
+        self.url = reverse("appointment_attended", args=[self.cita.id])
+
+    def test_cambia_solo_la_asistencia_y_admite_repetir(self):
+        self.cita.estado = "no_asistio"
+        self.cita.monto_total = 0
+        self.cita.pagado = False
+        self.cita.save()
+        for _ in range(2):
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["estado"], "Asistió")
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "asistio")
+        self.assertEqual(self.cita.monto_total, 0)
+        self.assertFalse(self.cita.pagado)
+        self.assertTrue(self.cita.historia_actualizada)
+
+
 class AgendaSaldoAFavorTests(SimpleTestCase):
     def test_conserva_el_pago_web_si_cobros_local_no_tiene_la_cita(self):
         pagos_locales = {3: {"total_pagado": "0", "pagos": []}}

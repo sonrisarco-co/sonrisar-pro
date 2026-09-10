@@ -703,6 +703,26 @@ def appointment_confirm(request, id):
 
 
 @require_POST
+def appointment_attended(request, id):
+    cita = get_object_or_404(Appointment, id=id)
+    if cita.estado == "cancelado":
+        return JsonResponse({"success": False, "error": "La cita está cancelada."}, status=409)
+    cita.estado = "asistio"
+    cita.save(update_fields=["estado"])
+    return JsonResponse({"success": True, "estado": cita.get_estado_display()})
+
+
+@require_POST
+def appointment_no_show(request, id):
+    cita = get_object_or_404(Appointment, id=id)
+    if cita.estado == "cancelado":
+        return JsonResponse({"success": False, "error": "La cita está cancelada."}, status=409)
+    cita.estado = "no_asistio"
+    cita.save(update_fields=["estado"])
+    return JsonResponse({"success": True, "estado": cita.get_estado_display()})
+
+
+@require_POST
 def appointment_update_amount(request, id):
     cita = get_object_or_404(Appointment, id=id)
     monto_texto = (request.POST.get("monto_total") or "").strip()

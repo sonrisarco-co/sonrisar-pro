@@ -308,6 +308,22 @@
                                                 <span class="badge bg-secondary">Cancelado</span>
                                             {% endif %}
 
+                                            {% if cita.estado_slug != "asistio" and cita.estado_slug != "cancelado" %}
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-success js-asistencia-cita"
+                                                        data-url="{% url 'appointment_attended' cita.id %}">
+                                                    Asistió
+                                                </button>
+                                            {% endif %}
+
+                                            {% if cita.estado_slug != "no_asistio" and cita.estado_slug != "cancelado" %}
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger js-asistencia-cita"
+                                                        data-url="{% url 'appointment_no_show' cita.id %}">
+                                                    No asistió
+                                                </button>
+                                            {% endif %}
+
                                             {% if cita.tiene_pago_cobros %}
 
                                                 {% if cita.es_pago_mixto %}
@@ -603,6 +619,22 @@
                                                 <span class="badge bg-danger">No asistió</span>
                                             {% elif cita.estado_slug == "cancelado" %}
                                                 <span class="badge bg-secondary">Cancelado</span>
+                                            {% endif %}
+
+                                            {% if cita.estado_slug != "asistio" and cita.estado_slug != "cancelado" %}
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-success js-asistencia-cita"
+                                                        data-url="{% url 'appointment_attended' cita.id %}">
+                                                    Asistió
+                                                </button>
+                                            {% endif %}
+
+                                            {% if cita.estado_slug != "no_asistio" and cita.estado_slug != "cancelado" %}
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger js-asistencia-cita"
+                                                        data-url="{% url 'appointment_no_show' cita.id %}">
+                                                    No asistió
+                                                </button>
                                             {% endif %}
 
                                             {% if cita.tiene_pago_cobros %}
@@ -1235,6 +1267,42 @@ document.addEventListener("DOMContentLoaded", function () {
             } catch (error) {
                 button.disabled = false;
                 alert(error.message || "No se pudo guardar el monto.");
+            }
+        });
+    });
+
+    document.querySelectorAll(".js-asistencia-cita").forEach(button => {
+        button.addEventListener("click", async function () {
+            const textoOriginal = button.textContent;
+            button.disabled = true;
+            button.textContent = "Guardando...";
+            try {
+                const response = await fetch(button.dataset.url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "No se pudo cambiar el estado.");
+                }
+                try {
+                    sessionStorage.setItem(scrollStorageKey, JSON.stringify({
+                        url: window.location.pathname + window.location.search,
+                        x: window.scrollX,
+                        y: window.scrollY,
+                        guardadoEn: Date.now()
+                    }));
+                } catch (error) {
+                    // La agenda se actualiza aunque no haya almacenamiento.
+                }
+                window.location.reload();
+            } catch (error) {
+                button.disabled = false;
+                button.textContent = textoOriginal;
+                alert(error.message || "No se pudo cambiar el estado.");
             }
         });
     });
