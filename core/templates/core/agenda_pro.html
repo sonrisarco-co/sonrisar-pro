@@ -113,7 +113,9 @@
         <main class="agenda-pro-main">
             <section class="agenda-pro-main-card">
 
+                {% if not q %}
                 <div class="agenda-pro-sticky-block" id="agendaProStickyBlock">
+                {% endif %}
                     <div class="agenda-pro-header">
                         <div class="agenda-pro-title-wrap">
                             <h2 class="agenda-pro-title">Calendario Sonrisar</h2>
@@ -145,6 +147,59 @@
                             </div>
                         </div>
                     </div>
+
+            {% if q %}
+            <section class="agenda-pro-results">
+                <div class="agenda-pro-results-header">
+                    Todas las citas de "{{ q }}"
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table agenda-pro-results-table">
+                        <thead>
+                            <tr>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Fecha</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Hora</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Paciente</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Motivo</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Estado</th>
+                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cita in resultados_paciente %}
+                            <tr>
+                                <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ cita.hora|time:"H:i" }}</td>
+                                <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
+                                <td>
+                                    <div>{{ cita.motivo }}</div>
+                                    <small class="text-muted">
+                                        {% for procedimiento in cita.procedimientos.all %}
+                                            {{ procedimiento.nombre }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </small>
+                                </td>
+                                <td>{{ cita.get_estado_display }}</td>
+                                <td>
+                                    <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ cita.fecha|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                    <a href="{% url 'agenda_day' day=cita.fecha.day month=cita.fecha.month year=cita.fecha.year %}#cita-{{ cita.id }}" class="btn btn-sm btn-outline-primary">Agenda del día</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6">No hay resultados</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            {% endif %}
+
+                {% if q %}
+                <div class="agenda-pro-sticky-block" id="agendaProStickyBlock">
+                {% endif %}
 
                     {% if q %}
                     <div class="agenda-pro-filter-note">
@@ -361,53 +416,7 @@
 
             </section>
 
-            {% if q %}
-            <section class="agenda-pro-results">
-                <div class="agenda-pro-results-header">
-                    Todas las citas de "{{ q }}"
-                </div>
 
-                <div class="table-responsive">
-                    <table class="table agenda-pro-results-table">
-                        <thead>
-                            <tr>
-                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Fecha</th>
-                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Hora</th>
-                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Paciente</th>
-                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Motivo</th>
-                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;">Estado</th>
-                                <th style="color:#111827 !important; background:#f3f4f6 !important; font-weight:700;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cita in resultados_paciente %}
-                            <tr>
-                                <td>{{ cita.fecha|date:"d/m/Y" }}</td>
-                                <td>{{ cita.hora|time:"H:i" }}</td>
-                                <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
-                                <td>
-                                    <div>{{ cita.motivo }}</div>
-                                    <small class="text-muted">
-                                        {% for procedimiento in cita.procedimientos.all %}
-                                            {{ procedimiento.nombre }}{% if not forloop.last %}, {% endif %}
-                                        {% endfor %}
-                                    </small>
-                                </td>
-                                <td>{{ cita.get_estado_display }}</td>
-                                <td>
-                                    <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ cita.fecha|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary">Abrir</a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6">No hay resultados</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            {% endif %}
         </main>
     </div>
 </div>

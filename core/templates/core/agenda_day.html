@@ -142,7 +142,7 @@
                                 {% for cita in h.citas_exactas %}
                                     <div class="draggable-cita {% if not forloop.last or h.citas_extra %}mb-3 pb-3 border-bottom{% endif %}"
                                          draggable="true"
-                                         data-id="{{ cita.id }}">
+                                         id="cita-{{ cita.id }}" style="scroll-margin-top: 180px;" data-id="{{ cita.id }}">
 
                                         <div style="font-size: 13px; color:#146B6C; font-weight:700;">
                                             {{ cita.hora_real|time:"H:i" }}
@@ -465,7 +465,7 @@
                                 {% for cita in h.citas_extra %}
                                     <div class="draggable-cita {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}"
                                          draggable="true"
-                                         data-id="{{ cita.id }}">
+                                         id="cita-{{ cita.id }}" style="scroll-margin-top: 180px;" data-id="{{ cita.id }}">
 
                                         <div style="font-size: 13px; color:#146B6C; font-weight:700;">
                                             {{ cita.hora_real|time:"H:i" }}
