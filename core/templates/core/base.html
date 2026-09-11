@@ -351,6 +351,10 @@
 
     <!-- CONTENIDO -->
     <main class="container mt-4">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}warning{% else %}info{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+
         {% block content %}
         {% endblock %}
     </main>
