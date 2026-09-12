@@ -642,8 +642,8 @@
 
             <a href="{% url 'rayos_x_list' paciente_id=paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">
                 <span class="modulo-icono">🩻</span>
-                <span class="modulo-titulo">Rayos X</span>
-                <span class="modulo-subtitulo">Imágenes radiográficas del paciente.</span>
+                <span class="modulo-titulo">Rayos X / Fotografías</span>
+                <span class="modulo-subtitulo">Radiografías y fotografías del paciente.</span>
             </a>
 
             <a href="{% url 'odontograma_profesional' patient_id=paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="modulo-link">

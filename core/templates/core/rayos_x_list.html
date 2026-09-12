@@ -1,95 +1,136 @@
 {% extends "core/base.html" %}
+{% block title %}Rayos X / Fotografías | Sonrisar Pro{% endblock %}
 {% block content %}
-
-<h1>Rayos X – {{ paciente.nombre }} {{ paciente.apellido }}</h1>
-
-<a href="{% url 'rayos_x_new' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
-   class="btn-sonrisar btn-primario">
-   ➕ Agregar Rayos X
-</a>
-
-<p><strong>Total de placas:</strong> {{ rayos|length }}</p>
-
+<style>
+.rx-gallery { width:100%; max-width:1200px; margin:24px auto; }
+.rx-gallery h1 { font-size:clamp(1.4rem,3vw,2rem); overflow-wrap:anywhere; }
+.rx-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr)); gap:18px; margin:20px 0; }
+.rx-card { min-width:0; border:1px solid #d9e7e7; border-radius:12px; padding:12px; background:#fff; }
+.rx-thumbnail { display:block; width:100%; padding:0; border:0; border-radius:8px; background:#eef4f4; cursor:zoom-in; overflow:hidden; }
+.rx-thumbnail img { display:block; width:100%; height:160px; max-width:100%; object-fit:contain; }
+.rx-thumbnail:focus-visible { outline:3px solid #168a85; outline-offset:3px; }
+.rx-date { margin-top:10px; font-weight:600; }
+.rx-description { margin:8px 0 12px; overflow-wrap:anywhere; }
+.rx-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.rx-viewer { box-sizing:border-box; width:98vw; max-width:none; height:98vh; height:98dvh; max-height:none; margin:auto; padding:10px; border:0; border-radius:10px; background:#172126; color:white; overflow:hidden; }
+.rx-viewer[open] { display:flex; flex-direction:column; }
+.rx-viewer > p { flex-shrink:0; margin:0 0 6px; font-size:.85rem; }
+.rx-viewer::backdrop { background:rgba(0,0,0,.8); }
+.rx-viewer-bar { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-shrink:0; }
+.rx-viewer-bar { flex-wrap:wrap; }
+.rx-zoom-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.rx-viewport { flex:1; min-height:0; overflow:hidden; position:relative; touch-action:none; cursor:grab; }
+.rx-viewport:active { cursor:grabbing; }
+.rx-viewer-image { display:block; width:100%; height:100%; object-fit:contain; transform-origin:center; user-select:none; pointer-events:none; }
+</style>
+<section class="rx-gallery">
+<h1>Rayos X / Fotografías – {{ paciente.nombre }} {{ paciente.apellido }}</h1>
+<a href="{% url 'rayos_x_new' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn-sonrisar btn-primario">➕ Agregar imagen</a>
+<p><strong>Total de imágenes:</strong> {{ rayos|length }}</p>
+<p>Hacé clic en una miniatura para verla en grande.</p>
 {% if rayos %}
-<div class="rayos-grid">
-    {% for rx in rayos %}
-        <div class="rayo-card">
-            <img src="{{ rx.imagen.url }}"
-                 alt="Rayos X"
-                 onclick="abrirModal('{{ rx.imagen.url }}')">
-
-            <div class="rayo-fecha">{{ rx.fecha }}</div>
-            <div class="rayo-desc">
-                {{ rx.descripcion|default:"Sin descripción" }}
-            </div>
-
-            <a href="{% url 'rayos_x_detail' rx.id %}"
-               class="btn-sonrisar btn-secundario btn-sm">
-               👁 Ver
-            </a>
-
-            <a href="{% url 'rayos_x_delete' rx.id %}"
-               class="btn-sonrisar btn-peligro btn-sm">
-               🗑 Eliminar
-            </a>
-        </div>
-    {% endfor %}
+<div class="rx-grid">
+{% for rx in rayos %}
+<article class="rx-card">
+    <button type="button" class="rx-thumbnail" data-src="{{ rx.imagen.url }}" aria-label="Ampliar imagen del {{ rx.fecha }}">
+        <img src="{{ rx.imagen.url }}" alt="{{ rx.descripcion|default:'Rayos X / Fotografía' }}" loading="lazy" decoding="async">
+    </button>
+    <div class="rx-date">{{ rx.fecha }}</div>
+    <p class="rx-description">{{ rx.descripcion|default:"Sin descripción" }}</p>
+    <div class="rx-actions">
+        <button type="button" class="btn-sonrisar btn-secundario btn-sm rx-open">👁 Ver</button>
+        <a href="{% url 'rayos_x_delete' rx.id %}" class="btn-sonrisar btn-peligro btn-sm">🗑 Eliminar</a>
+    </div>
+</article>
+{% endfor %}
 </div>
 {% else %}
-<p>No hay placas cargadas.</p>
+<p>No hay imágenes cargadas.</p>
 {% endif %}
-
-<a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'patient_detail' paciente.id %}{% endif %}"
-   class="btn-sonrisar btn-volver">
-   ⬅ Volver
-</a>
-
-<!-- MODAL -->
-<div id="modalRayos" class="modal-rayos" onclick="cerrarModal()">
-    <img id="modalImagen" src="">
-</div>
-
+<a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'patient_detail' paciente.id %}{% endif %}" class="btn-sonrisar btn-volver">⬅ Volver</a>
+</section>
+<dialog id="rxViewer" class="rx-viewer" aria-label="Imagen ampliada">
+    <div class="rx-viewer-bar">
+        <div class="rx-zoom-controls">
+            <button id="rxZoomOut" type="button" class="btn btn-light" aria-label="Disminuir imagen">−</button>
+            <output id="rxZoomLevel" aria-label="Nivel de zoom">100%</output>
+            <button id="rxZoomIn" type="button" class="btn btn-light" aria-label="Aumentar imagen">+</button>
+            <button id="rxReset" type="button" class="btn btn-light">Ajustar</button>
+        </div>
+        <button id="rxClose" type="button" class="btn btn-light" autofocus>Cerrar ✕</button>
+    </div>
+    <p>Rueda para acercar o alejar · Arrastrá para mover la imagen</p>
+    <div id="rxViewport" class="rx-viewport"><img id="rxLargeImage" class="rx-viewer-image" alt="" draggable="false"></div>
+</dialog>
 <script>
-let escala = 1;
-
-function abrirModal(src) {
-    const modal = document.getElementById("modalRayos");
-    const img = document.getElementById("modalImagen");
-
-    img.src = src;
-    escala = 1;
-    img.style.transform = "scale(1)";
-
-    modal.classList.add("active");
-    document.body.style.overflow = "hidden";
-}
-
-function cerrarModal() {
-    const modal = document.getElementById("modalRayos");
-    modal.classList.remove("active");
-    document.body.style.overflow = "auto";
-}
-
-document.getElementById("modalRayos").addEventListener("wheel", function (e) {
-    e.preventDefault();
-
-    if (e.deltaY < 0) {
-        escala += 0.1;
-    } else {
-        escala -= 0.1;
+(() => {
+    const viewer = document.getElementById('rxViewer');
+    const largeImage = document.getElementById('rxLargeImage');
+    const viewport = document.getElementById('rxViewport');
+    const level = document.getElementById('rxZoomLevel');
+    let previousOverflow = '', scale = 1, x = 0, y = 0, drag = null;
+    function paint() {
+        largeImage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        level.textContent = `${Math.round(scale * 100)}%`;
     }
-
-    escala = Math.min(Math.max(escala, 1), 5);
-    document.getElementById("modalImagen").style.transform = `scale(${escala})`;
-});
-
-document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-        cerrarModal();
+    function reset() { scale = 1; x = 0; y = 0; drag = null; paint(); }
+    function zoom(factor, px = 0, py = 0) {
+        const next = Math.max(0.5, Math.min(8, scale * factor));
+        const ratio = next / scale;
+        x = px - (px - x) * ratio;
+        y = py - (py - y) * ratio;
+        scale = next;
+        paint();
     }
-});
+    function open(button) {
+        largeImage.src = button.dataset.src;
+        largeImage.alt = button.querySelector('img').alt;
+        reset();
+        previousOverflow = document.body.style.overflow;
+        viewer.showModal();
+        document.body.style.overflow = 'hidden';
+    }
+    document.querySelectorAll('.rx-thumbnail').forEach(button => {
+        button.addEventListener('click', () => open(button));
+    });
+    document.querySelectorAll('.rx-open').forEach(button => {
+        button.addEventListener('click', () => open(button.closest('.rx-card').querySelector('.rx-thumbnail')));
+    });
+    viewport.addEventListener('wheel', event => {
+        event.preventDefault();
+        const box = viewport.getBoundingClientRect();
+        zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15,
+            event.clientX - box.left - box.width / 2,
+            event.clientY - box.top - box.height / 2);
+    }, {passive: false});
+    viewport.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        drag = {id: event.pointerId, px: event.clientX, py: event.clientY, x, y};
+        viewport.setPointerCapture(event.pointerId);
+    });
+    viewport.addEventListener('pointermove', event => {
+        if (!drag || drag.id !== event.pointerId) return;
+        x = drag.x + event.clientX - drag.px;
+        y = drag.y + event.clientY - drag.py;
+        paint();
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(name => {
+        viewport.addEventListener(name, () => { drag = null; });
+    });
+    document.getElementById('rxZoomIn').addEventListener('click', () => zoom(1.25));
+    document.getElementById('rxZoomOut').addEventListener('click', () => zoom(0.8));
+    document.getElementById('rxReset').addEventListener('click', reset);
+    document.getElementById('rxClose').addEventListener('click', () => viewer.close());
+    viewer.addEventListener('click', event => {
+        if (event.target !== viewer) return;
+        const box = viewer.getBoundingClientRect();
+        if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) viewer.close();
+    });
+    viewer.addEventListener('close', () => {
+        document.body.style.overflow = previousOverflow;
+        largeImage.removeAttribute('src');
+        reset();
+    });
+})();
 </script>
-
-
-
 {% endblock %}
