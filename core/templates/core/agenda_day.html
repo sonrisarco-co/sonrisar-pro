@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load core_extras %}
 
 {% block title %}Agenda del día | Sonrisar Pro{% endblock %}
 
@@ -185,96 +186,96 @@
 
                                                 {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
                                                     <span class="badge" style="background:#198754;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "provisorio" in motivo %}
                                                     <span class="badge" style="background:#e67e22;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "contencion" in motivo %}
                                                     <span class="badge" style="background:#287c8e;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "placa-nmr" in motivo %}
                                                     <span class="badge" style="background:#8e6bbe;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "control" in motivo %}
                                                     <span class="badge" style="background:#607d8b;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "corona" in motivo %}
                                                     <span class="badge" style="background:#a66a00;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "ajuste" in motivo and "limpieza" in motivo %}
                                                     <span class="badge" style="background:#00BFA5;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "retiro" in motivo and "bracket" in motivo %}
                                                     <span class="badge" style="background:#795548;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
                                                     <span class="badge" style="background:#26ABA5;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "limpieza" in motivo %}
                                                     <span class="badge" style="background:#0dcaf0;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "resina" in motivo %}
                                                     <span class="badge" style="background:#ffc107; color:#000;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "nueva" in motivo %}
                                                     <span class="badge" style="background:#0d6efd;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "endo" in motivo %}
                                                     <span class="badge" style="background:#6f42c1;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "extra" in motivo %}
                                                     <span class="badge" style="background:#dc3545;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "protes" in motivo %}
                                                     <span class="badge" style="background:#f11985;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "urg" in motivo %}
                                                     <span class="badge" style="background:#fd7e14;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
                                                 
                                                 {% elif "despeg" in motivo %}
                                                     <span class="badge" style="background:#ff6b6b;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "blanqueamiento" in motivo %}
                                                     <span class="badge" style="background:#c8b6e2;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% else %}
-                                                    <span class="badge bg-secondary">{{ cita.motivo }}</span>
+                                                    <span class="badge bg-secondary">{{ cita.motivo|motivo_actual }}</span>
                                                 {% endif %}
 
                                             {% endwith %}
@@ -353,7 +354,7 @@
                                                     {% if cita.tipo_pago == "sena" %}
                                                         {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-sena badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Seña $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-sena">Seña $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% else %}
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagado $ {{ cita.total_pagado }}</span>{% endif %}
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pago $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% endif %}
 
                                                     <span class="badge badge-debe">
@@ -376,7 +377,7 @@
 
                                                     {% else %}
 
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado 🧾</a>{% else %}<span class="badge badge-pagado">Pagado</span>{% endif %}
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago 🧾</a>{% else %}<span class="badge badge-pagado">Pago</span>{% endif %}
 
                                                     {% endif %}
 
@@ -441,7 +442,7 @@
                                                     <small style="color:#495057; font-weight:600;">Procedimientos:</small>
                                                     <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
                                                         {% for procedimiento in cita.procedimientos %}
-                                                            <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
+                                                            <span class="badge bg-light text-dark border">{{ procedimiento|motivo_actual }}</span>
                                                         {% endfor %}
                                                     </div>
                                                 </div>
@@ -508,86 +509,86 @@
 
                                                 {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
                                                     <span class="badge" style="background:#198754;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "provisorio" in motivo %}
                                                     <span class="badge" style="background:#e67e22;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "contencion" in motivo %}
                                                     <span class="badge" style="background:#287c8e;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "placa-nmr" in motivo %}
                                                     <span class="badge" style="background:#8e6bbe;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "control" in motivo %}
                                                     <span class="badge" style="background:#607d8b;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "corona" in motivo %}
                                                     <span class="badge" style="background:#a66a00;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "ajuste" in motivo or "ortodoncia" in motivo %}
                                                     <span class="badge" style="background:#26ABA5;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "limpieza" in motivo %}
                                                     <span class="badge" style="background:#0dcaf0;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "resina" in motivo %}
                                                     <span class="badge" style="background:#ffc107; color:#000;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "nueva" in motivo %}
                                                     <span class="badge" style="background:#0d6efd;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "endo" in motivo %}
                                                     <span class="badge" style="background:#6f42c1;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "extra" in motivo %}
                                                     <span class="badge" style="background:#dc3545;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "protes" in motivo %}
                                                     <span class="badge" style="background:#f11985;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "urg" in motivo %}
                                                     <span class="badge" style="background:#fd7e14;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "despeg" in motivo %}
                                                     <span class="badge" style="background:#ff6b6b;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% elif "blanqueamiento" in motivo %}
                                                     <span class="badge" style="background:#c8b6e2;">
-                                                        {{ cita.motivo }}
+                                                        {{ cita.motivo|motivo_actual }}
                                                     </span>
 
                                                 {% else %}
-                                                    <span class="badge bg-secondary">{{ cita.motivo }}</span>
+                                                    <span class="badge bg-secondary">{{ cita.motivo|motivo_actual }}</span>
                                                 {% endif %}
 
                                             {% endwith %}
@@ -666,7 +667,7 @@
                                                     {% if cita.tipo_pago == "sena" %}
                                                         {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-sena badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Seña $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-sena">Seña $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% else %}
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagado $ {{ cita.total_pagado }}</span>{% endif %}
+                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pago $ {{ cita.total_pagado }}</span>{% endif %}
                                                     {% endif %}
 
                                                     <span class="badge badge-debe">
@@ -675,7 +676,7 @@
 
                                                 {% else %}
 
-                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagado 🧾</a>{% else %}<span class="badge badge-pagado">Pagado</span>{% endif %}
+                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago 🧾</a>{% else %}<span class="badge badge-pagado">Pago</span>{% endif %}
 
                                                 {% endif %}
 
@@ -738,7 +739,7 @@
                                                     <small style="color:#495057; font-weight:600;">Procedimientos:</small>
                                                     <div class="mt-1 d-flex flex-wrap" style="gap:6px;">
                                                         {% for procedimiento in cita.procedimientos %}
-                                                            <span class="badge bg-light text-dark border">{{ procedimiento }}</span>
+                                                            <span class="badge bg-light text-dark border">{{ procedimiento|motivo_actual }}</span>
                                                         {% endfor %}
                                                     </div>
                                                 </div>

@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load core_extras %}
 {% load get_item %}
 {% block title %}Calendario Sonrisar Pro{% endblock %}
 
@@ -173,10 +174,10 @@
                                 <td>{{ cita.hora|time:"H:i" }}</td>
                                 <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
                                 <td>
-                                    <div>{{ cita.motivo }}</div>
+                                    <div>{{ cita.motivo|motivo_actual }}</div>
                                     <small class="text-muted">
                                         {% for procedimiento in cita.procedimientos.all %}
-                                            {{ procedimiento.nombre }}{% if not forloop.last %}, {% endif %}
+                                            {{ procedimiento.nombre|motivo_actual }}{% if not forloop.last %}, {% endif %}
                                         {% endfor %}
                                     </small>
                                 </td>
@@ -184,6 +185,7 @@
                                 <td>
                                     <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ cita.fecha|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary">Editar</a>
                                     <a href="{% url 'agenda_day' day=cita.fecha.day month=cita.fecha.month year=cita.fecha.year %}#cita-{{ cita.id }}" class="btn btn-sm btn-outline-primary">Agenda del día</a>
+                                    <a href="{% url 'appointment_delete' cita.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-danger">Eliminar</a>
                                 </td>
                             </tr>
                             {% empty %}
@@ -265,7 +267,7 @@
                                         {% if celda.ocupado %}
                                             <div class="cita-stack">
                                                 {% for cita in celda.citas %}
-                                                    <div class="cita-card-wrapper">
+                                                    <div class="cita-card-wrapper" id="cita-{{ cita.id }}">
                                                         <a href="{% url 'appointment_edit' cita.id %}?next={% url 'agenda_pro' %}?fecha={{ celda.fecha|date:'Y-m-d' }}&amp;volver_hora={{ celda.hora|time:'H:i'|urlencode }}"
                                                            class="cita-edit-btn"
                                                            title="Editar cita">✏
@@ -323,11 +325,11 @@
                                                                 {% if cita.procedimientos %}
                                                                     <small>
                                                                         {% for procedimiento in cita.procedimientos %}
-                                                                            {{ procedimiento }}{% if not forloop.last %}, {% endif %}
+                                                                            {{ procedimiento|motivo_actual }}{% if not forloop.last %}, {% endif %}
                                                                         {% endfor %}
                                                                     </small>
                                                                 {% elif cita.motivo %}
-                                                                    <small>{{ cita.motivo }}</small>
+                                                                    <small>{{ cita.motivo|motivo_actual }}</small>
                                                                 {% endif %}
 
                                                                 <small>{{ cita.hora|time:"H:i" }}</small>
@@ -1824,6 +1826,30 @@ document.addEventListener("DOMContentLoaded", function () {
     updateStickyMetrics();
     updateSidebarFixed();
     syncHorizontalScroll();
+
+    function focusSavedAppointment() {
+        if (!/^#(?:cita-\d+|hora-\d{4})$/.test(window.location.hash)) return;
+        const target = document.getElementById(window.location.hash.slice(1));
+        if (!target) return;
+        updateStickyMetrics();
+        const offset = Math.max(0, getTopOffset()) + (stickyBlock ? stickyBlock.offsetHeight : 0) + 16;
+        window.scrollTo({top: Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset), behavior: "instant"});
+        const scroller = document.querySelector(".agenda-pro-scroll-x");
+        if (scroller && target.id.startsWith("cita-")) {
+            const cell = target.closest("td");
+            const bounds = scroller.getBoundingClientRect();
+            const rect = cell.getBoundingClientRect();
+            scroller.scrollLeft += rect.left - bounds.left - 80;
+        }
+    }
+
+    // Wait for images and fonts so the final layout determines the position.
+    window.addEventListener("load", function () {
+        const ready = document.fonts ? document.fonts.ready : Promise.resolve();
+        ready.then(() => requestAnimationFrame(focusSavedAppointment));
+    }, {once: true});
+    window.addEventListener("hashchange", focusSavedAppointment);
+
 
     window.addEventListener("resize", function () {
         updateStickyMetrics();

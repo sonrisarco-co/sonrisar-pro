@@ -73,7 +73,7 @@ class AppointmentForm(forms.ModelForm):
     )
 
     MOTIVOS_NOMBRES = [
-        "Consulta / diagnóstico",
+        "Valoración",
         "Limpieza",
         "Resina",
         "Ajuste (ortodoncia)",

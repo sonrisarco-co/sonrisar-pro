@@ -64,7 +64,7 @@
                     <td>
                         <div class="d-flex flex-nowrap gap-2 justify-content-center">
 
-                            <a href="{% url 'patient_detail' p.id %}"
+                            <a href="{% url 'patient_detail' p.id %}?next={{ request.get_full_path|urlencode }}"
                                class="btn btn-sm btn-outline-edit">Ver</a>
 
                             <a href="{% url 'patient_edit' p.id %}"
@@ -74,7 +74,7 @@
                                class="btn btn-sm btn-outline-delete"
                                onclick="return confirm('¿Eliminar este paciente?');">Eliminar</a>
 
-                            <a href="{% url 'budget_new' p.id %}"
+                            <a href="{% url 'budget_new' p.id %}?next={{ request.get_full_path|urlencode }}"
                                class="btn btn-sm btn-outline-pdf">Presupuesto</a>
 
                         </div>

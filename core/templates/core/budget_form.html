@@ -7,6 +7,7 @@
 
 {% block content %}
 <div class="container mt-4">
+    <a href="{% if patients_return_url %}{{ patients_return_url }}{% else %}{% url 'patient_list' %}{% endif %}" class="btn btn-outline-primary btn-sm mb-3">← Volver a Pacientes</a>
 
     <h2 class="titulo-seccion mb-4">
         {% if modo == "editar" %}
@@ -161,7 +162,9 @@
             <button type="submit" class="btn btn-primary">
                 💾 Guardar
             </button>
-            {% if paciente %}
+            {% if patients_return_url %}
+                <a href="{{ patients_return_url }}" class="btn btn-secondary">Cancelar</a>
+            {% elif paciente %}
                 <a href="{% url 'patient_detail' paciente.id %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="btn btn-secondary">
                     Cancelar
                 </a>

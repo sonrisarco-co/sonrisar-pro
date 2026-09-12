@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.contrib import messages
 
 from django.conf import settings
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode, quote, urlsplit, parse_qsl
 
 from django.http import JsonResponse
 from django.urls import reverse
@@ -329,6 +329,17 @@ def _obtener_resumen_financiero_ficha(paciente):
     }
 
 
+def _patients_return_url(value):
+    """Accept only the local patient list, retaining search and pagination."""
+    try:
+        target = urlsplit(value or "")
+    except ValueError:
+        return ""
+    if target.scheme or target.netloc or target.path != reverse("patient_list"):
+        return ""
+    return target.path + ("?" + target.query if target.query else "")
+
+
 def patient_detail(request, id):
     paciente = get_object_or_404(Patient, id=id)
 
@@ -374,6 +385,7 @@ def patient_detail(request, id):
             "ultima_cita": ultima_cita,
             "proxima_cita": proxima_cita,
             "resumen_financiero": resumen_financiero,
+            "patients_return_url": _patients_return_url(request.GET.get("next")) or reverse("patient_list"),
         },
     )
 
@@ -536,6 +548,19 @@ def citas_list(request):
 from django.urls import reverse
 
 
+def _calendar_saved_appointment_url(next_url, cita):
+    """Return to the saved appointment, including when its date/time changed."""
+    target = urlsplit(next_url)
+    if target.scheme or target.netloc or target.path != reverse("agenda_pro"):
+        return next_url
+    params = dict(parse_qsl(target.query, keep_blank_values=True))
+    params["fecha"] = cita.fecha.isoformat()
+    params["mini_fecha"] = cita.fecha.isoformat()
+    # A previous patient search may hide the saved appointment.
+    params.pop("q", None)
+    return f"{target.path}?{urlencode(params)}#cita-{cita.pk}"
+
+
 def appointment_new(request):
     fecha = request.GET.get("fecha")
     hora = request.GET.get("hora")
@@ -619,7 +644,7 @@ def appointment_new(request):
             nueva_cita.save()
             form.save_m2m()
 
-            return redirect(next_url)
+            return redirect(_calendar_saved_appointment_url(next_url, nueva_cita))
 
     else:
         form = AppointmentForm(initial=initial_data)
@@ -657,7 +682,8 @@ def appointment_edit(request, id):
         form = AppointmentForm(request.POST, instance=cita)
 
         if form.is_valid():
-            form.save()
+            cita = form.save()
+            next_url = _calendar_saved_appointment_url(next_url, cita)
 
             if es_ajax:
                 return JsonResponse({
@@ -1514,6 +1540,8 @@ def budget_new(request, paciente_id):
     # 🔁 Conserva de dónde venimos: Agenda del día / Calendario
     next_url = request.GET.get("next") or request.POST.get("next") or ""
 
+    patients_return_url = _patients_return_url(next_url)
+
     if request.method == "POST":
         diagnostico = request.POST.get("diagnostico")
         conceptos = request.POST.getlist("concepto[]")
@@ -1555,6 +1583,9 @@ def budget_new(request, paciente_id):
         messages.success(request, "Presupuesto creado correctamente.")
 
         # 🔁 Volver a la ficha conservando Agenda/Calendario
+        if patients_return_url:
+            return redirect(patients_return_url)
+
         url_ficha = reverse("patient_detail", args=[paciente.id])
 
         if next_url:
@@ -1574,6 +1605,7 @@ def budget_new(request, paciente_id):
             "form": form,
             "paciente": paciente,
             "next": next_url,
+            "patients_return_url": patients_return_url,
         }
     )
 
@@ -4820,7 +4852,7 @@ def color_cita_por_motivo(motivo):
 
     m = motivo.lower()
 
-    if "consulta" in m or "diagnóstico" in m or "diagnostico" in m:
+    if "consulta" in m or "diagnóstico" in m or "diagnostico" in m or "valoración" in m or "valoracion" in m:
         return "#6b7280"  # gris
 
     if "limpieza" in m:

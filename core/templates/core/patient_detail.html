@@ -476,11 +476,12 @@
 
 <div class="ficha-inteligente">
 
-    {% if request.GET.next %}
-        <div class="ficha-volver">
+    <div class="ficha-volver d-flex flex-wrap gap-2">
+        <a href="{{ patients_return_url }}" class="btn btn-outline-primary btn-sm">← Volver a Pacientes</a>
+        {% if request.GET.next and request.GET.next != patients_return_url %}
             <a href="{{ request.GET.next }}" class="btn btn-light btn-sm">← Volver</a>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 
     <section class="ficha-hero">
         <div class="ficha-identidad">

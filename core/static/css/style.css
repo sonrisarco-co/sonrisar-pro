@@ -108,6 +108,7 @@ textarea {
    ============================= */
 
 /* Consulta / diagnóstico – gris */
+.motivo-valoracion,
 .motivo-consulta-diagnostico {
     background-color: #6E6E6E !important;
 }
