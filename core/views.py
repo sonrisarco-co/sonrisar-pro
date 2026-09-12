@@ -3627,10 +3627,6 @@ def confirmar_pago_desde_cobros(request):
 
     cita.refresh_from_db()
 
-    messages.success(
-        request,
-        f"Pago registrado. Estado: {cita.estado} | Pagado: {cita.pagado}"
-    )
     return redirect(next_url or reverse("agenda_pro"))
 
 
