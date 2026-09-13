@@ -477,9 +477,11 @@
 <div class="ficha-inteligente">
 
     <div class="ficha-volver d-flex flex-wrap gap-2">
-        <a href="{{ patients_return_url }}" class="btn btn-outline-primary btn-sm">← Volver a Pacientes</a>
-        {% if request.GET.next and request.GET.next != patients_return_url %}
-            <a href="{{ request.GET.next }}" class="btn btn-light btn-sm">← Volver</a>
+        {% if detail_return_url and detail_return_url != patients_return_url %}
+            <a href="{{ detail_return_url }}" class="btn btn-outline-primary btn-sm">← {{ detail_return_label }}</a>
+            <a href="{{ patients_return_url }}" class="btn btn-light btn-sm">Ver todos los pacientes</a>
+        {% else %}
+            <a href="{{ patients_return_url }}" class="btn btn-outline-primary btn-sm">← Volver a Pacientes</a>
         {% endif %}
     </div>
 

@@ -341,6 +341,19 @@ def _patients_return_url(value):
 
 
 def patient_detail(request, id):
+    from django.urls import resolve, Resolver404
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    return_url = request.GET.get("next", "")
+    return_label = "Volver"
+    if not url_has_allowed_host_and_scheme(return_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return_url = ""
+    if return_url:
+        try:
+            if resolve(urlsplit(return_url).path).url_name == "agenda_day":
+                return_label = "Volver a la agenda"
+        except (Resolver404, ValueError):
+            pass
     paciente = get_object_or_404(Patient, id=id)
 
     hoy = timezone.localdate()
@@ -386,6 +399,8 @@ def patient_detail(request, id):
             "proxima_cita": proxima_cita,
             "resumen_financiero": resumen_financiero,
             "patients_return_url": _patients_return_url(request.GET.get("next")) or reverse("patient_list"),
+            "detail_return_url": return_url,
+            "detail_return_label": return_label,
         },
     )
 
@@ -3217,6 +3232,31 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "ultimo_pago_id": ultimo_pago_id,
         "recibo_url": recibo_url,
     }
+
+
+def agenda_patient_search(request):
+    """Search the full patient registry, independently of appointments."""
+    query = request.GET.get("q", "").strip()
+    patients = Patient.objects.all().order_by("apellido", "nombre", "pk")
+    if not query:
+        return JsonResponse({"results": [], "count": 0, "has_next": False})
+    for term in query.replace(",", " ").split():
+        patients = patients.filter(
+            Q(nombre__icontains=term) | Q(apellido__icontains=term)
+            | Q(ci__icontains=term) | Q(telefono__icontains=term)
+        )
+    page = Paginator(patients, 20).get_page(request.GET.get("page"))
+    response = JsonResponse({
+        "results": [{
+            "id": p.pk, "name": str(p), "ci": p.ci,
+            "detail_url": reverse("patient_detail", args=[p.pk]),
+        } for p in page],
+        "count": page.paginator.count,
+        "has_next": page.has_next(),
+        "page": page.number,
+    })
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 def agenda_day(request, day, month, year):

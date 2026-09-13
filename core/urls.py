@@ -21,6 +21,7 @@ urlpatterns = [
     # =====================
     # PACIENTES
     # =====================
+    path("agenda/buscar-pacientes/", views.agenda_patient_search, name="agenda_patient_search"),
     path("pacientes/", views.patient_list, name="patient_list"),
     path("pacientes/nuevo/", views.patient_new, name="patient_new"),
     path("pacientes/<int:id>/", views.patient_detail, name="patient_detail"),
