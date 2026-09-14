@@ -149,9 +149,13 @@
 </div>
 
 <div class="volver-box">
+    {% if search_return_url %}
+    <a href="{{ search_return_url }}" class="btn btn-outline-edit btn-sm">← Volver a buscar historias clínicas</a>
+    {% else %}
     <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-edit btn-sm">
         ← Volver a ficha del paciente
     </a>
+    {% endif %}
 </div>
 
 {% else %}
@@ -162,9 +166,13 @@
         Cobrar
     </a>
 
+    {% if search_return_url %}
+    <a href="{{ search_return_url }}" class="btn btn-outline-edit btn-sm">← Volver a buscar historias clínicas</a>
+    {% else %}
     <a href="{% url 'patient_detail' paciente.id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-edit btn-sm">
         ← Volver a ficha del paciente
     </a>
+    {% endif %}
 </div>
 {% endif %}
 

@@ -350,8 +350,11 @@ def patient_detail(request, id):
         return_url = ""
     if return_url:
         try:
-            if resolve(urlsplit(return_url).path).url_name == "agenda_day":
+            origin_view = resolve(urlsplit(return_url).path).url_name
+            if origin_view == "agenda_day":
                 return_label = "Volver a la agenda"
+            elif origin_view == "agenda_pro":
+                return_label = "Volver al calendario"
         except (Resolver404, ValueError):
             pass
     paciente = get_object_or_404(Patient, id=id)
@@ -899,6 +902,13 @@ def appointment_move_time(request, id):
 import json
 
 def clinical_records_list(request, patient_id):
+    search_return_url = ""
+    try:
+        target = urlsplit(request.GET.get("next", ""))
+        if not target.scheme and not target.netloc and target.path == reverse("clinical_record_search"):
+            search_return_url = target.path + ("?" + target.query if target.query else "")
+    except ValueError:
+        pass
     paciente = get_object_or_404(Patient, id=patient_id)
 
     registros = ClinicalRecord.objects.filter(
@@ -913,6 +923,7 @@ def clinical_records_list(request, patient_id):
         {
             "paciente": paciente,
             "registros": registros,
+            "search_return_url": search_return_url,
             "pagos_cobros": pagos_cobros,
             "pagos_error": pagos_error,
         }
@@ -3250,6 +3261,7 @@ def agenda_patient_search(request):
         "results": [{
             "id": p.pk, "name": str(p), "ci": p.ci,
             "detail_url": reverse("patient_detail", args=[p.pk]),
+            "clinical_url": reverse("clinical_records_list", args=[p.pk]),
         } for p in page],
         "count": page.paginator.count,
         "has_next": page.has_next(),

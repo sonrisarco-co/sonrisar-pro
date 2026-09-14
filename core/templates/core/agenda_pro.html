@@ -126,20 +126,26 @@
                         </div>
 
                         <div class="agenda-pro-tools">
-                            <form method="get" class="agenda-pro-search">
-                                <input type="hidden" name="fecha" value="{{ inicio_semana|date:'Y-m-d' }}">
-                                <input type="hidden" name="mini_fecha" value="{{ mini_fecha_base|date:'Y-m-d' }}">
-                                <input
-                                    type="text"
-                                    name="q"
-                                    value="{{ q }}"
-                                    placeholder="Buscar paciente..."
-                                >
-                                <button type="submit" class="btn btn-outline-secondary btn-sm">Buscar</button>
-                                {% if q %}
-                                    <a href="{% url 'agenda_pro' %}?fecha={{ inicio_semana|date:'Y-m-d' }}&mini_fecha={{ mini_fecha_base|date:'Y-m-d' }}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
-                                {% endif %}
-                            </form>
+            <section class="agenda-patient-search" aria-label="Buscar pacientes">
+                <form id="agendaPatientSearch" role="search" class="agenda-patient-search-bar"
+                      data-url="{% url 'agenda_patient_search' %}"
+                      data-appointment-url="{% url 'appointment_new' %}"
+                      data-date="{{ fecha_base|date:'Y-m-d' }}">
+                    <span aria-hidden="true">🔍</span>
+                    <input id="agendaPatientQuery" type="search"
+                           placeholder="Buscar paciente…" aria-label="Buscar por nombre, apellido, cédula o teléfono"
+                           autocomplete="off" aria-controls="agendaPatientDropdown" aria-expanded="false">
+                    <span class="agenda-patient-scope">Todos los pacientes</span>
+                </form>
+                <div id="agendaPatientDropdown" class="agenda-patient-dropdown" hidden>
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <div id="agendaPatientStatus" class="small text-muted" role="status" aria-live="polite"></div>
+                        <button id="agendaPatientClose" type="button" class="btn btn-outline-secondary btn-sm" aria-label="Cerrar búsqueda">✕</button>
+                    </div>
+                    <div id="agendaPatientResults" class="list-group"></div>
+                    <button id="agendaPatientMore" type="button" class="btn btn-outline-primary btn-sm mt-2" hidden>Ver más resultados</button>
+                </div>
+            </section>
 
                             <div class="agenda-pro-btns">
                                 <a href="{% url 'agenda_pro' %}" class="btn btn-outline-primary btn-sm">Hoy</a>
@@ -615,6 +621,18 @@
 {% endfor %}
 
 <style>
+.agenda-patient-search { position: relative; width: min(440px, 100%); z-index: 90; background: #fff; border-radius: 9px; box-shadow: 0 3px 8px #16383812; }
+.agenda-patient-search-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #cddfdf; border-radius: 9px; background: #fff; }
+.agenda-patient-search-bar:focus-within { border-color: #20aaa7; box-shadow: 0 0 0 2px #20aaa720; }
+.agenda-patient-search-bar input { flex: 1; min-width: 0; width: 100%; border: 0; outline: none; background: transparent; font: inherit; padding: 3px 0; }
+.agenda-patient-scope { color: #607777; font-size: 12px; white-space: nowrap; }
+.agenda-patient-dropdown { position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 100; max-height: min(420px, 55vh); overflow-y: auto; padding: 12px; background: #fff; border: 1px solid #cddfdf; border-radius: 9px; box-shadow: 0 8px 24px #16383826; }
+.agenda-patient-dropdown[hidden] { display: none; }
+@media (max-width: 480px) { .agenda-patient-search-bar { gap: 6px; padding: 8px; } .agenda-patient-scope { font-size: 10px; } }
+
+.agenda-pro-tools { overflow: visible; }
+.agenda-patient-dropdown { left: auto; right: 0; width: min(560px, calc(100vw - 40px)); }
+
 :root{
     --sonrisar: #26ABA5;
     --sonrisar-dark: #1f8e8a;
@@ -1860,6 +1878,138 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStickyMetrics();
         updateSidebarFixed();
     }, { passive: true });
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("agendaPatientSearch");
+    const input = document.getElementById("agendaPatientQuery");
+    const results = document.getElementById("agendaPatientResults");
+    const status = document.getElementById("agendaPatientStatus");
+    const more = document.getElementById("agendaPatientMore");
+    const dropdown = document.getElementById("agendaPatientDropdown");
+    const section = form.closest("section");
+    function setOpen(open) {
+        dropdown.hidden = !open;
+        input.setAttribute("aria-expanded", String(open));
+    }
+    function closeSearch() {
+        clearTimeout(timer);
+        ++generation;
+        if (controller) controller.abort();
+        setOpen(false);
+    }
+    let timer, controller, page = 0, generation = 0;
+    async function search(append = false) {
+        const current = ++generation;
+        if (controller) controller.abort();
+        const query = input.value.trim();
+        if (!append) { results.replaceChildren(); page = 0; }
+        more.hidden = true;
+        setOpen(Boolean(query));
+        if (!query) {
+            status.textContent = "Incluye pacientes sin turno en este día.";
+            return;
+        }
+        controller = new AbortController();
+        status.textContent = "Buscando…";
+        try {
+            const url = new URL(form.dataset.url, window.location.origin);
+            url.search = new URLSearchParams({q: query, page: page + 1});
+            const response = await fetch(url, {signal: controller.signal});
+            if (!response.ok) throw new Error("search");
+            const data = await response.json();
+            if (current !== generation) return;
+            data.results.forEach(patient => {
+                const row = document.createElement("div");
+                row.className = "list-group-item d-flex align-items-center justify-content-between flex-wrap gap-2";
+                const label = document.createElement("span");
+                label.textContent = patient.name + (patient.ci ? " · CI: " + patient.ci : "");
+                const actions = document.createElement("div");
+                actions.className = "d-flex gap-2";
+                const detail = document.createElement("a");
+                const detailUrl = new URL(patient.detail_url, window.location.origin);
+                detailUrl.searchParams.set("next", window.location.pathname + window.location.search);
+                detail.href = detailUrl.href;
+                detail.addEventListener("click", () => {
+                    try {
+                        sessionStorage.setItem("calendarPatientReturn", JSON.stringify({
+                            url: window.location.pathname + window.location.search,
+                            query: input.value, pages: page, dropdownScroll: dropdown.scrollTop,
+                            x: window.scrollX, y: window.scrollY
+                        }));
+                    } catch (error) { /* El enlace conserva el día sin almacenamiento. */ }
+                });
+                detail.className = "btn btn-outline-secondary btn-sm";
+                detail.textContent = "Ficha paciente";
+                const appointment = document.createElement("a");
+                const target = new URL(form.dataset.appointmentUrl, window.location.origin);
+                target.search = new URLSearchParams({paciente_id: patient.id, fecha: form.dataset.date, next: window.location.pathname + window.location.search});
+                appointment.href = target.href;
+                appointment.className = "btn btn-primary btn-sm";
+                appointment.textContent = "Agendar turno";
+                actions.append(detail, appointment);
+                row.append(label, actions);
+                results.append(row);
+            });
+            page = data.page;
+            status.textContent = data.count ? `Mostrando ${results.children.length} de ${data.count} pacientes.` : "No se encontraron pacientes.";
+            more.hidden = !data.has_next;
+        } catch (error) {
+            if (error.name === "AbortError" || current !== generation) return;
+            status.textContent = "No se pudo realizar la búsqueda. Presioná Enter para reintentar.";
+            more.hidden = !append;
+        }
+    }
+    input.addEventListener("input", () => {
+        clearTimeout(timer);
+        ++generation;
+        if (controller) controller.abort();
+        results.replaceChildren();
+        more.hidden = true;
+        status.textContent = input.value.trim() ? "Buscando…" : "Incluye pacientes sin turno en este día.";
+        setOpen(Boolean(input.value.trim()));
+        timer = setTimeout(() => search(), 250);
+    });
+    form.addEventListener("submit", event => { event.preventDefault(); clearTimeout(timer); search(); });
+    more.addEventListener("click", () => search(true));
+    input.addEventListener("focus", () => { if (input.value.trim()) search(); });
+    document.getElementById("agendaPatientClose").addEventListener("click", () => {
+        input.focus();
+        closeSearch();
+    });
+    document.addEventListener("pointerdown", event => {
+        if (!section.contains(event.target)) closeSearch();
+    });
+    section.addEventListener("focusout", event => {
+        if (!section.contains(event.relatedTarget)) closeSearch();
+    });
+    section.addEventListener("keydown", event => {
+        if (event.key === "Escape") { input.focus(); closeSearch(); }
+    });
+    results.addEventListener("click", event => {
+        if (event.target.closest("a")) closeSearch();
+    });
+    async function restorePatientSearch() {
+        let saved;
+        try {
+            saved = JSON.parse(sessionStorage.getItem("calendarPatientReturn"));
+            if (!saved || saved.url !== window.location.pathname + window.location.search) return;
+            sessionStorage.removeItem("calendarPatientReturn");
+        } catch (error) { return; }
+        input.value = saved.query || "";
+        await search();
+        while (page > 0 && page < saved.pages && !more.hidden && !dropdown.hidden) {
+            const previousPage = page;
+            await search(true);
+            if (page === previousPage) break;
+        }
+        requestAnimationFrame(() => {
+            dropdown.scrollTop = saved.dropdownScroll || 0;
+            window.scrollTo(saved.x || 0, saved.y || 0);
+        });
+    }
+    restorePatientSearch();
 });
 </script>
 {% endblock %}

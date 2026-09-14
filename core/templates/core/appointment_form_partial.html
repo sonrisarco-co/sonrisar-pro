@@ -23,6 +23,26 @@
                     </button>
                 </div>
 
+<section class="agenda-patient-search mb-3" aria-label="Buscar pacientes">
+                <div id="agendaPatientSearch"  class="agenda-patient-search-bar"
+                      data-url="{% url 'agenda_patient_search' %}"
+                      data-appointment-url="{% url 'appointment_new' %}"
+                      >
+                    <span aria-hidden="true">🔍</span>
+                    <input id="agendaPatientQuery" type="search"
+                           placeholder="Buscar paciente…"  aria-label="Buscar por nombre, apellido, cédula o teléfono"
+                           autocomplete="off" aria-controls="agendaPatientDropdown" aria-expanded="false">
+                    <span class="agenda-patient-scope">Todos los pacientes</span>
+                </div>
+                <div id="agendaPatientDropdown" class="agenda-patient-dropdown" hidden>
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <div id="agendaPatientStatus" class="small text-muted" role="status" aria-live="polite"></div>
+                        <button id="agendaPatientClose" type="button" class="btn btn-outline-secondary btn-sm" aria-label="Cerrar búsqueda">✕</button>
+                    </div>
+                    <div id="agendaPatientResults" class="list-group"></div>
+                    <button id="agendaPatientMore" type="button" class="btn btn-outline-primary btn-sm mt-2" hidden>Ver más resultados</button>
+                </div>
+            </section>
                 <select id="id_paciente" name="paciente" class="form-select">
                     <option value=""></option>
 
@@ -252,23 +272,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalEl = document.getElementById("quickPatientModal");
     const body = document.getElementById("quickPatientBody");
 
-    if (select && window.jQuery && $(select).data("select2") === undefined) {
-        $(select).select2({
-            width: "100%",
-            placeholder: "Buscar paciente...",
-            allowClear: true,
-            language: {
-                noResults: function () {
-                    return `No encontrado.
-                            <button type="button" class="btn btn-link p-0 ms-1" id="noResultsCreateBtn">
-                            ➕ Crear paciente
-                            </button>`;
-                }
-            },
-            escapeMarkup: function (m) { return m; }
-        });
-    }
-
     if (!modalEl || !body || !btnNuevo) return;
 
     const modal = new bootstrap.Modal(modalEl);
@@ -321,6 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         $(select).trigger("change");
                     } else {
                         select.value = postData.id;
+                        select.dispatchEvent(new Event("change"));
                     }
                 }
 
@@ -340,5 +344,85 @@ document.addEventListener("DOMContentLoaded", function () {
             abrirModalNuevoPaciente();
         }
     });
+});
+</script>
+
+<style>
+.agenda-patient-search { position: relative; width: 100%; z-index: 90; background: #fff; border-radius: 9px; box-shadow: 0 3px 8px #16383812; }
+.agenda-patient-search-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #cddfdf; border-radius: 9px; background: #fff; }
+.agenda-patient-search-bar:focus-within { border-color: #20aaa7; box-shadow: 0 0 0 2px #20aaa720; }
+.agenda-patient-search-bar input { flex: 1; min-width: 0; width: 100%; border: 0; outline: none; background: transparent; font: inherit; padding: 3px 0; }
+.agenda-patient-scope { color: #607777; font-size: 12px; white-space: nowrap; }
+.agenda-patient-dropdown { position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 100; max-height: min(420px, 55vh); overflow-y: auto; padding: 12px; background: #fff; border: 1px solid #cddfdf; border-radius: 9px; box-shadow: 0 8px 24px #16383826; }
+.agenda-patient-dropdown[hidden] { display: none; }
+@media (max-width: 480px) { .agenda-patient-search-bar { gap: 6px; padding: 8px; } .agenda-patient-scope { font-size: 10px; } }
+
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("id_paciente");
+    const input = document.getElementById("agendaPatientQuery");
+    const section = input.closest("section");
+    const panel = document.getElementById("agendaPatientDropdown");
+    const results = document.getElementById("agendaPatientResults");
+    const status = document.getElementById("agendaPatientStatus");
+    const more = document.getElementById("agendaPatientMore");
+    select.hidden = true;
+    document.querySelector('label[for="id_paciente"]').htmlFor = input.id;
+    let timer, controller, generation = 0, page = 0;
+    function close() { clearTimeout(timer); ++generation; if (controller) controller.abort(); panel.hidden = true; input.setAttribute("aria-expanded", "false"); }
+    function sync() { input.value = select.value ? select.selectedOptions[0].textContent.trim() : ""; close(); }
+    select.addEventListener("change", sync);
+    sync();
+    async function search(append = false) {
+        const current = ++generation;
+        if (controller) controller.abort();
+        if (!append) { results.replaceChildren(); page = 0; }
+        more.hidden = true;
+        if (!input.value.trim()) { close(); return; }
+        panel.hidden = false; input.setAttribute("aria-expanded", "true");
+        status.textContent = "Buscando…";
+        controller = new AbortController();
+        try {
+            const url = new URL(document.getElementById("agendaPatientSearch").dataset.url, location.origin);
+            url.search = new URLSearchParams({q: input.value.trim(), page: page + 1});
+            const response = await fetch(url, {signal: controller.signal});
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            if (current !== generation) return;
+            data.results.forEach(patient => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "list-group-item list-group-item-action";
+                button.textContent = patient.name + (patient.ci ? " · CI: " + patient.ci : "");
+                button.addEventListener("click", () => {
+                    let option = Array.from(select.options).find(o => o.value === String(patient.id));
+                    if (!option) { option = new Option(patient.name, patient.id); select.add(option); }
+                    select.value = String(patient.id);
+                    select.dispatchEvent(new Event("change"));
+                });
+                results.append(button);
+            });
+            page = data.page;
+            status.textContent = data.count ? `Mostrando ${results.children.length} de ${data.count} pacientes. Seleccioná uno.` : "No se encontraron pacientes. Podés usar Nuevo paciente.";
+            more.hidden = !data.has_next;
+        } catch (error) {
+            if (error.name === "AbortError" || current !== generation) return;
+            status.textContent = "No se pudo buscar. Presioná Enter para reintentar.";
+            more.hidden = !append;
+        }
+    }
+    input.addEventListener("input", () => {
+        close(); select.value = ""; results.replaceChildren(); more.hidden = true;
+        timer = setTimeout(() => search(), 250);
+    });
+    input.addEventListener("keydown", event => {
+        if (event.key === "Enter") { event.preventDefault(); clearTimeout(timer); search(); }
+        if (event.key === "Escape") close();
+    });
+    more.addEventListener("click", () => search(true));
+    document.getElementById("agendaPatientClose").addEventListener("click", close);
+    document.addEventListener("pointerdown", event => { if (!section.contains(event.target)) close(); });
+    section.addEventListener("focusout", event => { if (!section.contains(event.relatedTarget)) close(); });
 });
 </script>
