@@ -570,6 +570,15 @@ class Prosthesis(models.Model):
         blank=True
     )
 
+    # Cada fila representa una parte del mismo trabajo clínico. Se conserva
+    # ``tipo_protesis`` y ``trabajo`` como cabecera para que Cobros y las
+    # órdenes ya existentes sigan usando exactamente el mismo identificador.
+    trabajos_unificados = models.JSONField(
+        "Trabajos incluidos",
+        default=list,
+        blank=True,
+    )
+
     color = models.CharField(
         "Color",
         max_length=100,
@@ -656,6 +665,54 @@ class Prosthesis(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_protesis_display()} - {self.paciente}"
+
+    @property
+    def trabajos_detalle(self):
+        """Devuelve los trabajos del caso, también para registros históricos."""
+        etiquetas_tipo = dict(self.TIPOS_PROTESIS)
+        etiquetas_trabajo = {
+            "protesis_completa": "Prótesis completa",
+            "parcial_cromo": "Prótesis parcial cromo",
+            "parcial_acrilica": "Prótesis parcial acrílica",
+            "protesis_flexible": "Prótesis flexible",
+            "provisorio_placa": "Provisorio a placa",
+            "corona_unitaria": "Corona unitaria",
+            "puente_fijo": "Puente fijo",
+            "jacket": "Jacket",
+            "perno_munon": "Perno muñón",
+            "incrustacion": "Incrustación",
+            "provisorio_fijo": "Provisorio fijo",
+            "contencion": "Contención",
+            "placa_neuromiorrelajante": "Placa neuromiorrelajante",
+            "reparacion": "Reparación",
+            "rebase": "Rebase",
+            "agregado_diente": "Agregado de diente",
+            "agregado_gancho": "Agregado de gancho",
+        }
+        trabajos = self.trabajos_unificados or []
+        if not trabajos:
+            trabajos = [{
+                "tipo": self.tipo_protesis,
+                "trabajo": self.trabajo,
+                "arcada": "",
+            }]
+
+        resultado = []
+        for item in trabajos:
+            tipo = item.get("tipo", "")
+            trabajo = item.get("trabajo", "")
+            arcada = item.get("arcada", "")
+            if not tipo or not trabajo:
+                continue
+            resultado.append({
+                "tipo": tipo,
+                "tipo_label": etiquetas_tipo.get(tipo, tipo),
+                "trabajo": trabajo,
+                "trabajo_label": etiquetas_trabajo.get(trabajo, trabajo),
+                "arcada": arcada,
+                "arcada_label": dict(OrdenLaboratorio.ARCADAS).get(arcada, ""),
+            })
+        return resultado
 
 class OrdenLaboratorio(models.Model):
 
