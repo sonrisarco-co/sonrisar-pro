@@ -2335,7 +2335,7 @@ def _configuracion_inicial_orden(protesis):
     No bloquea campos: el usuario puede modificar o desmarcar lo propuesto.
     """
     tipo = (protesis.tipo_protesis or "").strip()
-    trabajo = (protesis.trabajo or "").strip().lower()
+    trabajos = protesis.trabajos_detalle
 
     initial = {
         "estado": "pendiente",
@@ -2382,16 +2382,29 @@ def _configuracion_inicial_orden(protesis):
         "agregado de gancho": "agregado_gancho",
     }
 
-    campo_trabajo = mapa_trabajos.get(trabajo)
-    if campo_trabajo:
-        initial[campo_trabajo] = True
+    campos_trabajo = []
+    arcadas = set()
+
+    for item in trabajos:
+        trabajo = (item.get("trabajo") or "").strip().lower()
+        campo_trabajo = mapa_trabajos.get(trabajo)
+        if campo_trabajo:
+            initial[campo_trabajo] = True
+            campos_trabajo.append(campo_trabajo)
+
+        arcada = (item.get("arcada") or "").strip()
+        if arcada:
+            arcadas.add(arcada)
+
+    # Si todos los trabajos comparten arcada, se precarga en la orden.
+    if len(arcadas) == 1:
+        initial["arcada"] = arcadas.pop()
 
     # Propuestas habituales, siempre editables.
-    if campo_trabajo == "parcial_cromo":
+    if "parcial_cromo" in campos_trabajo:
         initial["solicita_cromo"] = True
-    elif campo_trabajo == "rebasado":
-        initial["protesis_a_reparar"] = True
-    elif campo_trabajo in {"reparacion", "agregado_diente", "agregado_gancho"}:
+    if any(campo in {"rebasado", "reparacion", "agregado_diente", "agregado_gancho"}
+           for campo in campos_trabajo):
         initial["protesis_a_reparar"] = True
 
     if tipo == "fija":
@@ -2440,8 +2453,11 @@ def orden_laboratorio_nueva(request, protesis_id):
             orden.protesis = protesis
             orden.save()
 
-            protesis.trabajo = orden.resumen_trabajo
-            protesis.save(update_fields=["trabajo"])
+            # En los casos unificados se conservan todos los trabajos cargados.
+            # Los registros históricos mantienen la sincronización anterior.
+            if not protesis.trabajos_unificados:
+                protesis.trabajo = orden.resumen_trabajo
+                protesis.save(update_fields=["trabajo"])
 
             return redirect("protesis_detail", id=protesis.id)
 
@@ -2492,8 +2508,9 @@ def orden_laboratorio_editar(request, orden_id):
 
         if form.is_valid():
             orden = form.save()
-            protesis.trabajo = orden.resumen_trabajo
-            protesis.save(update_fields=["trabajo"])
+            if not protesis.trabajos_unificados:
+                protesis.trabajo = orden.resumen_trabajo
+                protesis.save(update_fields=["trabajo"])
             return redirect("protesis_detail", id=protesis.id)
 
         grupo_activo = request.POST.get("grupo_activo", grupo_activo)
