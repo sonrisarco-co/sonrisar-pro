@@ -1,6 +1,7 @@
 from django.db import models
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 # 🧑‍⚕️ PACIENTES
 class Patient(models.Model):
@@ -160,7 +161,7 @@ class ClinicalRecord(models.Model):
         on_delete=models.CASCADE,
         related_name="clinical_records"
     )
-    fecha = models.DateField(auto_now_add=True)
+    fecha = models.DateField(default=timezone.localdate)
 
     # -------------------------
     # 📝 CLÍNICO BÁSICO
@@ -383,7 +384,6 @@ class BudgetItem(models.Model):
         return f"{self.concepto} ({self.cantidad} x {self.valor})"
 
 
-from django.utils import timezone
 
 class BudgetPayment(models.Model):
     METODO_CHOICES = [

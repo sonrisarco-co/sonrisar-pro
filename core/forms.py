@@ -1,6 +1,7 @@
 import json
 
 from django import forms
+from django.utils import timezone
 from .models import (
     Patient,
     Appointment,
@@ -321,6 +322,8 @@ class ClinicalRecordForm(forms.ModelForm):
         model = ClinicalRecord
 
         fields = [
+            "fecha",
+
             # 1 🩺 ANTECEDENTES
             "diabetes",
             "hta",
@@ -353,6 +356,11 @@ class ClinicalRecordForm(forms.ModelForm):
         ]
 
         widgets = {
+            "fecha": forms.DateInput(format="%Y-%m-%d", attrs={
+                "class": "form-control",
+                "type": "date",
+            }),
+
             "motivo": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "Motivo de consulta"
@@ -413,6 +421,13 @@ class ClinicalRecordForm(forms.ModelForm):
             "consentimiento_firma": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
         
+
+    def clean_fecha(self):
+        fecha = self.cleaned_data["fecha"]
+        if fecha > timezone.localdate():
+            raise forms.ValidationError("La fecha de la historia clínica no puede ser futura.")
+        return fecha
+
 
 class RayosXForm(forms.ModelForm):
     class Meta:

@@ -913,7 +913,7 @@ def clinical_records_list(request, patient_id):
 
     registros = ClinicalRecord.objects.filter(
         paciente_id=patient_id
-    ).order_by("-fecha")
+    ).order_by("fecha", "id")
 
     pagos_cobros, pagos_error = obtener_pagos_cobros_paciente(request, paciente)
 
@@ -1176,12 +1176,32 @@ def clinical_record_new(request, patient_id):
 
     cita_id = request.GET.get("appointment_id") or request.POST.get("appointment_id")
     cita = None
+    fecha_seleccionada = None
+
+    fecha_param = request.GET.get("fecha")
+    if fecha_param:
+        try:
+            fecha_candidata = date.fromisoformat(fecha_param)
+            if fecha_candidata <= timezone.localdate():
+                fecha_seleccionada = fecha_candidata
+        except ValueError:
+            pass
 
     if cita_id:
         cita = Appointment.objects.filter(
             id=cita_id,
             paciente=paciente
         ).prefetch_related("procedimientos").first()
+
+    if not cita and request.method == "GET" and fecha_seleccionada:
+        cita = (
+            Appointment.objects
+            .filter(paciente=paciente, fecha=fecha_seleccionada)
+            .exclude(estado="cancelado")
+            .prefetch_related("procedimientos")
+            .order_by("hora", "id")
+            .first()
+        )
 
     if request.method == "POST":
         form = ClinicalRecordForm(request.POST)
@@ -1206,7 +1226,8 @@ def clinical_record_new(request, patient_id):
             return redirect("clinical_record_detail", registro_id=registro.id)
 
     else:
-        form = ClinicalRecordForm()
+        fecha_registro = cita.fecha if cita else (fecha_seleccionada or timezone.localdate())
+        form = ClinicalRecordForm(initial={"fecha": fecha_registro})
 
         if cita:
             tratamientos = list(dict.fromkeys(
@@ -1218,7 +1239,7 @@ def clinical_record_new(request, patient_id):
 
             form.initial["motivo"] = cita.motivo
 
-            fecha_hoy = timezone.localdate().strftime("%d/%m/%Y")
+            fecha_hoy = fecha_registro.strftime("%d/%m/%Y")
 
             texto_evolucion = (
                 f"{fecha_hoy} – Tratamiento: {tratamientos_txt}.\n"
@@ -1257,7 +1278,7 @@ def clinical_record_detail(request, registro_id):
 
     historias = ClinicalRecord.objects.filter(
         paciente=paciente
-    ).order_by("-fecha")
+    ).order_by("fecha", "id")
 
     rayos = paciente.rayos_x.all().order_by("-fecha")
 
@@ -1330,7 +1351,8 @@ def clinical_record_edit(request, registro_id):
     else:
         form = ClinicalRecordForm(instance=registro)
 
-        hoy = timezone.localdate().strftime("%d/%m/%Y")
+        fecha_evolucion = cita.fecha if cita else timezone.localdate()
+        hoy = fecha_evolucion.strftime("%d/%m/%Y")
         texto_actual = evolucion_anterior
 
         if cita:

@@ -77,7 +77,7 @@
                 <a href="{% url 'rayos_x_list' paciente.id %}?next={{ request.get_full_path|urlencode }}" class="hc-tool-btn">▣ Rayos X / Fotografías</a>
             </div>
             <div class="hc-date">
-                <small>Fecha</small>
+                <small>Hoy</small>
                 <strong>{{ fecha_hoy }}</strong>
             </div>
         </div>
@@ -86,8 +86,27 @@
     <form method="post" class="hc-form" id="historia-form">
         {% csrf_token %}
 
+        <div class="hc-actions hc-actions-top">
+            <button type="submit" class="btn-sonrisar">Guardar Historia Clínica</button>
+            <a href="{{ volver_url }}" class="btn-sonrisar-outline">Cancelar</a>
+        </div>
+
         <input type="hidden" name="appointment_id" value="{{ appointment_id|default:'' }}">
         <input type="hidden" name="next" value="{{ volver_url|default:'' }}">
+
+        <section class="hc-card hc-date-record-card">
+            <div class="hc-date-record-copy">
+                <strong>&#128197; Fecha de la historia clínica</strong>
+                <small>Al elegir una fecha, se cargarán los datos de la cita de ese día.</small>
+            </div>
+            <div class="hc-date-record-input">
+                <label for="{{ form.fecha.id_for_label }}">Fecha de atención</label>
+                {{ form.fecha }}
+                {% for error in form.fecha.errors %}
+                    <div class="hc-field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </section>
 
         <section class="hc-card">
             <div class="hc-card-title">
@@ -509,6 +528,55 @@
     gap: 18px;
 }
 
+.hc-date-record-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 16px 22px;
+    border-color: rgba(38, 171, 165, .28);
+}
+
+.hc-date-record-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.hc-date-record-copy strong {
+    color: #087c77;
+    font-size: 1rem;
+}
+
+.hc-date-record-copy small {
+    color: #64748b;
+}
+
+.hc-date-record-input {
+    min-width: 205px;
+}
+
+.hc-date-record-input label {
+    display: block;
+    margin-bottom: 5px;
+    color: #334155;
+    font-size: .82rem;
+    font-weight: 800;
+}
+
+.hc-date-record-input .form-control {
+    border-color: #b9dedc;
+    font-weight: 700;
+}
+
+.hc-field-error {
+    margin-top: 5px;
+    color: #b42318;
+    font-size: .82rem;
+    font-weight: 700;
+}
+
 .hc-card {
     background: #fff;
     border: 1px solid #e6eeee;
@@ -823,6 +891,11 @@
     height: 30px;
 }
 
+.hc-actions-top {
+    justify-content: flex-end;
+    margin: 0 0 16px;
+}
+
 .hc-actions {
     display: flex;
     gap: 12px;
@@ -928,6 +1001,21 @@ document.querySelectorAll("textarea").forEach(function(textarea) {
 const evolucionTextarea = document.getElementById("id_evolucion");
 const evolucionEditor = document.getElementById("evolucion-editor");
 const historiaForm = document.getElementById("historia-form");
+
+{% if not registro %}
+const fechaHistoria = document.getElementById("id_fecha");
+if (fechaHistoria) {
+    fechaHistoria.addEventListener("change", function() {
+        if (!fechaHistoria.value) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set("fecha", fechaHistoria.value);
+        url.searchParams.delete("appointment_id");
+        window.location.assign(url.toString());
+    });
+}
+{% endif %}
 
 if (evolucionTextarea && evolucionEditor) {
     const fechaPattern = /^(\d{2}\/\d{2}\/\d{4})(.*)$/;
