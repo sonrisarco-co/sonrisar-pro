@@ -4310,7 +4310,7 @@ def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
     fecha_txt = f"{dias[cita.fecha.weekday()]} {cita.fecha.strftime('%d/%m/%Y')}"
     hora_txt = cita.hora.strftime("%H:%M")
 
-    if tipo_recordatorio == "48h":
+    if tipo_recordatorio == "72h":
         return (
             f"Hola {nombre} 😊\n\n"
             f"Te recordamos tu cita odontológica el *{fecha_txt}* "
@@ -4353,8 +4353,8 @@ def iniciar_recordatorios_manana(request):
     return redirect("siguiente_recordatorio")
 
 
-def iniciar_recordatorios_48h(request):
-    fecha_objetivo = date.today() + timedelta(days=2)
+def iniciar_recordatorios_72h(request):
+    fecha_objetivo = date.today() + timedelta(days=3)
 
     citas = (
         Appointment.objects
@@ -4365,11 +4365,11 @@ def iniciar_recordatorios_48h(request):
     )
 
     if not citas.exists():
-        messages.warning(request, "No hay citas para dentro de 48 horas.")
+        messages.warning(request, "No hay citas para dentro de 72 horas.")
         return redirect("whatsapp_reminders")
 
     request.session["recordatorios_lista"] = [c.id for c in citas]
-    request.session["tipo_recordatorio"] = "48h"
+    request.session["tipo_recordatorio"] = "72h"
 
     return redirect("siguiente_recordatorio")
 
@@ -4432,7 +4432,7 @@ def cita_recordatorio(request, id):
     )
 
     tipo = request.GET.get("tipo", "24h")
-    if tipo not in ["24h", "48h"]:
+    if tipo not in ["24h", "72h"]:
         tipo = "24h"
 
     paciente = cita.paciente
@@ -4452,9 +4452,9 @@ def cita_recordatorio(request, id):
 def whatsapp_reminders(request):
     tipo = request.GET.get("tipo", "24h")
 
-    if tipo == "48h":
-        fecha_objetivo = date.today() + timedelta(days=2)
-        titulo_fecha = "Recordatorios 48 h"
+    if tipo == "72h":
+        fecha_objetivo = date.today() + timedelta(days=3)
+        titulo_fecha = "Recordatorios 72 h"
     else:
         tipo = "24h"
         fecha_objetivo = date.today() + timedelta(days=1)
