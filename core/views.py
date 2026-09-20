@@ -913,7 +913,7 @@ def clinical_records_list(request, patient_id):
 
     registros = ClinicalRecord.objects.filter(
         paciente_id=patient_id
-    ).order_by("fecha", "id")
+    ).order_by("-fecha", "-id")
 
     pagos_cobros, pagos_error = obtener_pagos_cobros_paciente(request, paciente)
 
@@ -1278,7 +1278,7 @@ def clinical_record_detail(request, registro_id):
 
     historias = ClinicalRecord.objects.filter(
         paciente=paciente
-    ).order_by("fecha", "id")
+    ).order_by("-fecha", "-id")
 
     rayos = paciente.rayos_x.all().order_by("-fecha")
 
