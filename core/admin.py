@@ -60,6 +60,8 @@ from .models import (
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
+    search_fields = ("nombre", "apellido", "ci", "telefono")
+    search_help_text = "Buscar por nombre, apellido, cédula o teléfono."
     change_list_template = "admin/core/patient/change_list.html"
 
     def get_urls(self):
@@ -95,7 +97,15 @@ class PatientAdmin(admin.ModelAdmin):
         return response
 
 
-admin.site.register(Appointment)
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    search_fields = (
+        "paciente__nombre", "paciente__apellido", "paciente__ci", "paciente__telefono",
+    )
+    search_help_text = "Buscar citas por nombre, apellido, cédula o teléfono del paciente."
+    list_select_related = ("paciente",)
+
+
 admin.site.register(Payment)
 admin.site.register(Budget)
 admin.site.register(BudgetItem)
