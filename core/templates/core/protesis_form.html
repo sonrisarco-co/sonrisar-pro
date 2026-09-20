@@ -63,6 +63,14 @@
                 </div>
 
                 <div class="col-md-4">
+                    <label class="form-label">Arcada del trabajo principal</label>
+                    {{ form.arcada_principal }}
+                    <div class="text-danger small">
+                        {{ form.arcada_principal.errors }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
                     <label class="form-label">Color</label>
                     {{ form.color }}
                     <div class="text-danger small">
@@ -87,6 +95,29 @@
                         {{ form.monto_total.errors }}
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="protesis-form-card shadow-sm mt-3">
+            <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                <div>
+                    <div class="form-section-title mb-1">Trabajos adicionales</div>
+                    <div class="form-help">
+                        Agregá aquí otros trabajos que pertenezcan a esta misma prótesis.
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-success" id="agregar-trabajo">
+                    + Agregar trabajo
+                </button>
+            </div>
+
+            {{ form.trabajos_adicionales }}
+            <div class="text-danger small mb-2">
+                {{ form.trabajos_adicionales.errors }}
+            </div>
+            <div id="trabajos-adicionales-lista"></div>
+            <div id="sin-trabajos-adicionales" class="text-muted small">
+                No hay trabajos adicionales.
             </div>
         </div>
 
@@ -268,6 +299,22 @@
         color: #ffffff;
     }
 
+    .trabajo-adicional-fila {
+        display: grid;
+        grid-template-columns: 1fr 1fr 0.8fr auto;
+        gap: 10px;
+        align-items: end;
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8ffff;
+        border: 1px solid #d8eeee;
+        border-radius: 12px;
+    }
+
+    .trabajo-adicional-fila .btn {
+        min-height: 42px;
+    }
+
     .form-actions {
         display: flex;
         gap: 10px;
@@ -282,6 +329,10 @@
     @media (max-width: 768px) {
         .protesis-form-card {
             padding: 16px;
+        }
+
+        .trabajo-adicional-fila {
+            grid-template-columns: 1fr;
         }
 
         .form-actions {
@@ -400,6 +451,146 @@
                 actualizarTrabajos(false);
             });
         }
+
+        const adicionalesInput = document.getElementById("id_trabajos_adicionales");
+        const adicionalesLista = document.getElementById("trabajos-adicionales-lista");
+        const adicionalesVacio = document.getElementById("sin-trabajos-adicionales");
+        const agregarTrabajoBtn = document.getElementById("agregar-trabajo");
+        let trabajosAdicionales = [];
+
+        try {
+            trabajosAdicionales = JSON.parse(adicionalesInput?.value || "[]");
+            if (!Array.isArray(trabajosAdicionales)) {
+                trabajosAdicionales = [];
+            }
+        } catch (error) {
+            trabajosAdicionales = [];
+        }
+
+        function crearOpcion(valor, texto, seleccionado) {
+            const option = document.createElement("option");
+            option.value = valor;
+            option.textContent = texto;
+            option.selected = valor === seleccionado;
+            return option;
+        }
+
+        function sincronizarAdicionales() {
+            if (adicionalesInput) {
+                adicionalesInput.value = JSON.stringify(trabajosAdicionales);
+            }
+            if (adicionalesVacio) {
+                adicionalesVacio.hidden = trabajosAdicionales.length > 0;
+            }
+        }
+
+        function renderizarAdicionales() {
+            if (!adicionalesLista) {
+                return;
+            }
+
+            adicionalesLista.innerHTML = "";
+
+            trabajosAdicionales.forEach(function (item, indice) {
+                const fila = document.createElement("div");
+                fila.className = "trabajo-adicional-fila";
+
+                const grupoTipo = document.createElement("div");
+                const labelTipo = document.createElement("label");
+                labelTipo.className = "form-label";
+                labelTipo.textContent = "Tipo";
+                const selectTipo = document.createElement("select");
+                selectTipo.className = "form-select";
+                selectTipo.appendChild(crearOpcion("", "Seleccionar tipo", item.tipo || ""));
+                [
+                    ["removible", "Prótesis removible"],
+                    ["fija", "Rehabilitación fija"],
+                    ["ortodoncia", "Ortodoncia y otros"],
+                    ["reparacion", "Reparación / Rebase"],
+                    ["otro", "Otro"]
+                ].forEach(function (opcion) {
+                    selectTipo.appendChild(crearOpcion(opcion[0], opcion[1], item.tipo || ""));
+                });
+                grupoTipo.append(labelTipo, selectTipo);
+
+                const grupoTrabajo = document.createElement("div");
+                const labelTrabajo = document.createElement("label");
+                labelTrabajo.className = "form-label";
+                labelTrabajo.textContent = "Trabajo";
+                const selectTrabajo = document.createElement("select");
+                selectTrabajo.className = "form-select";
+
+                function cargarTrabajos() {
+                    selectTrabajo.innerHTML = "";
+                    selectTrabajo.appendChild(crearOpcion("", "Seleccionar trabajo", item.trabajo || ""));
+                    (trabajosPorTipo[selectTipo.value] || []).forEach(function (opcion) {
+                        selectTrabajo.appendChild(crearOpcion(opcion[0], opcion[1], item.trabajo || ""));
+                    });
+                }
+
+                cargarTrabajos();
+                grupoTrabajo.append(labelTrabajo, selectTrabajo);
+
+                const grupoArcada = document.createElement("div");
+                const labelArcada = document.createElement("label");
+                labelArcada.className = "form-label";
+                labelArcada.textContent = "Arcada";
+                const selectArcada = document.createElement("select");
+                selectArcada.className = "form-select";
+                [
+                    ["", "No especificar"],
+                    ["superior", "Superior"],
+                    ["inferior", "Inferior"],
+                    ["ambas", "Ambas"]
+                ].forEach(function (opcion) {
+                    selectArcada.appendChild(crearOpcion(opcion[0], opcion[1], item.arcada || ""));
+                });
+                grupoArcada.append(labelArcada, selectArcada);
+
+                const eliminar = document.createElement("button");
+                eliminar.type = "button";
+                eliminar.className = "btn btn-outline-danger";
+                eliminar.textContent = "Quitar";
+
+                selectTipo.addEventListener("change", function () {
+                    item.tipo = selectTipo.value;
+                    item.trabajo = "";
+                    cargarTrabajos();
+                    sincronizarAdicionales();
+                });
+                selectTrabajo.addEventListener("change", function () {
+                    item.trabajo = selectTrabajo.value;
+                    sincronizarAdicionales();
+                });
+                selectArcada.addEventListener("change", function () {
+                    item.arcada = selectArcada.value;
+                    sincronizarAdicionales();
+                });
+                eliminar.addEventListener("click", function () {
+                    trabajosAdicionales.splice(indice, 1);
+                    renderizarAdicionales();
+                });
+
+                fila.append(grupoTipo, grupoTrabajo, grupoArcada, eliminar);
+                adicionalesLista.appendChild(fila);
+            });
+
+            sincronizarAdicionales();
+        }
+
+        if (agregarTrabajoBtn) {
+            agregarTrabajoBtn.addEventListener("click", function () {
+                trabajosAdicionales.push({tipo: "", trabajo: "", arcada: ""});
+                renderizarAdicionales();
+            });
+        }
+
+        const formulario = adicionalesInput?.closest("form");
+        if (formulario) {
+            formulario.addEventListener("submit", sincronizarAdicionales);
+        }
+
+        renderizarAdicionales();
     });
 </script>
 
