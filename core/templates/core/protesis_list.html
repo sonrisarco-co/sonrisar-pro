@@ -76,13 +76,20 @@
                             </div>
 
                             <div class="col-md-3">
-                                <div class="label-card">Tipo</div>
-                                <div class="dato-card">
-                                    {{ item.get_tipo_protesis_display }}
-                                </div>
-                                {% if item.trabajo_mostrado %}
-                                    <div class="trabajo-card">{{ item.trabajo_mostrado }}</div>
-                                {% endif %}
+                                <div class="label-card">Trabajos</div>
+                                {% for trabajo in item.trabajos_detalle %}
+                                    <div class="trabajo-unificado">
+                                        <span class="dato-card">{{ trabajo.trabajo_label }}</span>
+                                        <span class="trabajo-meta">
+                                            {{ trabajo.tipo_label }}
+                                            {% if trabajo.arcada_label %} · {{ trabajo.arcada_label }}{% endif %}
+                                        </span>
+                                    </div>
+                                {% empty %}
+                                    <div class="trabajo-card">
+                                        {{ item.trabajo_mostrado|default:"—" }}
+                                    </div>
+                                {% endfor %}
                             </div>
 
                             <div class="col-md-2">
@@ -587,6 +594,19 @@
         font-size: .96rem;
         font-weight: 700;
         line-height: 1.3;
+    }
+
+    .trabajo-unificado + .trabajo-unificado {
+        margin-top: 7px;
+        padding-top: 7px;
+        border-top: 1px solid #d8eeee;
+    }
+
+    .trabajo-meta {
+        display: block;
+        color: #64748b;
+        font-size: .78rem;
+        line-height: 1.25;
     }
 
     .protesis-extra > div {
