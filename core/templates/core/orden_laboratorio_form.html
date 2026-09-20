@@ -56,8 +56,14 @@
     </div>
     <div class="col-md-3">
         <div class="resumen-trabajo h-100">
-            <div class="resumen-label">Trabajo principal</div>
-            <div class="resumen-value">{{ trabajo_principal|default:"Sin especificar" }}</div>
+            <div class="resumen-label">Trabajos incluidos</div>
+            <div class="resumen-value">
+                {% for trabajo in protesis.trabajos_detalle %}
+                    <div>{{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} · {{ trabajo.arcada_label }}{% endif %}</div>
+                {% empty %}
+                    {{ trabajo_principal|default:"Sin especificar" }}
+                {% endfor %}
+            </div>
         </div>
     </div>
     <div class="col-md-3">

@@ -2335,7 +2335,6 @@ def _configuracion_inicial_orden(protesis):
     No bloquea campos: el usuario puede modificar o desmarcar lo propuesto.
     """
     tipo = (protesis.tipo_protesis or "").strip()
-    trabajo = (protesis.trabajo or "").strip().lower()
 
     initial = {
         "estado": "pendiente",
@@ -2382,16 +2381,28 @@ def _configuracion_inicial_orden(protesis):
         "agregado de gancho": "agregado_gancho",
     }
 
-    campo_trabajo = mapa_trabajos.get(trabajo)
-    if campo_trabajo:
-        initial[campo_trabajo] = True
+    trabajos = protesis.trabajos_detalle
+    campos_trabajo = set()
+    arcadas = set()
+    for item in trabajos:
+        campo_trabajo = mapa_trabajos.get((item.get("trabajo") or "").lower())
+        if campo_trabajo:
+            initial[campo_trabajo] = True
+            campos_trabajo.add(campo_trabajo)
+        if item.get("arcada"):
+            arcadas.add(item["arcada"])
+
+    # Si el caso tiene una parte superior y otra inferior, la orden se envía
+    # como "Ambas"; sigue siendo totalmente editable antes de guardar.
+    if "ambas" in arcadas or {"superior", "inferior"}.issubset(arcadas):
+        initial["arcada"] = "ambas"
+    elif len(arcadas) == 1:
+        initial["arcada"] = arcadas.pop()
 
     # Propuestas habituales, siempre editables.
-    if campo_trabajo == "parcial_cromo":
+    if "parcial_cromo" in campos_trabajo:
         initial["solicita_cromo"] = True
-    elif campo_trabajo == "rebasado":
-        initial["protesis_a_reparar"] = True
-    elif campo_trabajo in {"reparacion", "agregado_diente", "agregado_gancho"}:
+    if campos_trabajo & {"rebasado", "reparacion", "agregado_diente", "agregado_gancho"}:
         initial["protesis_a_reparar"] = True
 
     if tipo == "fija":

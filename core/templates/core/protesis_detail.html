@@ -38,7 +38,11 @@
 
                 <div class="col-md-3">
                     <strong>Trabajo</strong><br>
-                    {{ protesis.trabajo }}
+                    {% for trabajo in protesis.trabajos_detalle %}
+                        <div>{{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} — {{ trabajo.arcada_label }}{% endif %}</div>
+                    {% empty %}
+                        {{ protesis.trabajo }}
+                    {% endfor %}
                 </div>
 
                 <div class="col-md-3">

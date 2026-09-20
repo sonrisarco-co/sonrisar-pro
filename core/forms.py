@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 from .models import (
     Patient,
@@ -464,6 +466,22 @@ class ProsthesisForm(forms.ModelForm):
         }),
     )
 
+    arcada_principal = forms.ChoiceField(
+        label="Arcada",
+        required=False,
+        choices=[
+            ("", "No especificar"),
+            ("superior", "Superior"),
+            ("inferior", "Inferior"),
+            ("ambas", "Ambas"),
+        ],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    trabajos_adicionales = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
     class Meta:
         model = Prosthesis
         fields = [
@@ -566,6 +584,14 @@ class ProsthesisForm(forms.ModelForm):
 
         self.fields["trabajo"].widget.attrs["data-current"] = trabajo_actual
 
+        trabajos = self.instance.trabajos_unificados if self.instance and self.instance.pk else []
+        if trabajos:
+            principal = trabajos[0]
+            self.initial["arcada_principal"] = principal.get("arcada", "")
+            self.initial["trabajos_adicionales"] = json.dumps(trabajos[1:])
+        else:
+            self.initial["trabajos_adicionales"] = "[]"
+
         self.fields["fecha_inicio"].input_formats = ["%Y-%m-%d"]
         self.fields["fecha_retorno"].input_formats = ["%Y-%m-%d"]
 
@@ -592,7 +618,55 @@ class ProsthesisForm(forms.ModelForm):
                 "El trabajo seleccionado no corresponde al tipo de prótesis.",
             )
 
+        adicionales_raw = cleaned_data.get("trabajos_adicionales") or "[]"
+        try:
+            adicionales = json.loads(adicionales_raw)
+        except (TypeError, json.JSONDecodeError):
+            self.add_error("trabajos_adicionales", "Los trabajos adicionales no son válidos.")
+            return cleaned_data
+
+        if not isinstance(adicionales, list):
+            self.add_error("trabajos_adicionales", "Los trabajos adicionales no son válidos.")
+            return cleaned_data
+
+        trabajos_unificados = [{
+            "tipo": tipo,
+            "trabajo": trabajo,
+            "arcada": cleaned_data.get("arcada_principal") or "",
+        }]
+        for adicional in adicionales:
+            if not isinstance(adicional, dict):
+                self.add_error("trabajos_adicionales", "Hay un trabajo adicional inválido.")
+                continue
+            tipo_adicional = (adicional.get("tipo") or "").strip()
+            trabajo_adicional = (adicional.get("trabajo") or "").strip()
+            arcada_adicional = (adicional.get("arcada") or "").strip()
+            if tipo_adicional not in self.TRABAJOS_POR_TIPO:
+                self.add_error("trabajos_adicionales", "El tipo de un trabajo adicional no es válido.")
+                continue
+            opciones = {valor for valor, _ in self.TRABAJOS_POR_TIPO[tipo_adicional]}
+            if trabajo_adicional not in opciones:
+                self.add_error("trabajos_adicionales", "El trabajo adicional no corresponde al tipo elegido.")
+                continue
+            if arcada_adicional not in {"", "superior", "inferior", "ambas"}:
+                self.add_error("trabajos_adicionales", "La arcada de un trabajo adicional no es válida.")
+                continue
+            trabajos_unificados.append({
+                "tipo": tipo_adicional,
+                "trabajo": trabajo_adicional,
+                "arcada": arcada_adicional,
+            })
+
+        cleaned_data["trabajos_unificados"] = trabajos_unificados
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.trabajos_unificados = self.cleaned_data.get("trabajos_unificados", [])
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 # -------------------------
