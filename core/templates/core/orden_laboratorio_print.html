@@ -92,7 +92,11 @@ body{background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#20262c}
 
 <div class="work">
 <div class="label">Trabajo</div>
-<div class="value">{{ orden.resumen_trabajo }}</div>
+<div class="value">
+{% for trabajo in protesis.trabajos_detalle %}
+    <div>{{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} — {{ trabajo.arcada_label }}{% endif %}</div>
+{% empty %}{{ orden.resumen_trabajo }}{% endfor %}
+</div>
 <div class="work-meta"><strong>Tipo:</strong> {{ protesis.get_tipo_protesis_display }} &nbsp;|&nbsp; <strong>Color:</strong> {{ protesis.color|default:"—" }} &nbsp;|&nbsp; <strong>Arcada:</strong> {{ orden.get_arcada_display|default:"—" }}</div>
 {% if orden.piezas_removible %}<div class="item"><strong>Piezas:</strong> {{ orden.piezas_removible }}</div>{% endif %}
 {% if orden.piezas_fija %}<div class="item"><strong>Piezas:</strong> {{ orden.piezas_fija }}</div>{% endif %}

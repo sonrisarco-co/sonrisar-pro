@@ -18,13 +18,26 @@
 <div class="orden-view-box summary-card"><div class="row g-3">
 <div class="col"><strong>Paciente</strong><br>{{ protesis.paciente }}</div>
 <div class="col"><strong>Tipo</strong><br>{{ protesis.get_tipo_protesis_display }}</div>
-<div class="col"><strong>Trabajo</strong><br>{{ orden.resumen_trabajo }}</div>
+<div class="col"><strong>Trabajo</strong><br>
+{% for trabajo in protesis.trabajos_detalle %}
+    <div>{{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} — {{ trabajo.arcada_label }}{% endif %}</div>
+{% empty %}{{ orden.resumen_trabajo }}{% endfor %}
+</div>
 <div class="col"><strong>Color</strong><br>{{ protesis.color|default:"—" }}</div>
 <div class="col"><strong>Entrega</strong><br>{{ orden.fecha_entrega_prometida|date:"d/m/Y"|default:"—" }}</div>
 </div></div>
 
 <div class="row g-3">
 <div class="col-md-6"><div class="orden-view-box h-100"><div class="orden-view-title">Trabajo solicitado</div>
+{% if protesis.trabajos_detalle|length > 1 %}
+<div class="mb-3 pb-2 border-bottom">
+    <strong>Asignación por arcada</strong>
+    {% for trabajo in protesis.trabajos_detalle %}
+        <div class="item-ok"><span>☑</span> {{ trabajo.trabajo_label }} — {{ trabajo.arcada_label|default:"Sin especificar" }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% if protesis.trabajos_detalle|length <= 1 %}
 {% if orden.protesis_completa %}<div class="item-ok"><span>☑</span> Prótesis completa</div>{% endif %}
 {% if orden.parcial_cromo or orden.cromo %}<div class="item-ok"><span>☑</span> Prótesis parcial cromo</div>{% endif %}
 {% if orden.parcial_acrilica or orden.protesis_parcial %}<div class="item-ok"><span>☑</span> Prótesis parcial acrílica</div>{% endif %}
@@ -42,6 +55,7 @@
 {% if orden.provisorio_fijo %}<div class="item-ok"><span>☑</span> Provisorio fijo</div>{% endif %}
 {% if orden.contencion %}<div class="item-ok"><span>☑</span> Contención</div>{% endif %}
 {% if orden.placa_relajacion %}<div class="item-ok"><span>☑</span> Placa neuromiorrelajante</div>{% endif %}
+{% endif %}
 {% if orden.piezas_removible %}<div><strong>Piezas:</strong> {{ orden.piezas_removible }}</div>{% endif %}
 {% if orden.piezas_fija %}<div><strong>Piezas:</strong> {{ orden.piezas_fija }}</div>{% endif %}
 </div></div>

@@ -105,7 +105,11 @@
 <!-- DATOS -->
 <div class="datos">
     <p><strong>Paciente:</strong> {{ protesis.paciente.nombre }} {{ protesis.paciente.apellido }}</p>
-    <p><strong>Trabajo:</strong> {{ protesis.trabajo }}</p>
+    <p><strong>Trabajo:</strong>
+        {% for trabajo in protesis.trabajos_detalle %}
+            {{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} ({{ trabajo.arcada_label }}){% endif %}{% if not forloop.last %}; {% endif %}
+        {% empty %}{{ protesis.trabajo }}{% endfor %}
+    </p>
     <p><strong>Etapa:</strong> {{ protesis.get_etapa_display }}</p>
 
     {% if protesis.fecha_envio %}

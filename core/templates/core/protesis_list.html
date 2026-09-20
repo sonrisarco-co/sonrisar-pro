@@ -80,8 +80,14 @@
                                 <div class="dato-card">
                                     {{ item.get_tipo_protesis_display }}
                                 </div>
-                                {% if item.trabajo_mostrado %}
+                                {% if item.trabajos_detalle|length > 1 %}
+                                    {% for trabajo in item.trabajos_detalle %}
+                                        <div class="trabajo-card">{{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} · {{ trabajo.arcada_label }}{% endif %}</div>
+                                    {% endfor %}
+                                {% elif item.trabajo_mostrado %}
                                     <div class="trabajo-card">{{ item.trabajo_mostrado }}</div>
+                                {% elif item.trabajos_detalle.0.arcada_label %}
+                                    <div class="trabajo-card">{{ item.trabajos_detalle.0.arcada_label }}</div>
                                 {% endif %}
                             </div>
 
