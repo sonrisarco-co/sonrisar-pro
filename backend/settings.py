@@ -216,4 +216,10 @@ CSRF_TRUSTED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-
+# Cookies seguras para Safari/iPhone en Render
+if IS_RENDER:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_NAME = 'sonrisar_csrftoken_v2'
