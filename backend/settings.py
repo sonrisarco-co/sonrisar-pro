@@ -223,3 +223,5 @@ if IS_RENDER:
     CSRF_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_NAME = 'sonrisar_csrftoken_v2'
+
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'

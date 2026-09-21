@@ -6194,3 +6194,15 @@ def estadisticas(request):
             "promedio_ajustes_ortodoncia": promedio_ajustes_ortodoncia,
         }
     )
+
+
+def csrf_failure(request, reason=""):
+    print(
+        f"CSRF_FAILURE path={request.path} reason={reason} "
+        f"origin={request.headers.get('Origin', '')} "
+        f"referer={request.headers.get('Referer', '')} "
+        f"cookie_present={bool(request.COOKIES.get(settings.CSRF_COOKIE_NAME))}",
+        flush=True,
+    )
+    from django.views.csrf import csrf_failure as default_csrf_failure
+    return default_csrf_failure(request, reason=reason)
