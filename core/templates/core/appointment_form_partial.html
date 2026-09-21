@@ -423,6 +423,10 @@ document.addEventListener("DOMContentLoaded", () => {
     more.addEventListener("click", () => search(true));
     document.getElementById("agendaPatientClose").addEventListener("click", close);
     document.addEventListener("pointerdown", event => { if (!section.contains(event.target)) close(); });
-    section.addEventListener("focusout", event => { if (!section.contains(event.relatedTarget)) close(); });
+    section.addEventListener("focusout", () => {
+        window.setTimeout(() => {
+            if (!section.contains(document.activeElement)) close();
+        }, 0);
+    });
 });
 </script>
