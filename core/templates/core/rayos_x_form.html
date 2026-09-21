@@ -4,7 +4,7 @@
 <h1>Agregar Rayos X / Fotografías</h1>
 <h3>{{ paciente.nombre }} {{ paciente.apellido }}</h3>
 
-<form method="post" enctype="multipart/form-data" id="rayosUploadForm">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url|default:'' }}">
 
@@ -33,51 +33,5 @@
     </a>
 </form>
 
-
-<script>
-document.getElementById("rayosUploadForm").addEventListener("submit", async function (event) {
-    event.preventDefault();
-
-    const form = event.currentTarget;
-    const button = form.querySelector('button[type="submit"]');
-    const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
-    const imageInput = form.querySelector('input[type="file"][name="imagen"]');
-
-    if (!imageInput || !imageInput.files.length) {
-        alert("Seleccioná una imagen antes de guardar.");
-        return;
-    }
-
-    const formData = new FormData(form);
-    const imageFile = imageInput.files[0];
-    formData.set("imagen", imageFile, imageFile.name);
-
-    button.disabled = true;
-    button.textContent = "Guardando…";
-
-    try {
-        const response = await fetch(window.location.href, {
-            method: "POST",
-            headers: { "X-CSRFToken": csrfToken },
-            body: formData,
-            credentials: "same-origin"
-        });
-
-        if (response.redirected) {
-            window.location.href = response.url;
-            return;
-        }
-
-        const html = await response.text();
-        document.open();
-        document.write(html);
-        document.close();
-    } catch (error) {
-        button.disabled = false;
-        button.textContent = "💾 Guardar";
-        alert("No se pudo subir la imagen. Revisá la conexión e intentá nuevamente.");
-    }
-});
-</script>
 
 {% endblock %}
