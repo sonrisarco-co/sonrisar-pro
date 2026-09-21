@@ -4,7 +4,7 @@
 <h1>Agregar Rayos X / Fotografías</h1>
 <h3>{{ paciente.nombre }} {{ paciente.apellido }}</h3>
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" id="rayosUploadForm">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url|default:'' }}">
 
@@ -29,5 +29,42 @@
        ⬅ Volver
     </a>
 </form>
+
+
+<script>
+document.getElementById("rayosUploadForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const button = form.querySelector('button[type="submit"]');
+    const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+    button.disabled = true;
+    button.textContent = "Guardando…";
+
+    try {
+        const response = await fetch(window.location.href, {
+            method: "POST",
+            headers: { "X-CSRFToken": csrfToken },
+            body: new FormData(form),
+            credentials: "same-origin"
+        });
+
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+
+        const html = await response.text();
+        document.open();
+        document.write(html);
+        document.close();
+    } catch (error) {
+        button.disabled = false;
+        button.textContent = "💾 Guardar";
+        alert("No se pudo subir la imagen. Revisá la conexión e intentá nuevamente.");
+    }
+});
+</script>
 
 {% endblock %}
