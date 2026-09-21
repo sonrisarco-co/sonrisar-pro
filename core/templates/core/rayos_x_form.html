@@ -11,6 +11,9 @@
     <div>
         <label>Imagen</label><br>
         {{ form.imagen }}
+        {% if form.imagen.errors %}
+            <div class="text-danger small mt-1">{{ form.imagen.errors }}</div>
+        {% endif %}
     </div>
 
     <div>
@@ -38,6 +41,16 @@ document.getElementById("rayosUploadForm").addEventListener("submit", async func
     const form = event.currentTarget;
     const button = form.querySelector('button[type="submit"]');
     const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+    const imageInput = form.querySelector('input[type="file"][name="imagen"]');
+
+    if (!imageInput || !imageInput.files.length) {
+        alert("Seleccioná una imagen antes de guardar.");
+        return;
+    }
+
+    const formData = new FormData(form);
+    const imageFile = imageInput.files[0];
+    formData.set("imagen", imageFile, imageFile.name);
 
     button.disabled = true;
     button.textContent = "Guardando…";
@@ -46,7 +59,7 @@ document.getElementById("rayosUploadForm").addEventListener("submit", async func
         const response = await fetch(window.location.href, {
             method: "POST",
             headers: { "X-CSRFToken": csrfToken },
-            body: new FormData(form),
+            body: formData,
             credentials: "same-origin"
         });
 
