@@ -117,11 +117,6 @@
                 </div>
             </div>
             {% if evolucion_anterior %}
-                <div class="hc-evolucion-anterior-card">
-                    <div class="hc-evolucion-anterior-title">Historial anterior</div>
-                    <div id="evolucion-anterior" class="hc-evolucion-anterior"></div>
-                    <div id="evolucion-anterior-data" hidden>{{ evolucion_anterior }}</div>
-                </div>
                 <div class="hc-evolucion-nueva-title">Nueva evolución</div>
             {% endif %}
             <div class="hc-field hc-evolucion-field">
@@ -133,6 +128,13 @@
                      aria-multiline="true"
                      aria-label="Evolución clínica"></div>
             </div>
+            {% if evolucion_anterior %}
+                <div class="hc-evolucion-anterior-card">
+                    <div class="hc-evolucion-anterior-title">Historial anterior</div>
+                    <div id="evolucion-anterior" class="hc-evolucion-anterior"></div>
+                    <div id="evolucion-anterior-data" hidden>{{ evolucion_anterior }}</div>
+                </div>
+            {% endif %}
         </section>
 
         <section class="hc-card">
