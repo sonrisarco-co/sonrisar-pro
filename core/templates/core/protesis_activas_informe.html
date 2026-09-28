@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Informe de prótesis activas</title>
+    <style>
+        @page { size: A4 landscape; margin: 12mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #eef5f4; color: #24343a; font: 13px/1.45 Arial, sans-serif; }
+        .toolbar { max-width: 1120px; margin: 24px auto 14px; display: flex; gap: 10px; align-items: center; }
+        .toolbar button, .toolbar a { display: inline-block; border: 1px solid #26aba5; border-radius: 8px; padding: 10px 16px; font: 700 13px Arial, sans-serif; text-decoration: none; cursor: pointer; }
+        .toolbar button { background: #26aba5; color: white; }
+        .toolbar a { background: white; color: #10736d; }
+        .sheet { max-width: 1120px; min-height: 610px; margin: 0 auto 30px; padding: 35px 38px; background: white; box-shadow: 0 8px 30px #1a61551a; }
+        .topline { height: 5px; width: 68px; border-radius: 3px; background: #26aba5; margin-bottom: 16px; }
+        header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-end; padding-bottom: 18px; border-bottom: 1px solid #b9deda; }
+        h1 { font-size: 32px; line-height: 1.15; color: #10736d; margin: 2px 0 8px; font-weight: 800; }
+        .subtitle { color: #61767a; margin: 0; }
+        .report-meta { display: flex; gap: 10px; flex-shrink: 0; }
+        .meta-box { background: #eff9f8; border: 1px solid #d6eeeb; border-radius: 8px; min-width: 92px; padding: 8px 11px; }
+        .meta-label { display: block; color: #667b7b; text-transform: uppercase; font-size: 9px; font-weight: 700; letter-spacing: .07em; }
+        .meta-value { display: block; color: #116c67; font-size: 15px; font-weight: 800; }
+        .section-label { margin: 21px 0 10px; color: #10736d; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        thead { display: table-header-group; }
+        th { background: #e8f5f3; color: #125e59; text-align: left; padding: 10px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid #26aba5; }
+        td { padding: 11px 8px; vertical-align: top; border-bottom: 1px solid #dae9e7; overflow-wrap: anywhere; }
+        tbody tr { break-inside: avoid; page-break-inside: avoid; }
+        .patient, .work { color: #1b3438; font-weight: 700; }
+        .detail { color: #537475; margin-top: 3px; }
+        .status { color: #126d68; font-weight: 700; }
+        .muted { color: #77898c; }
+        .empty { text-align: center; padding: 36px; border: 1px solid #dae9e7; border-radius: 8px; color: #61767a; }
+        .footer { margin-top: 22px; padding-top: 10px; border-top: 1px solid #dae9e7; color: #799092; font-size: 10px; display: flex; justify-content: space-between; }
+        @media (max-width: 800px) {
+            .toolbar { margin: 12px; }
+            .sheet { margin: 0; padding: 20px 14px; box-shadow: none; overflow-x: auto; }
+            header { align-items: flex-start; flex-direction: column; }
+            table { min-width: 920px; }
+        }
+        @media print {
+            body { background: white; font-size: 10px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .toolbar { display: none; }
+            .sheet { max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; overflow: visible; }
+            h1 { font-size: 26px; }
+            header { padding-bottom: 11px; }
+            .section-label { margin: 14px 0 8px; }
+            th { padding: 7px 6px; font-size: 9px; }
+            td { padding: 7px 6px; }
+            .meta-box { padding: 5px 9px; }
+            .meta-value { font-size: 13px; }
+            .footer { margin-top: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="toolbar" aria-label="Acciones del informe">
+        <button type="button" onclick="window.print()">Imprimir / guardar PDF</button>
+        <a href="{% url 'protesis_list' %}?filtro=activas">Volver a Prótesis</a>
+    </nav>
+    <main class="sheet">
+        <div class="topline"></div>
+        <header>
+            <div>
+                <h1>Informe de prótesis activas</h1>
+                <p class="subtitle">Informe de seguimiento para el laboratorio</p>
+            </div>
+            <div class="report-meta">
+                <div class="meta-box"><span class="meta-label">Fecha</span><span class="meta-value">{{ fecha|date:"d/m/Y" }}</span></div>
+                <div class="meta-box"><span class="meta-label">Trabajos activos</span><span class="meta-value">{{ protesis|length }}</span></div>
+            </div>
+        </header>
+        <div class="section-label">Detalle de trabajos</div>
+        {% if protesis %}
+        <table>
+            <colgroup><col style="width: 16%"><col style="width: 23%"><col style="width: 7%"><col style="width: 12%"><col style="width: 11%"><col style="width: 8%"><col style="width: 8%"><col style="width: 15%"></colgroup>
+            <thead><tr><th>Paciente</th><th>Prótesis / trabajo</th><th>Color</th><th>Etapa</th><th>Estado</th><th>Inicio</th><th>Retorno</th><th>Observaciones</th></tr></thead>
+            <tbody>
+            {% for item in protesis %}
+                <tr>
+                    <td class="patient">{{ item.paciente }}</td>
+                    <td><div class="work">{{ item.get_tipo_protesis_display }}</div>
+                    {% if item.trabajos_detalle|length > 1 %}
+                        {% for trabajo in item.trabajos_detalle %}<div class="detail">{{ trabajo.trabajo_label }}{% if trabajo.arcada_label %} · {{ trabajo.arcada_label }}{% endif %}</div>{% endfor %}
+                    {% elif item.trabajo_mostrado %}<div class="detail">{{ item.trabajo_mostrado }}</div>
+                    {% elif item.trabajos_detalle.0.arcada_label %}<div class="detail">{{ item.trabajos_detalle.0.arcada_label }}</div>{% endif %}</td>
+                    <td>{{ item.color|default:"—" }}</td>
+                    <td>{{ item.get_etapa_display }}</td>
+                    <td class="status">{{ item.get_estado_display }}</td>
+                    <td>{{ item.fecha_inicio|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ item.fecha_retorno|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ item.observaciones|default:"—"|linebreaksbr }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}<div class="empty">No hay prótesis en proceso.</div>{% endif %}
+        <div class="footer"><span>Prótesis activas</span><span>Informe generado el {{ fecha|date:"d/m/Y" }}</span></div>
+    </main>
+</body>
+</html>

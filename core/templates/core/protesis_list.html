@@ -12,9 +12,14 @@
             <p class="text-muted mb-0">Control de prótesis, seguimiento y órdenes de laboratorio</p>
         </div>
 
+        <div class="d-flex gap-2 flex-wrap justify-content-end">
+            <a href="{% url 'protesis_activas_informe' %}" class="btn btn-outline-success">
+                📄 Informe de prótesis activas
+            </a>
         <a href="{% url 'protesis_new' %}" class="btn btn-sonrisar btn-nueva-protesis">
             + Nueva prótesis
         </a>
+        </div>
     </div>
 
     <div class="resumen-protesis mb-4">
@@ -100,16 +105,30 @@
 
                             <div class="col-md-2">
                                 <div class="label-card">Etapa</div>
-                                <span class="badge-etapa">
-                                    {{ item.get_etapa_display }}
-                                </span>
+                                <form method="post" action="{% url 'protesis_cambiar_etapa' item.id %}" class="etapa-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="filtro" value="{{ filtro }}">
+                                    <select name="etapa" class="etapa-select" aria-label="Etapa de {{ item.paciente }}" onchange="this.form.submit()">
+                                        {% for valor, etiqueta in etapas_protesis %}
+                                            <option value="{{ valor }}" {% if item.etapa == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <noscript><button type="submit" class="btn btn-sm btn-sonrisar">Guardar</button></noscript>
+                                </form>
                             </div>
 
                             <div class="col-md-2 text-md-end">
                                 <div class="label-card">Estado</div>
-                                <span class="badge-estado estado-{{ item.estado }}">
-                                    {{ item.get_estado_display }}
-                                </span>
+                                <form method="post" action="{% url 'protesis_cambiar_estado' item.id %}" class="estado-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="filtro" value="{{ filtro }}">
+                                    <select name="estado" class="estado-select estado-{{ item.estado }}" aria-label="Estado de {{ item.paciente }}" onchange="this.form.submit()">
+                                        {% for valor, etiqueta in estados_protesis %}
+                                            <option value="{{ valor }}" {% if item.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <noscript><button type="submit" class="btn btn-sm btn-sonrisar">Guardar</button></noscript>
+                                </form>
                             </div>
 
                         </div>
@@ -316,6 +335,28 @@
         background: #e7f7f6;
         color: #107361;
         border: 1px solid #bde8e5;
+    }
+
+    .etapa-select {
+        max-width: 100%;
+        border-radius: 999px;
+        padding: 6px 8px;
+        font-size: .87rem;
+        font-weight: 700;
+        color: #107361;
+        background: #e7f7f6;
+        border: 1px solid #bde8e5;
+        cursor: pointer;
+    }
+
+    .estado-select {
+        appearance: auto;
+        max-width: 100%;
+        border-radius: 999px;
+        padding: 6px 8px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: .87rem;
     }
 
     .badge-estado {

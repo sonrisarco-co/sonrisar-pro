@@ -2272,8 +2272,71 @@ def protesis_list(request):
             "laboratorio": laboratorio,
             "prueba": prueba,
             "pendientes_pago": pendientes_pago,
+            "estados_protesis": Prosthesis._meta.get_field("estado").choices,
+            "etapas_protesis": Prosthesis._meta.get_field("etapa").choices,
         },
     )
+
+@require_POST
+def protesis_cambiar_estado(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+    nuevo_estado = request.POST.get("estado", "")
+    estados_validos = {
+        valor for valor, _ in Prosthesis._meta.get_field("estado").choices
+    }
+    if nuevo_estado in estados_validos:
+        protesis.estado = nuevo_estado
+        protesis.save(update_fields=["estado"])
+    else:
+        messages.error(request, "Estado de prótesis no válido.")
+
+    filtro = request.POST.get("filtro", "activas")
+    if filtro not in {"activas", "entregadas", "todas"}:
+        filtro = "activas"
+    return redirect(f"{reverse('protesis_list')}?{urlencode({'filtro': filtro})}")
+
+
+@require_POST
+def protesis_cambiar_etapa(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+    nueva_etapa = request.POST.get("etapa", "")
+    etapas_validas = {
+        valor for valor, _ in Prosthesis._meta.get_field("etapa").choices
+    }
+    if nueva_etapa in etapas_validas:
+        protesis.etapa = nueva_etapa
+        protesis.save(update_fields=["etapa"])
+    else:
+        messages.error(request, "Etapa de prótesis no válida.")
+
+    filtro = request.POST.get("filtro", "activas")
+    if filtro not in {"activas", "entregadas", "todas"}:
+        filtro = "activas"
+    return redirect(f"{reverse('protesis_list')}?{urlencode({'filtro': filtro})}")
+
+
+def protesis_activas_informe(request):
+    protesis = list(
+        Prosthesis.objects
+        .exclude(estado="entregada")
+        .select_related("paciente")
+        .prefetch_related("ordenes_laboratorio")
+        .order_by("fecha_retorno", "fecha_inicio", "id")
+    )
+    for item in protesis:
+        trabajo_mostrado = (item.trabajo or "").strip()
+        if not trabajo_mostrado:
+            ordenes = list(item.ordenes_laboratorio.all())
+            if ordenes:
+                ultima_orden = max(ordenes, key=lambda orden: orden.id or 0)
+                trabajo_mostrado = ultima_orden.resumen_trabajo
+        item.trabajo_mostrado = trabajo_mostrado
+
+    return render(request, "core/protesis_activas_informe.html", {
+        "protesis": protesis,
+        "fecha": localdate(),
+    })
+
 
 def protesis_new(request):
     if request.method == "POST":

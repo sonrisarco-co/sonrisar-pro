@@ -258,6 +258,9 @@ urlpatterns = [
     # =====================
 
     path("protesis/", views.protesis_list, name="protesis_list"),
+    path("protesis/informe-activas/", views.protesis_activas_informe, name="protesis_activas_informe"),
+    path("protesis/<int:id>/cambiar-estado/", views.protesis_cambiar_estado, name="protesis_cambiar_estado"),
+    path("protesis/<int:id>/cambiar-etapa/", views.protesis_cambiar_etapa, name="protesis_cambiar_etapa"),
     path("protesis/nueva/", views.protesis_new, name="protesis_new"),
     path("protesis/editar/<int:id>/", views.protesis_edit, name="protesis_edit"),
     path("protesis/eliminar/<int:id>/", views.protesis_delete, name="protesis_delete"),
