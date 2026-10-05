@@ -433,8 +433,8 @@
                                                     Ya cobrado
                                                 </span>
                                             {% else %}
-                                                <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                   class="btn btn-sm btn-outline-primary">
+                                                <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}%23cita-{{ cita.id }}"
+                                                   class="btn btn-sm btn-outline-primary js-cobrar-cita-agenda">
                                                     Cobrar
                                                 </a>
                                             {% endif %}
@@ -730,8 +730,8 @@
                                                     Ya cobrado
                                                 </span>
                                             {% else %}
-                                                <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}"
-                                                   class="btn btn-sm btn-outline-primary">
+                                                <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}%23cita-{{ cita.id }}"
+                                                   class="btn btn-sm btn-outline-primary js-cobrar-cita-agenda">
                                                     Cobrar
                                                 </a>
                                             {% endif %}
@@ -797,7 +797,7 @@
 
                     {% if deudores %}
                         {% for d in deudores %}
-                            <div class="deudor-card mb-3">
+                            <div class="deudor-card mb-3" id="deuda-cita-{{ d.id }}">
                                 <div class="deudor-nombre">
                                     {{ d.paciente }}
                                 </div>
@@ -806,8 +806,8 @@
                                     Debe: $ {{ d.deuda_total_paciente|floatformat:0 }}
                                 </div>
 
-                                <a href="{% url 'cobros_nuevo_desde_cita' d.id %}?next={{ request.get_full_path|urlencode }}"
-                                   class="btn btn-sm btn-outline-primary w-100 mt-2">
+                                <a href="{% url 'cobros_nuevo_desde_cita' d.id %}?next={{ request.get_full_path|urlencode }}%23deuda-cita-{{ d.id }}"
+                                   class="btn btn-sm btn-outline-primary w-100 mt-2 js-cobrar-cita-agenda">
                                     Cobrar saldo
                                 </a>
                             </div>
@@ -1370,48 +1370,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Conserva el punto exacto de la pantalla. El ancla por horario queda como
-    // respaldo para navegadores que no permiten usar sessionStorage.
-    document.querySelectorAll(".js-editar-cita-agenda").forEach(link => {
-        link.addEventListener("click", function () {
-            try {
-                sessionStorage.setItem(scrollStorageKey, JSON.stringify({
-                    url: window.location.pathname + window.location.search,
-                    x: window.scrollX,
-                    y: window.scrollY,
-                    guardadoEn: Date.now()
-                }));
-            } catch (error) {
-                // La navegación sigue funcionando mediante #hora-... .
-            }
-        });
-    });
-
-    try {
-        const posicionGuardada = JSON.parse(sessionStorage.getItem(scrollStorageKey));
-        const urlActual = window.location.pathname + window.location.search;
-        const posicionVigente = posicionGuardada
-            && posicionGuardada.url === urlActual
-            && Date.now() - posicionGuardada.guardadoEn < 10 * 60 * 1000;
-
-        if (posicionVigente) {
-            sessionStorage.removeItem(scrollStorageKey);
-            if ("scrollRestoration" in history) {
-                history.scrollRestoration = "manual";
-            }
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    window.scrollTo(posicionGuardada.x || 0, posicionGuardada.y || 0);
-                });
-            });
-        } else if (posicionGuardada) {
-            sessionStorage.removeItem(scrollStorageKey);
-        }
-    } catch (error) {
-        // Si el navegador bloquea sessionStorage, se conserva el retorno por hora.
-    }
-
     function actualizarPosicionesFijas() {
         if (!agendaRoot || !stickyNavigation) return;
 
@@ -1620,6 +1578,93 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     restorePatientSearch();
 });
+</script>
+
+<script>
+// Recuerda la tarjeta y su posición antes de salir de la lista.
+(function () {
+    const config = {"key": "agendaDiaPosicionAntesDeEditar", "card": "[id^=\"cita-\"], .deudor-card", "links": ".js-editar-cita-agenda, .js-cobrar-cita-agenda", "restoreFilter": false};
+    const key = config.key;
+    const currentURL = () => location.pathname + location.search;
+    const clear = () => { try { sessionStorage.removeItem(key); } catch (error) {} };
+
+    function save(element) {
+        const card = element.closest(config.card);
+        try {
+            sessionStorage.setItem(key, JSON.stringify({
+                url: currentURL(), x: window.scrollX, y: window.scrollY,
+                target: card ? card.id : '',
+                offset: card ? card.getBoundingClientRect().top : 0,
+                guardadoEn: Date.now()
+            }));
+        } catch (error) {
+            // La acción puede continuar si el navegador bloquea el almacenamiento.
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        if (!(event.target instanceof Element)) return;
+        const link = event.target.closest(config.links);
+        if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey
+                && !event.altKey && event.button === 0 && link.target !== '_blank') {
+            save(link);
+        } else if (config.filters && event.target.closest(config.filters)) {
+            clear();
+        }
+    }, true);
+
+    if (config.forms) {
+        // El cambio se captura antes del this.form.submit() de los selectores.
+        document.addEventListener('change', function (event) {
+            if (event.target instanceof Element && event.target.matches(config.changes)) {
+                save(event.target);
+            }
+        }, true);
+        document.addEventListener('submit', function (event) {
+            if (event.target instanceof Element && event.target.matches(config.forms)) {
+                save(event.target);
+            }
+        }, true);
+    }
+
+    function restore() {
+        let saved;
+        try { saved = JSON.parse(sessionStorage.getItem(key)); } catch (error) { clear(); return; }
+        if (!saved) return;
+        if (!Number.isFinite(saved.guardadoEn) || Date.now() - saved.guardadoEn > 2 * 60 * 60 * 1000) {
+            clear(); return;
+        }
+        let destination;
+        try { destination = new URL(saved.url, location.origin); } catch (error) { clear(); return; }
+        if (destination.origin !== location.origin || destination.pathname !== location.pathname) {
+            clear(); return;
+        }
+        if (saved.url !== currentURL()) {
+            if (config.restoreFilter) {
+                // Las vistas de edición vuelven a Prótesis sin el filtro original.
+                location.replace(destination.href);
+            } else { clear(); }
+            return;
+        }
+        clear();
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        const move = () => requestAnimationFrame(() => requestAnimationFrame(() => {
+            const target = saved.target ? document.getElementById(saved.target) : null;
+            const y = target && Number.isFinite(saved.offset)
+                ? window.scrollY + target.getBoundingClientRect().top - saved.offset
+                : saved.y;
+            window.scrollTo(Number.isFinite(saved.x) ? saved.x : 0,
+                Number.isFinite(y) ? Math.max(0, y) : 0);
+        }));
+        // Espera al diseño final y al desplazamiento automático por el ancla.
+        if (document.readyState === 'complete') move();
+        else window.addEventListener('load', move, {once: true});
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restore);
+    else restore();
+    // También funciona al regresar con Atrás y la caché de Safari/iPhone.
+    window.addEventListener('pageshow', function (event) { if (event.persisted) restore(); });
+})();
 </script>
 
 {% endblock %}

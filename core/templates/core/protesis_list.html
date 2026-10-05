@@ -69,7 +69,7 @@
 
             {% for item in protesis %}
                 <div class="col-12">
-                    <div class="protesis-card shadow-sm">
+                    <div class="protesis-card shadow-sm" id="protesis-{{ item.id }}">
 
                         <div class="row align-items-start g-3">
 
@@ -713,5 +713,92 @@
     }
 
 </style>
+
+<script>
+// Recuerda la tarjeta y su posición antes de salir de la lista.
+(function () {
+    const config = {"key": "sonrisarProtesisPosicion", "card": ".protesis-card", "links": ".protesis-card a", "forms": ".etapa-form, .estado-form", "changes": ".etapa-form select, .estado-form select", "filters": ".filtros-protesis a", "restoreFilter": true};
+    const key = config.key;
+    const currentURL = () => location.pathname + location.search;
+    const clear = () => { try { sessionStorage.removeItem(key); } catch (error) {} };
+
+    function save(element) {
+        const card = element.closest(config.card);
+        try {
+            sessionStorage.setItem(key, JSON.stringify({
+                url: currentURL(), x: window.scrollX, y: window.scrollY,
+                target: card ? card.id : '',
+                offset: card ? card.getBoundingClientRect().top : 0,
+                guardadoEn: Date.now()
+            }));
+        } catch (error) {
+            // La acción puede continuar si el navegador bloquea el almacenamiento.
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        if (!(event.target instanceof Element)) return;
+        const link = event.target.closest(config.links);
+        if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey
+                && !event.altKey && event.button === 0 && link.target !== '_blank') {
+            save(link);
+        } else if (config.filters && event.target.closest(config.filters)) {
+            clear();
+        }
+    }, true);
+
+    if (config.forms) {
+        // El cambio se captura antes del this.form.submit() de los selectores.
+        document.addEventListener('change', function (event) {
+            if (event.target instanceof Element && event.target.matches(config.changes)) {
+                save(event.target);
+            }
+        }, true);
+        document.addEventListener('submit', function (event) {
+            if (event.target instanceof Element && event.target.matches(config.forms)) {
+                save(event.target);
+            }
+        }, true);
+    }
+
+    function restore() {
+        let saved;
+        try { saved = JSON.parse(sessionStorage.getItem(key)); } catch (error) { clear(); return; }
+        if (!saved) return;
+        if (!Number.isFinite(saved.guardadoEn) || Date.now() - saved.guardadoEn > 2 * 60 * 60 * 1000) {
+            clear(); return;
+        }
+        let destination;
+        try { destination = new URL(saved.url, location.origin); } catch (error) { clear(); return; }
+        if (destination.origin !== location.origin || destination.pathname !== location.pathname) {
+            clear(); return;
+        }
+        if (saved.url !== currentURL()) {
+            if (config.restoreFilter) {
+                // Las vistas de edición vuelven a Prótesis sin el filtro original.
+                location.replace(destination.href);
+            } else { clear(); }
+            return;
+        }
+        clear();
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        const move = () => requestAnimationFrame(() => requestAnimationFrame(() => {
+            const target = saved.target ? document.getElementById(saved.target) : null;
+            const y = target && Number.isFinite(saved.offset)
+                ? window.scrollY + target.getBoundingClientRect().top - saved.offset
+                : saved.y;
+            window.scrollTo(Number.isFinite(saved.x) ? saved.x : 0,
+                Number.isFinite(y) ? Math.max(0, y) : 0);
+        }));
+        // Espera al diseño final y al desplazamiento automático por el ancla.
+        if (document.readyState === 'complete') move();
+        else window.addEventListener('load', move, {once: true});
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restore);
+    else restore();
+    // También funciona al regresar con Atrás y la caché de Safari/iPhone.
+    window.addEventListener('pageshow', function (event) { if (event.persisted) restore(); });
+})();
+</script>
 
 {% endblock %}
