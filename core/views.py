@@ -2324,12 +2324,13 @@ def protesis_activas_informe(request):
         .order_by("fecha_retorno", "fecha_inicio", "id")
     )
     for item in protesis:
+        ordenes = list(item.ordenes_laboratorio.all())
+        ultima_orden = max(ordenes, key=lambda orden: orden.id or 0) if ordenes else None
+        item.fecha_envio_informe = ultima_orden.fecha_envio if ultima_orden else None
+        item.fecha_solicitada_informe = ultima_orden.fecha_entrega_prometida if ultima_orden else None
         trabajo_mostrado = (item.trabajo or "").strip()
-        if not trabajo_mostrado:
-            ordenes = list(item.ordenes_laboratorio.all())
-            if ordenes:
-                ultima_orden = max(ordenes, key=lambda orden: orden.id or 0)
-                trabajo_mostrado = ultima_orden.resumen_trabajo
+        if not trabajo_mostrado and ultima_orden:
+            trabajo_mostrado = ultima_orden.resumen_trabajo
         item.trabajo_mostrado = trabajo_mostrado
 
     return render(request, "core/protesis_activas_informe.html", {

@@ -550,7 +550,7 @@ class Prosthesis(models.Model):
     ESTADOS_PROTESIS = [
         ("laboratorio", "En laboratorio"),
         ("proceso", "En proceso"),
-        ("prueba", "Lista para prueba"),
+        ("prueba", "En consultorio"),
         ("entrega", "Lista para entrega"),
         ("entregada", "Entregada"),
     ]

@@ -75,7 +75,7 @@
         {% if protesis %}
         <table>
             <colgroup><col style="width: 16%"><col style="width: 23%"><col style="width: 7%"><col style="width: 12%"><col style="width: 11%"><col style="width: 8%"><col style="width: 8%"><col style="width: 15%"></colgroup>
-            <thead><tr><th>Paciente</th><th>Prótesis / trabajo</th><th>Color</th><th>Etapa</th><th>Estado</th><th>Inicio</th><th>Retorno</th><th>Observaciones</th></tr></thead>
+            <thead><tr><th>Paciente</th><th>Prótesis / trabajo</th><th>Color</th><th>Etapa</th><th>Estado</th><th>Fecha de envío</th><th>Solicitado para</th><th>Observaciones</th></tr></thead>
             <tbody>
             {% for item in protesis %}
                 <tr>
@@ -88,8 +88,8 @@
                     <td>{{ item.color|default:"—" }}</td>
                     <td>{{ item.get_etapa_display }}</td>
                     <td class="status">{{ item.get_estado_display }}</td>
-                    <td>{{ item.fecha_inicio|date:"d/m/Y"|default:"—" }}</td>
-                    <td>{{ item.fecha_retorno|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ item.fecha_envio_informe|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ item.fecha_solicitada_informe|date:"d/m/Y"|default:"—" }}</td>
                     <td>{{ item.observaciones|default:"—"|linebreaksbr }}</td>
                 </tr>
             {% endfor %}
