@@ -2328,6 +2328,7 @@ def protesis_activas_informe(request):
         ultima_orden = max(ordenes, key=lambda orden: orden.id or 0) if ordenes else None
         item.fecha_envio_informe = ultima_orden.fecha_envio if ultima_orden else None
         item.fecha_solicitada_informe = ultima_orden.fecha_entrega_prometida if ultima_orden else None
+        item.hora_solicitada_informe = ultima_orden.hora_entrega_solicitada if ultima_orden else None
         trabajo_mostrado = (item.trabajo or "").strip()
         if not trabajo_mostrado and ultima_orden:
             trabajo_mostrado = ultima_orden.resumen_trabajo

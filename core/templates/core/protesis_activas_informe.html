@@ -89,7 +89,7 @@
                     <td>{{ item.get_etapa_display }}</td>
                     <td class="status">{{ item.get_estado_display }}</td>
                     <td>{{ item.fecha_envio_informe|date:"d/m/Y"|default:"—" }}</td>
-                    <td>{{ item.fecha_solicitada_informe|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ item.fecha_solicitada_informe|date:"d/m/Y"|default:"—" }}{% if item.hora_solicitada_informe %}<div class="detail">{{ item.hora_solicitada_informe|time:"H:i" }} h</div>{% endif %}</td>
                     <td>{{ item.observaciones|default:"—"|linebreaksbr }}</td>
                 </tr>
             {% endfor %}
