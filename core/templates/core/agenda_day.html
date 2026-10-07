@@ -336,7 +336,7 @@
                                                 <span class="badge bg-secondary">Cancelado</span>
                                             {% endif %}
 
-                                            {% if cita.estado == "pendiente" or cita.estado == "En espera" or cita.estado == "confirmado" %}
+                                            {% if cita.estado_slug == "pendiente" or cita.estado_slug == "En espera" or cita.estado_slug == "confirmado" %}
                                                 <button type="button" class="btn btn-sm js-confirmar-cita"
                                                         style="border:1px solid #fd7e14; color:#b34b00;"
                                                         data-estado="sin_respuesta"
@@ -662,7 +662,7 @@
                                                 <span class="badge bg-secondary">Cancelado</span>
                                             {% endif %}
 
-                                            {% if cita.estado == "pendiente" or cita.estado == "En espera" or cita.estado == "confirmado" %}
+                                            {% if cita.estado_slug == "pendiente" or cita.estado_slug == "En espera" or cita.estado_slug == "confirmado" %}
                                                 <button type="button" class="btn btn-sm js-confirmar-cita"
                                                         style="border:1px solid #fd7e14; color:#b34b00;"
                                                         data-estado="sin_respuesta"
