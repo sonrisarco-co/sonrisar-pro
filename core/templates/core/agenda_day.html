@@ -320,6 +320,12 @@
                                                         ✓ Marcar confirmado
                                                     </button>
                                                 </span>
+                                            {% elif cita.estado_slug == "sin_respuesta" %}
+                                                <span class="js-estado-cita">
+                                                    <span class="badge" style="background:#fd7e14; color:#fff;">Sin respuesta</span>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary js-confirmar-cita"
+                                                            data-url="{% url 'appointment_confirm' cita.id %}">✓ Marcar confirmado</button>
+                                                </span>
                                             {% elif cita.estado_slug == "confirmado" %}
                                                 <span class="badge bg-primary">Confirmado</span>
                                             {% elif cita.estado_slug == "asistio" %}
@@ -328,6 +334,13 @@
                                                 <span class="badge bg-danger">No asistió</span>
                                             {% elif cita.estado_slug == "cancelado" %}
                                                 <span class="badge bg-secondary">Cancelado</span>
+                                            {% endif %}
+
+                                            {% if cita.estado == "pendiente" or cita.estado == "En espera" or cita.estado == "confirmado" %}
+                                                <button type="button" class="btn btn-sm js-confirmar-cita"
+                                                        style="border:1px solid #fd7e14; color:#b34b00;"
+                                                        data-estado="sin_respuesta"
+                                                        data-url="{% url 'appointment_confirm' cita.id %}">Sin respuesta</button>
                                             {% endif %}
 
                                             {% if cita.estado_slug != "asistio" and cita.estado_slug != "cancelado" %}
@@ -633,6 +646,12 @@
                                                         ✓ Marcar confirmado
                                                     </button>
                                                 </span>
+                                            {% elif cita.estado_slug == "sin_respuesta" %}
+                                                <span class="js-estado-cita">
+                                                    <span class="badge" style="background:#fd7e14; color:#fff;">Sin respuesta</span>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary js-confirmar-cita"
+                                                            data-url="{% url 'appointment_confirm' cita.id %}">✓ Marcar confirmado</button>
+                                                </span>
                                             {% elif cita.estado_slug == "confirmado" %}
                                                 <span class="badge bg-primary">Confirmado</span>
                                             {% elif cita.estado_slug == "asistio" %}
@@ -641,6 +660,13 @@
                                                 <span class="badge bg-danger">No asistió</span>
                                             {% elif cita.estado_slug == "cancelado" %}
                                                 <span class="badge bg-secondary">Cancelado</span>
+                                            {% endif %}
+
+                                            {% if cita.estado == "pendiente" or cita.estado == "En espera" or cita.estado == "confirmado" %}
+                                                <button type="button" class="btn btn-sm js-confirmar-cita"
+                                                        style="border:1px solid #fd7e14; color:#b34b00;"
+                                                        data-estado="sin_respuesta"
+                                                        data-url="{% url 'appointment_confirm' cita.id %}">Sin respuesta</button>
                                             {% endif %}
 
                                             {% if cita.estado_slug != "asistio" and cita.estado_slug != "cancelado" %}
@@ -1342,11 +1368,12 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", async function () {
             const textoOriginal = button.textContent;
             button.disabled = true;
-            button.textContent = "Confirmando...";
+            button.textContent = "Guardando...";
 
             try {
                 const response = await fetch(button.dataset.url, {
                     method: "POST",
+                    body: new URLSearchParams({estado: button.dataset.estado || "confirmado"}),
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                         "X-Requested-With": "XMLHttpRequest",
@@ -1358,10 +1385,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     throw new Error(data.error || "No se pudo confirmar la cita.");
                 }
 
-                const estadoConfirmado = document.createElement("span");
-                estadoConfirmado.className = "badge bg-primary";
-                estadoConfirmado.textContent = data.estado || "Confirmado";
-                button.closest(".js-estado-cita").replaceWith(estadoConfirmado);
+                try {
+                    sessionStorage.setItem(scrollStorageKey, JSON.stringify({
+                        url: window.location.pathname + window.location.search,
+                        x: window.scrollX,
+                        y: window.scrollY,
+                        guardadoEn: Date.now()
+                    }));
+                } catch (error) {}
+                window.location.reload();
             } catch (error) {
                 button.disabled = false;
                 button.textContent = textoOriginal;
