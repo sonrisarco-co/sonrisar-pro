@@ -101,6 +101,8 @@ urlpatterns = [
 
     # NUEVO: pacientes deudores
     path("deudores/", views.deudores_general, name="deudores_general"),
+    path("deudores/<int:patient_id>/archivar/", views.deudor_archivar, name="deudor_archivar"),
+    path("deudores/<int:patient_id>/restaurar/", views.deudor_restaurar, name="deudor_restaurar"),
 
 
 

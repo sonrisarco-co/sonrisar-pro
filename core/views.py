@@ -5525,23 +5525,36 @@ def deudores_general(request):
     - Calcula deuda real por paciente: total citas cobrables - total pagado.
     """
     query = request.GET.get("q", "").strip().lower()
+    mostrar_archivados = request.GET.get("estado") == "archivados"
 
-    citas = list(
+    citas = (
         Appointment.objects
         .exclude(estado="cancelado")
         .filter(monto_total__gt=0)
         .select_related("paciente")
-        .order_by("fecha", "hora")[:300]
+        .only(
+            "id",
+            "paciente_id",
+            "fecha",
+            "hora",
+            "paciente__nombre",
+            "paciente__apellido",
+            "paciente__archivado_deudores",
+        )
+        .order_by("fecha", "hora", "id")
     )
 
     pacientes_por_id = {}
     primera_cita_pendiente_por_id = {}
     ultima_fecha_por_id = {}
 
-    for cita in citas:
+    for cita in citas.iterator(chunk_size=500):
         paciente = cita.paciente
         patient_id = paciente.id
         nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
+
+        if paciente.archivado_deudores != mostrar_archivados:
+            continue
 
         if query and query not in nombre:
             continue
@@ -5572,6 +5585,9 @@ def deudores_general(request):
         patient_id = paciente.id
         nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
 
+        if paciente.archivado_deudores != mostrar_archivados:
+            continue
+
         if query and query not in nombre:
             continue
 
@@ -5592,13 +5608,47 @@ def deudores_general(request):
         if patient_id not in ultima_fecha_por_id:
             ultima_fecha_por_id[patient_id] = presupuesto.fecha
 
+    # El archivo también muestra pacientes archivados que ya no tengan citas
+    # cobrables o presupuestos confirmados, para poder restaurarlos si hace falta.
+    if mostrar_archivados:
+        archivados = Patient.objects.filter(archivado_deudores=True).annotate(
+            ultima_cita=Max("appointment__fecha")
+        ).only("id", "nombre", "apellido", "archivado_deudores")
+        for paciente in archivados:
+            nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
+            if query and query not in nombre:
+                continue
+            pacientes_por_id.setdefault(paciente.id, paciente)
+            if paciente.ultima_cita:
+                ultima_fecha_por_id[paciente.id] = paciente.ultima_cita
+
     patient_ids = list(pacientes_por_id.keys())
     resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
+
+    # Calcula los cargos de todos los pacientes en bloques. Evita hacer una
+    # consulta SQL por paciente al entrar a Deudores.
+    totales_cobrables_por_id = {}
+    for inicio in range(0, len(patient_ids), 500):
+        ids_bloque = patient_ids[inicio:inicio + 500]
+        filas_totales = (
+            Appointment.objects
+            .filter(paciente_id__in=ids_bloque)
+            .exclude(estado="cancelado")
+            .values("paciente_id")
+            .annotate(total=Sum("monto_total"))
+        )
+        totales_cobrables_por_id.update({
+            fila["paciente_id"]: _decimal_seguro(fila["total"])
+            for fila in filas_totales
+        })
 
     deudores = []
 
     for patient_id, paciente in pacientes_por_id.items():
-        total_cobrable = obtener_total_cobrable_paciente_desde_pro(paciente)
+        total_cobrable = totales_cobrables_por_id.get(
+            patient_id,
+            Decimal("0"),
+        )
         total_pagado = _decimal_seguro(
             resumenes_cobros.get(patient_id, {}).get("total_pagado", 0)
         )
@@ -5625,7 +5675,7 @@ def deudores_general(request):
         # Tomamos el saldo mayor en vez de sumarlos para no duplicar deuda.
         deuda_total = max(deuda_citas, deuda_presupuestos)
 
-        if deuda_total <= 0:
+        if deuda_total <= 0 and not mostrar_archivados:
             continue
 
         cita_pendiente = primera_cita_pendiente_por_id.get(patient_id)
@@ -5642,9 +5692,10 @@ def deudores_general(request):
 
     deudores.sort(key=lambda x: x["deuda_total"], reverse=True)
 
-    total_general = sum(
-        (d["deuda_total"] for d in deudores),
-        Decimal("0")
+    total_general = (
+        sum((d["deuda_total"] for d in deudores), Decimal("0"))
+        if not mostrar_archivados
+        else Decimal("0")
     )
 
     return render(
@@ -5654,8 +5705,49 @@ def deudores_general(request):
             "deudores": deudores,
             "total_general": total_general,
             "query": query,
+            "mostrar_archivados": mostrar_archivados,
         }
     )
+
+
+def _redirigir_deudores(request, url_predeterminada):
+    """Vuelve a una URL local indicada por el formulario, si es segura."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    destino = request.POST.get("next", "")
+    if url_has_allowed_host_and_scheme(
+        destino,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(destino)
+    return redirect(url_predeterminada)
+
+
+@require_POST
+def deudor_archivar(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+    if not paciente.archivado_deudores:
+        paciente.archivado_deudores = True
+        paciente.save(update_fields=["archivado_deudores"])
+        messages.success(
+            request,
+            "Paciente archivado. Su deuda se conserva y deja de sumarse al total activo.",
+        )
+    return _redirigir_deudores(request, "deudores_general")
+
+
+@require_POST
+def deudor_restaurar(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+    if paciente.archivado_deudores:
+        paciente.archivado_deudores = False
+        paciente.save(update_fields=["archivado_deudores"])
+        messages.success(
+            request,
+            "Paciente restaurado. Su deuda vuelve a incluirse en el total activo.",
+        )
+    return _redirigir_deudores(request, "deudores_general")
 
 def obtener_detalle_cobros_paciente(paciente):
     """

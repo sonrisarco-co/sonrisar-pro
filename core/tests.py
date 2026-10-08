@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase, RequestFactory, override_settings
+from django.urls import reverse
 
 from .models import Patient, Appointment, Budget, BudgetPayment
 from .views import (
@@ -116,6 +117,77 @@ class AgendaNoAsistioTests(TestCase):
     def test_plantilla_agenda_compila(self):
         from django.template.loader import get_template
         get_template("core/agenda_day.html")
+
+
+class DeudoresArchivadosTests(TestCase):
+    def setUp(self):
+        self.activo = Patient.objects.create(
+            nombre="Activa", apellido="Deudora", ci="DEU-1"
+        )
+        self.archivado = Patient.objects.create(
+            nombre="Archivada", apellido="Deudora", ci="DEU-2",
+            archivado_deudores=True,
+        )
+        Appointment.objects.create(
+            paciente=self.activo, fecha=date(2026, 8, 1), hora=time(10),
+            motivo="Prueba", estado="asistio", monto_total=900,
+        )
+        Appointment.objects.create(
+            paciente=self.archivado, fecha=date(2026, 7, 1), hora=time(11),
+            motivo="Prueba", estado="asistio", monto_total=500,
+        )
+        Appointment.objects.create(
+            paciente=self.activo, fecha=date(2026, 8, 2), hora=time(10),
+            motivo="Cita cancelada", estado="cancelado", monto_total=12000,
+        )
+
+    def _resumen_cobros_sin_pagos(self, patient_ids):
+        return {
+            int(patient_id): {"total_pagado": Decimal("0")}
+            for patient_id in patient_ids
+        }
+
+    def test_archivar_y_restaurar_conserva_saldo_y_actualiza_total_activo(self):
+        url = reverse("deudores_general")
+        with patch(
+            "core.views.obtener_resumen_cobros_pacientes_bulk",
+            side_effect=self._resumen_cobros_sin_pagos,
+        ):
+            respuesta = self.client.get(url)
+        self.assertContains(respuesta, "Deuda total activa: $ 900")
+        self.assertContains(respuesta, "Deudora, Activa")
+        self.assertNotContains(respuesta, "Deudora, Archivada")
+
+        archivar_url = reverse("deudor_archivar", args=[self.activo.id])
+        respuesta = self.client.post(archivar_url, {"next": f"{url}?estado=archivados"})
+        self.assertRedirects(respuesta, f"{url}?estado=archivados")
+        self.activo.refresh_from_db()
+        self.assertTrue(self.activo.archivado_deudores)
+
+        with patch(
+            "core.views.obtener_resumen_cobros_pacientes_bulk",
+            side_effect=self._resumen_cobros_sin_pagos,
+        ):
+            respuesta = self.client.get(f"{url}?estado=archivados")
+        self.assertContains(respuesta, "Deudora, Activa")
+        self.assertContains(respuesta, "Deudora, Archivada")
+        self.assertContains(respuesta, "Total: $ 900")
+        self.assertNotContains(respuesta, "Deuda total activa")
+
+        restaurar_url = reverse("deudor_restaurar", args=[self.activo.id])
+        respuesta = self.client.post(restaurar_url, {"next": url})
+        self.assertRedirects(respuesta, url)
+        self.activo.refresh_from_db()
+        self.assertFalse(self.activo.archivado_deudores)
+
+        with patch(
+            "core.views.obtener_resumen_cobros_pacientes_bulk",
+            side_effect=self._resumen_cobros_sin_pagos,
+        ):
+            respuesta = self.client.get(url)
+        self.assertContains(respuesta, "Deuda total activa: $ 900")
+        self.assertContains(respuesta, "Deudora, Activa")
+        self.assertNotContains(respuesta, "Deudora, Archivada")
 
 
 class AgendaAsistioTests(AgendaNoAsistioTests):

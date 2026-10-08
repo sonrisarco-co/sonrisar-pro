@@ -12,7 +12,19 @@
 
     <h3 class="mb-3">Pacientes deudores</h3>
 
+    <div class="btn-group mb-3" role="group" aria-label="Sección de deudores">
+        <a href="{% url 'deudores_general' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+           class="btn {% if not mostrar_archivados %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            Activos
+        </a>
+        <a href="{% url 'deudores_general' %}?estado=archivados{% if query %}&q={{ query|urlencode }}{% endif %}"
+           class="btn {% if mostrar_archivados %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            Archivados
+        </a>
+    </div>
+
     <form method="get" class="mb-3">
+        {% if mostrar_archivados %}<input type="hidden" name="estado" value="archivados">{% endif %}
         <input type="text"
                name="q"
                value="{{ query }}"
@@ -20,11 +32,18 @@
                class="form-control buscador">
     </form>
 
-    <div class="mb-3">
-        <span class="badge total-general">
-            Total adeudado: $ {{ total_general|floatformat:0 }}
-        </span>
-    </div>
+    {% if mostrar_archivados %}
+        <div class="alert alert-info py-2 mb-3">
+            Estos saldos se conservan, pero no se incluyen en el total de Deudores activos.
+        </div>
+    {% else %}
+        <div class="mb-3">
+            <span class="badge total-general">
+                Deuda total activa: $ {{ total_general|floatformat:0 }}
+            </span>
+            <small class="text-muted ms-2">Los archivados no se incluyen en este total.</small>
+        </div>
+    {% endif %}
 
     {% if deudores %}
 
@@ -60,15 +79,32 @@
                     </div>
 
                     <div class="acciones">
-                        {% if d.cita_pendiente_id %}
+                        {% if mostrar_archivados %}
+                            <form method="post" action="{% url 'deudor_restaurar' d.patient_id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    Restaurar
+                                </button>
+                            </form>
+                        {% else %}
+                            {% if d.cita_pendiente_id %}
                             <a href="{% url 'cobros_nuevo_desde_cita' d.cita_pendiente_id %}?next={{ request.get_full_path|urlencode }}"
                             class="btn btn-sm btn-outline-primary">
                                 Cobrar
                             </a>
-                        {% else %}
-                            <span class="btn btn-sm btn-secondary disabled">
-                                Sin cita pendiente
-                            </span>
+                            {% else %}
+                                <span class="btn btn-sm btn-secondary disabled">
+                                    Sin cita pendiente
+                                </span>
+                            {% endif %}
+                            <form method="post" action="{% url 'deudor_archivar' d.patient_id %}" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'deudores_general' %}?estado=archivados{% if query %}&q={{ query|urlencode }}{% endif %}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    Archivar
+                                </button>
+                            </form>
                         {% endif %}
                     </div>
 
@@ -78,9 +114,11 @@
         </div>
 
     {% else %}
-        <div class="alert alert-success">
-            No hay pacientes con deuda 🎉
-        </div>
+        {% if mostrar_archivados %}
+            <div class="alert alert-light border">No hay pacientes archivados.</div>
+        {% else %}
+            <div class="alert alert-success">No hay pacientes con deuda 🎉</div>
+        {% endif %}
     {% endif %}
 
 </div>
@@ -154,6 +192,8 @@
     .acciones .btn {
         width: 100%;
     }
+
+.acciones form { width: 100%; }
 }
 </style>
 

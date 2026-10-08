@@ -12,6 +12,11 @@ class Patient(models.Model):
     telefono = models.CharField(max_length=50)
     email = models.EmailField(blank=True)
     direccion = models.CharField(max_length=200, blank=True)
+    archivado_deudores = models.BooleanField(
+        "Archivado en Deudores",
+        default=False,
+        db_index=True,
+    )
 
     def __str__(self):
         return f"{self.apellido}, {self.nombre}"
