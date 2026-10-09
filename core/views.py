@@ -18,7 +18,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from django.utils.http import urlencode
+from django.utils.http import urlencode, url_has_allowed_host_and_scheme
 
 from django.contrib import messages
 
@@ -3479,10 +3479,19 @@ def agenda_day(request, day, month, year):
 
     deuda_citas_por_paciente = {}
     deuda_presupuestos_por_paciente = {}
+    saldo_a_favor_por_paciente = {}
 
     for patient_id in patient_ids_dia:
         total_pagado_cobros = _decimal_seguro(
             resumenes_cobros_dia.get(patient_id, {}).get("total_pagado", 0)
+        )
+
+        # Saldo general igual al de Finanzas: pagos netos menos cargos de
+        # citas no canceladas. No depende del pago ni del estado de esta cita.
+        saldo_a_favor_por_paciente[patient_id] = max(
+            total_pagado_cobros
+            - totales_cobrables_por_paciente.get(patient_id, Decimal("0")),
+            Decimal("0"),
         )
 
         # Misma lógica usada por Pacientes deudores:
@@ -3605,6 +3614,9 @@ def agenda_day(request, day, month, year):
             # de ESTA cita. No se reemplaza por la deuda global del paciente,
             # porque ese valor se usa para decidir Pendiente / Ya cobrado.
             cita_data["deuda_total_paciente"] = deuda_total
+            cita_data["saldo_a_favor_paciente"] = saldo_a_favor_por_paciente.get(
+                patient_id, Decimal("0"),
+            )
 
         horarios.append({
             "hora": h,
@@ -5550,11 +5562,11 @@ def deudores_general(request):
 
     for cita in citas.iterator(chunk_size=500):
         paciente = cita.paciente
+        if paciente.archivado_deudores != mostrar_archivados:
+            continue
         patient_id = paciente.id
         nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
 
-        if paciente.archivado_deudores != mostrar_archivados:
-            continue
 
         if query and query not in nombre:
             continue
@@ -5582,11 +5594,11 @@ def deudores_general(request):
 
     for presupuesto in presupuestos_confirmados:
         paciente = presupuesto.paciente
+        if paciente.archivado_deudores != mostrar_archivados:
+            continue
         patient_id = paciente.id
         nombre = f"{paciente.apellido}, {paciente.nombre}".lower()
 
-        if paciente.archivado_deudores != mostrar_archivados:
-            continue
 
         if query and query not in nombre:
             continue

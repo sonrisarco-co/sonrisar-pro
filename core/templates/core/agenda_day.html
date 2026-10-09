@@ -425,7 +425,11 @@
 
                                             {% endif %}
 
-                                            {% if cita.deuda_total_paciente <= 0 %}
+                                            {% if cita.saldo_a_favor_paciente > 0 %}
+                                                <span class="badge badge-saldo-favor" title="Saldo general del paciente, igual al de Finanzas">
+                                                    💰 Saldo a favor del paciente $ {{ cita.saldo_a_favor_paciente|floatformat:0 }}
+                                                </span>
+                                            {% elif cita.deuda_total_paciente <= 0 %}
                                                 <span class="badge badge-sin-deuda">
                                                     Sin deuda
                                                 </span>
@@ -735,7 +739,11 @@
 
                                             {% endif %}
 
-                                            {% if cita.deuda_total_paciente <= 0 %}
+                                            {% if cita.saldo_a_favor_paciente > 0 %}
+                                                <span class="badge badge-saldo-favor" title="Saldo general del paciente, igual al de Finanzas">
+                                                    💰 Saldo a favor del paciente $ {{ cita.saldo_a_favor_paciente|floatformat:0 }}
+                                                </span>
+                                            {% elif cita.deuda_total_paciente <= 0 %}
                                                 <span class="badge badge-sin-deuda">
                                                     Sin deuda
                                                 </span>
