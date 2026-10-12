@@ -659,6 +659,56 @@ def appointment_new(request):
                 messages.error(request, "Ese horario está bloqueado.")
                 return redirect(next_url)
 
+            # Avisar antes de crear otra cita del paciente en el mismo mes.
+            from django.core import signing
+
+            citas_mes = list(
+                Appointment.objects.filter(
+                    paciente_id=nueva_cita.paciente_id,
+                    fecha__year=nueva_cita.fecha.year,
+                    fecha__month=nueva_cita.fecha.month,
+                ).exclude(estado="cancelado").order_by("fecha", "hora", "id")
+            )
+            if citas_mes:
+                referencia = (
+                    str(nueva_cita.paciente_id) + ":" +
+                    nueva_cita.fecha.isoformat() + ":" +
+                    ",".join(str(c.pk) for c in citas_mes)
+                )
+                confirmado = False
+                try:
+                    confirmado = (
+                        signing.Signer(salt="citas-mismo-mes").unsign(
+                            request.POST.get("confirmacion_citas_mes", "")
+                        ) == referencia
+                    )
+                except signing.BadSignature:
+                    pass
+
+                if not confirmado:
+                    datos = [
+                        (nombre, valor)
+                        for nombre, valores in request.POST.lists()
+                        if nombre not in {
+                            "csrfmiddlewaretoken", "confirmacion_citas_mes"
+                        }
+                        for valor in valores
+                    ]
+                    return render(
+                        request,
+                        "core/appointment_month_confirm.html",
+                        {
+                            "paciente": nueva_cita.paciente,
+                            "fecha": nueva_cita.fecha,
+                            "citas_mes": citas_mes,
+                            "datos": datos,
+                            "confirmacion_citas_mes": signing.Signer(
+                                salt="citas-mismo-mes"
+                            ).sign(referencia),
+                            "next": next_url,
+                        },
+                    )
+
             nueva_cita.save()
             form.save_m2m()
 

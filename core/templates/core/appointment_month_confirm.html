@@ -1,0 +1,51 @@
+{% extends "core/base.html" %}
+{% block title %}Confirmar nueva cita | Sonrisar Pro{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm p-4">
+        <h3 style="color:#26ABA5;">El paciente ya tiene citas este mes</h3>
+        <p>
+            <strong>{{ paciente }}</strong> ya tiene las siguientes citas
+            en {{ fecha|date:"m/Y" }}.
+            La nueva cita todavía no se guardó.
+        </p>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-sonrisar">
+                    <tr>
+                        <th>Fecha</th><th>Hora</th>
+                        <th>Motivo</th><th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas_mes %}
+                    <tr>
+                        <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ cita.hora|time:"H:i" }}</td>
+                        <td>{{ cita.motivo }}</td>
+                        <td>{{ cita.get_estado_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p>¿Querés guardar otra cita para este paciente?</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for nombre, valor in datos %}
+                <input type="hidden" name="{{ nombre }}" value="{{ valor }}">
+            {% endfor %}
+            <input type="hidden" name="confirmacion_citas_mes"
+                   value="{{ confirmacion_citas_mes }}">
+            <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    Guardar de todas formas
+                </button>
+                <a href="{{ next }}" class="btn btn-outline-secondary btn-sm">
+                    No guardar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
