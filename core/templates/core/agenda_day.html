@@ -123,6 +123,7 @@
                 <form id="agendaPatientSearch" role="search" class="agenda-patient-search-bar"
                       data-url="{% url 'agenda_patient_search' %}"
                       data-appointment-url="{% url 'appointment_new' %}"
+                      data-patient-appointments-url="{% url 'patient_appointments' 0 %}"
                       data-date="{{ fecha|date:'Y-m-d' }}">
                     <span aria-hidden="true">🔍</span>
                     <input id="agendaPatientQuery" type="search"
@@ -1555,7 +1556,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 appointment.href = target.href;
                 appointment.className = "btn btn-primary btn-sm";
                 appointment.textContent = "Agendar turno";
-                actions.append(detail, appointment);
+                const citas = document.createElement("a");
+                const citasUrl = new URL(form.dataset.patientAppointmentsUrl.replace("/0/", "/" + patient.id + "/"), window.location.origin);
+                citasUrl.searchParams.set("next", window.location.pathname + window.location.search);
+                citas.href = citasUrl.href;
+                citas.className = "btn btn-outline-primary btn-sm";
+                citas.textContent = "Ver citas";
+                citas.addEventListener("click", () => {
+                    try {
+                        sessionStorage.setItem("agendaPatientReturn", JSON.stringify({url: window.location.pathname + window.location.search, query: input.value, pages: page, dropdownScroll: dropdown.scrollTop, x: window.scrollX, y: window.scrollY}));
+                    } catch (error) {}
+                });
+                actions.append(citas, detail, appointment);
                 row.append(label, actions);
                 results.append(row);
             });
