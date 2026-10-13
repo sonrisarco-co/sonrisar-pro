@@ -281,8 +281,20 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("pointerdown", event => {
         if (!section.contains(event.target)) closeSearch();
     });
+    let focusoutTimer;
+
     section.addEventListener("focusout", event => {
-        if (!section.contains(event.relatedTarget)) closeSearch();
+        clearTimeout(focusoutTimer);
+
+        if (section.contains(event.relatedTarget)) return;
+
+        focusoutTimer = setTimeout(() => {
+            if (!section.contains(document.activeElement)) closeSearch();
+        }, 250);
+    });
+
+    section.addEventListener("focusin", () => {
+        clearTimeout(focusoutTimer);
     });
     section.addEventListener("keydown", event => {
         if (event.key === "Escape") { input.focus(); closeSearch(); }
