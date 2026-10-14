@@ -52,3 +52,17 @@ def patients_updates(request):
     response = JsonResponse({'revision': patients_revision()})
     response['Cache-Control'] = 'private, no-store'
     return response
+
+
+@login_required
+@require_GET
+def system_updates(request):
+    from .system_live import SCOPES, revision
+    scope = request.GET.get('seccion', '')
+    if scope not in SCOPES:
+        return JsonResponse({'error': 'Sección inválida'}, status=400)
+    if scope == 'actividad' and not manager(request.user):
+        raise PermissionDenied
+    response = JsonResponse({'revision': revision(scope)})
+    response['Cache-Control'] = 'private, no-store'
+    return response

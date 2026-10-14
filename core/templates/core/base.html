@@ -377,6 +377,18 @@
 
     <!-- CONTENIDO -->
     <main class="container mt-4">
+        {% if sonrisar_live %}
+        <div class="sonrisar-system-live-status d-flex align-items-center justify-content-end gap-2 small mb-3"
+             data-url="{% url 'system_updates' %}?seccion={{ sonrisar_live.scope }}"
+             data-revision="{{ sonrisar_live.revision }}" data-root="main.container"
+             data-anchors="tr[id], .protesis-card[id], [id^='cita-'], [id^='hora-'], article[id]"
+             data-manual="{{ sonrisar_live.manual|yesno:'true,false' }}"
+             data-periodic="{{ sonrisar_live.periodic }}" data-login-url="{% url 'login' %}"
+             role="status" aria-live="polite">
+            <span data-live-message>{% if sonrisar_live.manual %}Avisos de cambios activos · Edición protegida{% else %}Actualización automática activa{% endif %}</span>
+            <button data-live-refresh type="button" class="btn btn-sm btn-outline-secondary" hidden>Actualizar ahora</button>
+        </div>
+        {% endif %}
         {% for message in messages %}
             <div class="alert alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}warning{% else %}info{% endif %}" role="alert">{{ message }}</div>
         {% endfor %}
@@ -408,5 +420,6 @@
     </script>
 
     <script src="{% static 'core/js/activity_navigation.js' %}?v=1"></script>
+    {% if sonrisar_live %}<script src="{% static 'core/js/list_live.js' %}?v=2"></script>{% endif %}
 </body>
 </html>

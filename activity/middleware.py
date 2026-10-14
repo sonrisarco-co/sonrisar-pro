@@ -30,3 +30,5 @@ class ActivityMiddleware:
             return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
         if name in {'patient_delete', 'clinical_record_delete'} and not manager(request.user):
             raise PermissionDenied('No tenés permiso para eliminar pacientes o historias clínicas.')
+        from .system_live import prepare
+        prepare(request, name)

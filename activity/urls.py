@@ -1,7 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views
-from .views import daily, agenda_updates, patients_updates
+from .views import daily, agenda_updates, patients_updates, system_updates
 urlpatterns = [path('actividad/pacientes/cambios/', patients_updates, name='patients_updates'),
+    path('actividad/sistema/cambios/', system_updates, name='system_updates'),
     path('actividad/agenda/cambios/', agenda_updates, name='agenda_updates'),
     path('cuentas/ingresar/', views.LoginView.as_view(template_name='activity/login.html'), name='login'),
     path('cuentas/salir/', views.LogoutView.as_view(), name='logout'),

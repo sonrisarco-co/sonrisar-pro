@@ -208,8 +208,104 @@ class PatientsLiveTests(TestCase):
         self.assertContains(response,'value="Paciente"')
         self.assertContains(response,'core/js/list_live.js')
         edit=self.other.get(f'/pacientes/editar/{patient.pk}/')
-        self.assertNotContains(edit,'core/js/list_live.js')
+        self.assertContains(edit,'data-manual="true"')
     def test_polling_does_not_add_activity(self):
         before=Activity.objects.count()
         for _ in range(3): self.other.get(self.url)
         self.assertEqual(before,Activity.objects.count())
+
+
+class SystemLiveTests(TestCase):
+    def setUp(self):
+        self.user=get_user_model().objects.create_user('equipo')
+        self.client.force_login(self.user)
+        self.url='/actividad/sistema/cambios/'
+    def test_all_scopes_are_read_only_private_and_do_not_disclose_records(self):
+        from .system_live import SCOPES
+        for scope in SCOPES:
+            if scope=='actividad': continue
+            response=self.client.get(self.url,{'seccion':scope})
+            self.assertEqual(response.status_code,200,scope)
+            self.assertEqual(set(response.json()),{'revision'})
+            self.assertIn('no-store',response['Cache-Control'])
+        self.assertEqual(self.client.post(self.url,{'seccion':'inventario'}).status_code,405)
+        self.assertEqual(self.client.get(self.url,{'seccion':'bad'}).status_code,400)
+    def test_activity_scope_keeps_manager_restriction(self):
+        self.assertEqual(self.client.get(self.url,{'seccion':'actividad'}).status_code,403)
+        group,_=Group.objects.get_or_create(name='Responsables Sonrisar')
+        self.user.groups.add(group)
+        self.assertEqual(self.client.get(self.url,{'seccion':'actividad'}).status_code,200)
+    def test_inventory_prosthesis_clinical_budget_image_and_odontogram_changes_detected(self):
+        from .system_live import revision
+        for scope,section in [('inventario','Movimientos de inventario'),('protesis','Laboratorio'),('clinica','Historia clínica'),('presupuestos','Ajustes de presupuesto'),('imagenes','Rayos X / Fotografías'),('odontograma','Odontograma')]:
+            before=revision(scope)
+            Activity.objects.create(username='otro_usuario',action='Modificó',section=section)
+            self.assertNotEqual(before,revision(scope),scope)
+    def test_non_activity_screens_ignore_login_noise(self):
+        from .system_live import revision
+        before=revision('general');audit=revision('actividad')
+        Activity.objects.create(username='otro_usuario',action='Ingresó',section='Acceso')
+        self.assertEqual(before,revision('general'))
+        self.assertNotEqual(audit,revision('actividad'))
+    def test_profiles_cover_routes_and_never_enable_actions_or_downloads(self):
+        from .system_live import VIEWS
+        from django.urls import get_resolver
+        def names(patterns):
+            found=set()
+            for pattern in patterns:
+                if hasattr(pattern,'url_patterns'): found.update(names(pattern.url_patterns))
+                elif pattern.name: found.add(pattern.name)
+            return found
+        self.assertFalse(set(VIEWS)-names(get_resolver().url_patterns))
+        for name in ['appointment_delete','budget_print','confirmar_envio','inventory_adjust_stock','logout','system_updates','agenda_day','patient_list']:
+            self.assertNotIn(name,VIEWS)
+        for name in ['clinical_record_new','clinical_record_edit','odontograma_paciente','odontograma_profesional','budget_edit','patient_edit','rayos_x_new']:
+            self.assertTrue(VIEWS[name]['manual'])
+    def test_multiple_lists_receive_automatic_profile_without_duplicate_scripts(self):
+        for path in ['/inventario/','/inventario/lista-compras/','/protesis/','/presupuestos/','/pagos/','/historia/','/pacientes/inactivos/']:
+            response=self.client.get(path)
+            self.assertEqual(response.status_code,200,path)
+            self.assertContains(response,'sonrisar-system-live-status',count=1)
+            self.assertContains(response,'core/js/list_live.js',count=1)
+            self.assertContains(response,'data-manual="false"')
+        response=self.client.get('/pacientes/')
+        self.assertNotContains(response,'sonrisar-system-live-status')
+        self.assertContains(response,'core/js/list_live.js',count=1)
+    def test_clinical_odontogram_and_patient_forms_are_manual_only(self):
+        patient=Patient.objects.create(nombre='Prueba',apellido='Protección',ci='PROTECT')
+        for path in [f'/pacientes/editar/{patient.pk}/',f'/historia/registro/nuevo/{patient.pk}/',f'/pacientes/{patient.pk}/odontograma/',f'/pacientes/{patient.pk}/odontograma-profesional/']:
+            response=self.client.get(path)
+            self.assertEqual(response.status_code,200,path)
+            self.assertContains(response,'data-manual="true"')
+    def test_financial_views_use_periodic_external_refresh(self):
+        from .system_live import prepare
+        from django.test import RequestFactory
+        request=RequestFactory().get('/');request.user=self.user
+        prepare(request,'patient_finances')
+        self.assertEqual(request.sonrisar_live['periodic'],60000)
+        prepare(request,'inventory_list')
+        self.assertEqual(request.sonrisar_live['periodic'],0)
+    def test_polling_has_no_audit_side_effect(self):
+        before=Activity.objects.count()
+        for _ in range(3):self.client.get(self.url,{'seccion':'protesis'})
+        self.assertEqual(before,Activity.objects.count())
+    def test_stock_adjustment_from_another_session_is_detected(self):
+        from core.models import Inventory
+        from django.test import Client
+        product=Inventory.objects.create(nombre='Producto de prueba',stock=3)
+        other=Client();other.force_login(get_user_model().objects.create_user('stock_otro'))
+        before=self.client.get(self.url,{'seccion':'inventario'}).json()['revision']
+        response=other.post(f'/inventario/stock/{product.pk}/sumar/')
+        self.assertEqual(response.status_code,302)
+        product.refresh_from_db();self.assertEqual(product.stock,4)
+        self.assertNotEqual(before,self.client.get(self.url,{'seccion':'inventario'}).json()['revision'])
+    def test_prosthesis_status_from_another_session_is_detected(self):
+        from core.models import Prosthesis
+        from django.test import Client
+        patient=Patient.objects.create(nombre='Prueba',apellido='Prótesis',ci='PROS-POLL')
+        work=Prosthesis.objects.create(paciente=patient)
+        other=Client();other.force_login(get_user_model().objects.create_user('laboratorio_otro'))
+        before=self.client.get(self.url,{'seccion':'protesis'}).json()['revision']
+        response=other.post(f'/protesis/{work.pk}/cambiar-estado/',{'estado':'prueba'})
+        self.assertEqual(response.status_code,302)
+        self.assertNotEqual(before,self.client.get(self.url,{'seccion':'protesis'}).json()['revision'])

@@ -1,7 +1,7 @@
 /* Shared lists: poll a small revision, preserve filters and position. */
 (function () {
     'use strict';
-    const status = document.querySelector('.sonrisar-list-live-status');
+    const status = document.querySelector('.sonrisar-list-live-status, .sonrisar-system-live-status');
     if (!status) return;
     const message = status.querySelector('[data-live-message]');
     const refresh = status.querySelector('[data-live-refresh]');
@@ -10,6 +10,11 @@
     const baseline = status.dataset.revision;
     const positionKey = 'sonrisarLiveListPosition';
     const interval = 8000;
+    const manualOnly = status.dataset.manual === 'true';
+    const periodic = Number(status.dataset.periodic) || 0;
+    let loadedAt = Date.now();
+    let manualDirty = false;
+    let loadingForm = false;
     let lastInteraction = Date.now();
     let writes = 0;
     let dragging = false;
@@ -23,6 +28,21 @@
         beginWrite() { writes += 1; },
         endWrite() { writes = Math.max(0, writes - 1); lastInteraction = Date.now(); }
     };
+    // Existing calendar/modal actions use fetch. Count in-flight same-origin
+    // mutations so no refresh can interrupt them; preserve native fetch behavior.
+    const originalFetch = window.fetch;
+    if (typeof originalFetch === 'function') {
+        window.fetch = function (input, init) {
+            const method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+            let local = false;
+            try { local = new URL(typeof input === 'string' ? input : (input.url || String(input)), location.href).origin === location.origin; } catch (_) {}
+            const mutating = local && !['GET', 'HEAD', 'OPTIONS'].includes(method);
+            if (mutating) writes += 1;
+            const done = () => { if (mutating) { writes = Math.max(0, writes - 1); lastInteraction = Date.now(); } };
+            try { return Promise.resolve(originalFetch.call(this, input, init)).finally(done); }
+            catch (error) { done(); throw error; }
+        };
+    }
     const touch = () => { lastInteraction = Date.now(); };
     ['pointerdown', 'keydown', 'input', 'change', 'touchstart', 'scroll'].forEach(event => {
         document.addEventListener(event, touch, {capture: true, passive: true});
@@ -30,18 +50,43 @@
     document.addEventListener('dragstart', () => { dragging = true; touch(); }, true);
     document.addEventListener('dragend', () => { dragging = false; touch(); }, true);
     document.addEventListener('drop', () => { dragging = false; touch(); }, true);
+    document.addEventListener('input', event => {
+        if (manualOnly && root.contains(event.target)) manualDirty = true;
+    }, true);
+    document.addEventListener('change', event => {
+        if (manualOnly && root.contains(event.target)) manualDirty = true;
+    }, true);
+    document.addEventListener('click', event => {
+        if (manualOnly && event.target instanceof Element && root.contains(event.target)
+                && event.target.closest('form') && event.target.closest('button[type="button"], [data-pieza], .tooth, .diente')) {
+            manualDirty = true;
+        }
+    }, true);
 
     function editing() {
+        if (manualDirty) return true;
         const active = document.activeElement;
         if (active && active.matches('input, textarea, select, [contenteditable="true"]')) return true;
         // Preserve search text/results even after moving focus to another control.
         const query = document.getElementById('agendaPatientQuery');
         if (query && query.value.trim() !== query.defaultValue.trim()) return true;
         if (query && query.getAttribute('aria-expanded') === 'true') return true;
-        return Boolean(document.querySelector('.modal.show, .offcanvas.show, .dropdown-menu.show'));
+        // Unsaved filters and form fields stay protected even after losing focus.
+        for (const field of root.querySelectorAll('input:not([type="hidden"]), textarea, select')) {
+            if (field.type === 'file' && field.files && field.files.length) return true;
+            if (['checkbox', 'radio'].includes(field.type)) {
+                if (field.checked !== field.defaultChecked) return true;
+            } else if (field.tagName === 'SELECT') {
+                const options = Array.from(field.options);
+                const selected = options.filter(option => option.defaultSelected);
+                const defaults = selected.length ? selected : (field.multiple ? [] : options.slice(0,1));
+                if (options.some(option => option.selected !== defaults.includes(option))) return true;
+            } else if (field.value !== field.defaultValue) return true;
+        }
+        return Boolean(document.querySelector('.modal.show, .offcanvas.show, .dropdown-menu.show, dialog[open], details[open]'));
     }
     function blocked() {
-        return writes > 0 || dragging || editing() || Boolean(root.querySelector('button:disabled, .dragging'));
+        return loadingForm || writes > 0 || dragging || editing() || Boolean(root.querySelector('button:disabled:not([data-live-refresh]), .dragging'));
     }
     function say(text, showButton = false) {
         message.textContent = text;
@@ -63,6 +108,8 @@
                 target: anchor ? anchor.id : '',
                 offset: anchor ? anchor.getBoundingClientRect().top : 0,
                 tables: Array.from(root.querySelectorAll('.table-responsive')).map(el => el.scrollLeft),
+                panels: Array.from(root.querySelectorAll('[id]')).filter(el => el.scrollTop || el.scrollLeft)
+                    .map(el => ({id:el.id, top:el.scrollTop, left:el.scrollLeft})),
                 guardadoEn: Date.now()
             }));
             return true;
@@ -72,6 +119,7 @@
     }
     function apply(manual = false) {
         if (reloading || stopped || !pending || blocked()) return false;
+        if (manualOnly && !manual) return false;
         if (!manual && Date.now() - lastInteraction < 4000) return false;
         // Avoid scroll jumps if the browser has disabled session storage.
         if (!savePosition() && !manual) {
@@ -97,12 +145,23 @@
             root.querySelectorAll('.table-responsive').forEach((el,i) => {
                 if (saved.tables && Number.isFinite(saved.tables[i])) el.scrollLeft = saved.tables[i];
             });
+            for (const panel of saved.panels || []) {
+                const element = document.getElementById(panel.id);
+                if (element && root.contains(element)) {
+                    if (Number.isFinite(panel.top)) element.scrollTop = panel.top;
+                    if (Number.isFinite(panel.left)) element.scrollLeft = panel.left;
+                }
+            }
         }));
     }
     if (document.readyState === 'complete') restorePosition();
     else window.addEventListener('load', restorePosition, {once:true});
     document.addEventListener('submit', event => {
-        if (event.target.id !== 'agendaPatientSearch') { stopped = true; clearTimeout(timer); }
+        if (event.target.id === 'agendaPatientSearch') return;
+        loadingForm = true;
+        // AJAX forms preventDefault; network guards and dirty fields protect
+        // those. A real form navigation pauses until the new document loads.
+        setTimeout(() => { if (event.defaultPrevented) loadingForm = false; }, 0);
     }, true);
     function schedule() {
         clearTimeout(timer);
@@ -134,12 +193,12 @@
             const data = await response.json();
             if (typeof data.revision !== 'string') throw new Error('Respuesta inválida');
             // Do not acknowledge a newer revision until its page has been loaded.
-            pending = data.revision !== baseline;
+            pending = data.revision !== baseline || (periodic > 0 && Date.now() - loadedAt >= periodic);
             if (pending) {
-                say('Hay cambios nuevos. La lista se actualizará cuando termines.', true);
+                say(manualOnly ? 'Hay cambios nuevos. Guardá tu trabajo antes de actualizar.' : 'Hay cambios nuevos. La pantalla se actualizará cuando termines.', true);
                 apply();
             } else {
-                say('Actualización automática activa');
+                say(manualOnly ? 'Avisos de cambios activos · Edición protegida' : 'Actualización automática activa');
             }
         } catch (_) {
             say('No se pudo comprobar la lista. Se reintentará automáticamente.', pending);

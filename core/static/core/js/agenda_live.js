@@ -8,6 +8,7 @@
     const root = document.querySelector('.agenda-day-fullbleed');
     const baseline = status.dataset.revision;
     const interval = 8000;
+    const loadedAt = Date.now();
     let lastInteraction = Date.now();
     let writes = 0;
     let dragging = false;
@@ -38,7 +39,7 @@
         return Boolean(document.querySelector('.modal.show, .offcanvas.show, .dropdown-menu.show'));
     }
     function blocked() {
-        return writes > 0 || dragging || editing() || Boolean(root.querySelector('button:disabled, .dragging'));
+        return writes > 0 || dragging || editing() || Boolean(root.querySelector('button:disabled:not([data-live-refresh]), .dragging'));
     }
     function say(text, showButton = false) {
         message.textContent = text;
@@ -109,7 +110,9 @@
             const data = await response.json();
             if (typeof data.revision !== 'string') throw new Error('Respuesta inválida');
             // Do not acknowledge a newer revision until its page has been loaded.
-            pending = data.revision !== baseline;
+            // Cobros is a separate app. Refresh its existing cached summaries
+            // once a minute as well, but only when interaction guards allow it.
+            pending = data.revision !== baseline || Date.now() - loadedAt >= 60000;
             if (pending) {
                 say('Hay cambios nuevos. La agenda se actualizará cuando termines.', true);
                 apply();
