@@ -2703,20 +2703,23 @@ def generar_horarios():
     return lista
 
 def horarios_para_fecha(fecha):
-    """Esquema mixto de lunes a viernes; sábados conservan la grilla anterior."""
+    """Esquema mixto de lunes a viernes, con turnos extra al inicio y final."""
     if fecha.weekday() >= 5:
         return generar_horarios()
-    return [time(h, m) for h in range(10, 19)
-            for m in ((0, 30, 45) if h in (10, 12, 15, 17)
-                      else (0, 15, 30) if h != 14 else (0, 30))]
+    turnos_principales = [
+        time(h, m) for h in range(10, 19)
+        for m in ((0, 30, 45) if h in (10, 12, 15, 17)
+                  else (0, 15, 30) if h != 14 else (0, 30))
+    ]
+    return [time(9, 0), time(9, 30), *turnos_principales, time(19, 0), time(19, 30)]
 
 
 def bloque_para_fecha(hora, fecha):
     if fecha.weekday() >= 5:
         return floor_to_30_minutes(hora)
     horarios = horarios_para_fecha(fecha)
-    # Conservar la hora exacta de citas antiguas fuera del horario nuevo.
-    if hora < horarios[0] or hora >= time(19):
+    # Conservar la hora exacta de citas antiguas fuera del horario habilitado.
+    if hora < horarios[0] or hora > horarios[-1]:
         return hora
     return max(h for h in horarios if h <= hora)
 
