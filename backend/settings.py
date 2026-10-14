@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     # App principal
     'core',
+    'activity.apps.ActivityConfig',
 ]
 
 
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'activity.middleware.ActivityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -85,6 +87,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'activity.context.permissions',
             ],
         },
     },
@@ -226,3 +229,7 @@ if IS_RENDER:
     CSRF_COOKIE_NAME = 'sonrisar_csrftoken_v2'
 
 CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
+
+LOGIN_URL = "/cuentas/ingresar/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = LOGIN_URL

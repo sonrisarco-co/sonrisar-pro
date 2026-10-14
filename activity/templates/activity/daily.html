@@ -1,0 +1,31 @@
+{% extends 'core/base.html' %}
+{% block title %}Actividad del sistema | Sonrisar Pro{% endblock %}
+{% block content %}
+<div class="sonrisar-activity-heading">
+    <div><h2>Actividad del sistema</h2><p>Consultá el trabajo realizado por cada usuario.</p></div>
+    <a class="sonrisar-activity-back js-activity-return" href="{{ sonrisar_activity_return_url }}"><span aria-hidden="true">←</span> Volver a donde estaba</a>
+</div>
+<form class="sonrisar-activity-filters" method="get">
+    <input type="hidden" name="volver" value="{{ sonrisar_activity_return_url }}">
+    <div><label for="activityDate">Fecha</label><input id="activityDate" class="form-control" type="date" name="fecha" value="{{ day }}"></div>
+    <div><label for="activityUser">Usuario</label><select id="activityUser" class="form-select" name="usuario"><option value="">Todos los usuarios</option>{% for u in users %}<option {% if username == u %}selected{% endif %}>{{ u }}</option>{% endfor %}</select></div>
+    <div><label for="activitySection">Sección</label><select id="activitySection" class="form-select" name="seccion"><option value="">Todas las secciones</option>{% for s in sections %}<option {% if section == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+    <button class="sonrisar-activity-submit" type="submit">Consultar</button>
+</form>
+<p class="small text-muted">{{ page.paginator.count }} actividades · Horario de Uruguay</p>
+<div class="sonrisar-activity-table"><div class="table-responsive">
+<table class="table"><thead><tr><th>Hora</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>Cambios</th></tr></thead>
+<tbody>{% for entry in page %}<tr>
+    <td class="text-nowrap">{{ entry.created|date:'H:i:s' }}</td>
+    <td><span class="sonrisar-activity-user">{{ entry.username }}</span></td>
+    <td>{{ entry.action }}</td>
+    <td>{{ entry.section }}{% if entry.object_id %} <span class="text-muted">#{{ entry.object_id }}</span>{% endif %}<br><span class="text-muted">{{ entry.description }}</span></td>
+    <td>{% if entry.changes %}<details><summary>Ver detalle</summary>{% for field, change in entry.changes.items %}<p><strong>{{ field }}</strong><br>Antes: {{ change.antes|default_if_none:'—' }}<br>Después: {{ change.después|default_if_none:'—' }}</p>{% endfor %}</details>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No hay actividad para estos filtros.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+<div class="sonrisar-activity-pager">
+    {% if page.has_previous %}<a class="sonrisar-session-button" href="?fecha={{ day }}&amp;usuario={{ username|urlencode }}&amp;seccion={{ section|urlencode }}&amp;volver={{ sonrisar_activity_return_url|urlencode }}&amp;page={{ page.previous_page_number }}">← Anterior</a>{% endif %}
+    <span>Página {{ page.number }} de {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="sonrisar-session-button" href="?fecha={{ day }}&amp;usuario={{ username|urlencode }}&amp;seccion={{ section|urlencode }}&amp;volver={{ sonrisar_activity_return_url|urlencode }}&amp;page={{ page.next_page_number }}">Siguiente →</a>{% endif %}
+</div>
+{% endblock %}

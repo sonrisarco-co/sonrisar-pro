@@ -18,6 +18,8 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <link rel="stylesheet" href="{% static 'core/css/access.css' %}?v=1">
+
     <!-- SELECT2 -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -289,8 +291,32 @@
 
 <body>
 
+
+
     <!-- HEADER FIJO -->
     <div class="header-fijo-sonrisar">
+        {% if user.is_authenticated %}
+        <div class="sonrisar-userbar">
+            <div class="sonrisar-session-profile">
+                <span class="sonrisar-session-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span>
+                <span><strong class="sonrisar-session-name">{{ user.first_name|default:user.username }}</strong>
+                    <span class="sonrisar-session-role">{% if sonrisar_manager %}Responsable{% else %}Equipo Sonrisar{% endif %}</span>
+                </span>
+            </div>
+            <nav class="sonrisar-session-actions" aria-label="Mi sesión">
+                {% if sonrisar_manager %}
+                <a class="sonrisar-session-button js-activity-open" href="{% url 'activity_daily' %}?volver={% if sonrisar_activity_return_url %}{{ sonrisar_activity_return_url|urlencode }}{% else %}{{ request.get_full_path|urlencode }}{% endif %}">
+                    <span aria-hidden="true">◷</span> Actividad del sistema
+                </a>
+                {% endif %}
+                <a class="sonrisar-session-button" href="{% url 'password_change' %}">Mi contraseña</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}<button type="submit" class="sonrisar-session-button sonrisar-session-exit">Salir <span aria-hidden="true">↗</span></button>
+                </form>
+            </nav>
+        </div>
+        {% endif %}
+
 
         <div class="header-superior-sonrisar">
             <button class="menu-btn-sonrisar"
@@ -381,5 +407,6 @@
         }
     </script>
 
+    <script src="{% static 'core/js/activity_navigation.js' %}?v=1"></script>
 </body>
 </html>

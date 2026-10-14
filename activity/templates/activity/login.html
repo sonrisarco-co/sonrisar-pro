@@ -1,0 +1,58 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#26ABA5">
+    <title>Ingresar | Sonrisar Pro</title>
+    <link rel="icon" href="{% static 'icons/icon-192.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+    <link rel="stylesheet" href="{% static 'core/css/access.css' %}?v=1">
+</head>
+<body class="sonrisar-login-page">
+    <main class="sonrisar-login-shell">
+        <section class="sonrisar-login-card" aria-labelledby="loginTitle">
+            <div class="sonrisar-login-brand"><img src="{% static 'img/logo.png' %}" alt="Sonrisar Centro Odontológico"></div>
+            <span class="sonrisar-login-label">SONRISAR PRO</span>
+            <h1 id="loginTitle">Bienvenido</h1>
+            <p class="sonrisar-login-intro">Ingresá con tu usuario para comenzar.</p>
+            {% if form.non_field_errors %}<div class="sonrisar-login-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+            <form method="post" class="sonrisar-login-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div class="sonrisar-login-field">
+                    <label for="{{ form.username.id_for_label }}">Usuario</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}<div class="sonrisar-field-error" role="alert">{{ form.username.errors }}</div>{% endif %}
+                </div>
+                <div class="sonrisar-login-field">
+                    <label for="{{ form.password.id_for_label }}">Contraseña</label>
+                    <div class="sonrisar-password-field">
+                        {{ form.password }}
+                        <button type="button" class="sonrisar-password-toggle" id="togglePassword" aria-controls="{{ form.password.id_for_label }}" aria-pressed="false" aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
+                    {% if form.password.errors %}<div class="sonrisar-field-error" role="alert">{{ form.password.errors }}</div>{% endif %}
+                </div>
+                <button class="sonrisar-login-submit" type="submit">Ingresar <span aria-hidden="true">→</span></button>
+            </form>
+            <p class="sonrisar-login-note">Tu usuario identifica el trabajo que realizás en el sistema.</p>
+        </section>
+        <p class="sonrisar-login-footer">Centro Odontológico · Dr. Rodrigo Suma</p>
+    </main>
+    <script>
+    (function () {
+        const input = document.getElementById('{{ form.password.id_for_label|escapejs }}');
+        const button = document.getElementById('togglePassword');
+        if (!input || !button) return;
+        button.addEventListener('click', function () {
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            button.textContent = show ? 'Ocultar' : 'Mostrar';
+            button.setAttribute('aria-pressed', String(show));
+            button.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        });
+    })();
+    </script>
+</body>
+</html>

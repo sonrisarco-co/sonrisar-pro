@@ -85,9 +85,9 @@
                             <a href="{% url 'patient_edit' p.id %}"
                                class="btn btn-sm btn-outline-edit">Editar</a>
 
-                            <a href="{% url 'patient_delete' p.id %}"
+                            {% if sonrisar_manager %}<a href="{% url 'patient_delete' p.id %}"
                                class="btn btn-sm btn-outline-delete"
-                               onclick="return confirm('¿Eliminar este paciente?');">Eliminar</a>
+                               onclick="return confirm('¿Eliminar este paciente?');">Eliminar</a>{% endif %}
 
                             <a href="{% url 'budget_new' p.id %}?next={{ request.get_full_path|urlencode }}"
                                class="btn btn-sm btn-outline-pdf">Presupuesto</a>

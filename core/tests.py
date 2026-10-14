@@ -78,6 +78,8 @@ class FinanzasSaldoCitasTests(TestCase):
 
 class AgendaNoAsistioTests(TestCase):
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        self.client.force_login(get_user_model().objects.create_user("operador_agenda"))
         paciente = Patient.objects.create(nombre="Prueba", apellido="Agenda")
         self.cita = Appointment.objects.create(
             paciente=paciente, fecha=date(2026, 9, 9), hora=time(10),
@@ -121,6 +123,8 @@ class AgendaNoAsistioTests(TestCase):
 
 class DeudoresArchivadosTests(TestCase):
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        self.client.force_login(get_user_model().objects.create_user("operador_deudores"))
         self.activo = Patient.objects.create(
             nombre="Activa", apellido="Deudora", ci="DEU-1"
         )

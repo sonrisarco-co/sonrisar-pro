@@ -8,6 +8,7 @@ from core import views as core_views
 
 
 urlpatterns = [
+    path('', include('activity.urls')),
     path('admin/', admin.site.urls),
 
     path('', include('core.urls')),

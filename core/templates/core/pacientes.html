@@ -55,11 +55,11 @@
                          Editar
                     </a>
 
-                    <a href="{% url 'patient_delete' p.id %}"
+                    {% if sonrisar_manager %}<a href="{% url 'patient_delete' p.id %}"
                         class="btn btn-outline-danger btn-sm"
                         onclick="return confirm('¿Eliminar este paciente?')">
                          Borrar
-                    </a>
+                    </a>{% endif %}
                 </div>
                 </td>
 

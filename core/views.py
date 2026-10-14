@@ -3421,6 +3421,10 @@ def agenda_patient_search(request):
 
 def agenda_day(request, day, month, year):
     import calendar
+    from activity.live import agenda_revision
+    # Capture before reading the agenda: changes made while rendering must be
+    # picked up by the next poll rather than acknowledged as already visible.
+    live_revision = agenda_revision()
 
     fecha = date(year, month, day)
     volver_dia_str = request.GET.get("volver_dia", "").strip()
@@ -3762,6 +3766,7 @@ def agenda_day(request, day, month, year):
         request,
         "core/agenda_day.html",
         {
+            "agenda_live_revision": live_revision,
             "fecha": fecha,
             "fecha_anterior": fecha - timedelta(days=1),
             "fecha_siguiente": fecha + timedelta(days=1),
@@ -5031,10 +5036,9 @@ from django.http import HttpResponse
 
 def service_worker(request):
     js = """
-const CACHE_NAME = "sonrisar-cache-v2";
+const CACHE_NAME = "sonrisar-static-v3";
 
 const urlsToCache = [
-  "/",
   "/static/manifest.json"
 ];
 
@@ -5046,7 +5050,11 @@ self.addEventListener("install", (event) => {
   );
 });
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
 self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET" || !new URL(event.request.url).pathname.startsWith("/static/")) return;
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );

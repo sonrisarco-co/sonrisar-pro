@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load core_extras %}
+{% load core_extras static %}
 
 {% block title %}Agenda del día | Sonrisar Pro{% endblock %}
 
@@ -44,6 +44,12 @@
                title="Día siguiente">
                 Siguiente ›
             </a>
+        </div>
+        <div id="agendaLiveStatus" class="d-flex align-items-center justify-content-end gap-2 px-2 py-1 small"
+             data-url="{% url 'agenda_updates' %}" data-revision="{{ agenda_live_revision }}"
+             data-login-url="{% url 'login' %}" role="status" aria-live="polite">
+            <span data-live-message>Actualización automática activa</span>
+            <button data-live-refresh type="button" class="btn btn-sm btn-outline-secondary" hidden>Actualizar ahora</button>
         </div>
     </div>
 
@@ -1302,6 +1308,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             button.disabled = true;
 
+            window.sonrisarAgendaLive?.beginWrite();
             try {
                 const response = await fetch(button.dataset.url, {
                     method: "POST",
@@ -1333,6 +1340,8 @@ document.addEventListener("DOMContentLoaded", function () {
             } catch (error) {
                 button.disabled = false;
                 alert(error.message || "No se pudo guardar el monto.");
+            } finally {
+                window.sonrisarAgendaLive?.endWrite();
             }
         });
     });
@@ -1342,6 +1351,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const textoOriginal = button.textContent;
             button.disabled = true;
             button.textContent = "Guardando...";
+            window.sonrisarAgendaLive?.beginWrite();
             try {
                 const response = await fetch(button.dataset.url, {
                     method: "POST",
@@ -1369,6 +1379,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 button.disabled = false;
                 button.textContent = textoOriginal;
                 alert(error.message || "No se pudo cambiar el estado.");
+            } finally {
+                window.sonrisarAgendaLive?.endWrite();
             }
         });
     });
@@ -1379,6 +1391,7 @@ document.addEventListener("DOMContentLoaded", function () {
             button.disabled = true;
             button.textContent = "Guardando...";
 
+            window.sonrisarAgendaLive?.beginWrite();
             try {
                 const response = await fetch(button.dataset.url, {
                     method: "POST",
@@ -1407,6 +1420,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 button.disabled = false;
                 button.textContent = textoOriginal;
                 alert(error.message || "No se pudo confirmar la cita.");
+            } finally {
+                window.sonrisarAgendaLive?.endWrite();
             }
         });
     });
@@ -1459,6 +1474,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const hora = this.dataset.hora;
             if (!hora) return;
 
+            window.sonrisarAgendaLive?.beginWrite();
             try {
                 const res = await fetch(`/agenda/mover/${draggedId}/`, {
                     method: "POST",
@@ -1481,6 +1497,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             } catch (error) {
                 alert("No se pudo mover la cita.");
+            } finally {
+                window.sonrisarAgendaLive?.endWrite();
             }
         });
     });
@@ -1718,5 +1736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('pageshow', function (event) { if (event.persisted) restore(); });
 })();
 </script>
+
+<script src="{% static 'core/js/agenda_live.js' %}?v=1"></script>
 
 {% endblock %}
