@@ -248,6 +248,8 @@ def home(request):
 
 
 def patient_list(request):
+    from activity.live import patients_revision
+    live_revision = patients_revision()
 
     # 🔍 Buscar por nombre, apellido, CI o teléfono
     query = request.GET.get("q", "")
@@ -281,6 +283,7 @@ def patient_list(request):
         request,
         "core/patients_list.html",
         {
+            "patients_live_revision": live_revision,
             "pacientes": pacientes,
             "query": query,
             "cantidad_inactivos": cantidad_inactivos,

@@ -15,3 +15,10 @@ def agenda_revision():
     # Count also detects an earlier ID committing after a later ID, which can
     # happen with concurrent PostgreSQL transactions. Max alone would miss it.
     return f"{values['count']}:{values['latest'] or 0}"
+
+
+def patients_revision():
+    # Appointment changes also affect the inactive-patient count on this list.
+    values = Activity.objects.filter(section__in=('Pacientes', 'Agenda')).aggregate(
+        count=Count('id'), latest=Max('id'))
+    return f"{values['count']}:{values['latest'] or 0}"

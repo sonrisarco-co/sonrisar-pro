@@ -42,3 +42,13 @@ def agenda_updates(request):
     response = JsonResponse({'revision': agenda_revision()})
     response['Cache-Control'] = 'private, no-store'
     return response
+
+
+from .live import patients_revision
+
+@login_required
+@require_GET
+def patients_updates(request):
+    response = JsonResponse({'revision': patients_revision()})
+    response['Cache-Control'] = 'private, no-store'
+    return response

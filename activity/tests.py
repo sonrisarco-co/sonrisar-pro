@@ -163,3 +163,53 @@ class ActivityReturnTests(TestCase):
         response=self.client.post('/cuentas/ingresar/',{'username':'responsable','password':'StrongIndividual493!','next':'/actividad/'})
         self.assertEqual(response.status_code,302)
         self.assertEqual(response['Location'],'/actividad/')
+
+class PatientsLiveTests(TestCase):
+    def setUp(self):
+        from django.test import Client
+        self.first=get_user_model().objects.create_user('recepcion')
+        self.second=get_user_model().objects.create_user('odontologo')
+        self.client.force_login(self.first)
+        self.other=Client();self.other.force_login(self.second)
+        self.url='/actividad/pacientes/cambios/'
+    def test_new_patient_and_edit_are_detected_by_other_user(self):
+        before=self.other.get(self.url).json()['revision']
+        data={'nombre':'Paciente','apellido':'Prueba','ci':'CI-POLL','telefono':'099123456'}
+        response=self.client.post('/pacientes/nuevo/',data)
+        self.assertEqual(response.status_code,302)
+        after=self.other.get(self.url).json()['revision']
+        self.assertNotEqual(before,after)
+        patient=Patient.objects.get(ci='CI-POLL')
+        data['telefono']='098654321'
+        response=self.client.post(f'/pacientes/editar/{patient.pk}/',data)
+        self.assertEqual(response.status_code,302)
+        self.assertNotEqual(after,self.other.get(self.url).json()['revision'])
+        self.assertTrue(Activity.objects.filter(username='recepcion',section='Pacientes',action='Modificó').exists())
+    def test_endpoint_is_authenticated_read_only_and_does_not_expose_patient_data(self):
+        from django.test import Client
+        self.assertEqual(Client().get(self.url).status_code,302)
+        self.assertEqual(self.other.post(self.url).status_code,405)
+        response=self.other.get(self.url)
+        self.assertEqual(set(response.json()),{'revision'})
+        self.assertIn('no-store',response['Cache-Control'])
+    def test_unrelated_activity_is_ignored_but_appointments_affect_inactive_count(self):
+        from .live import patients_revision
+        before=patients_revision()
+        Activity.objects.create(username='recepcion',action='Modificó',section='Inventario')
+        self.assertEqual(before,patients_revision())
+        Activity.objects.create(username='odontologo',action='Modificó',section='Agenda')
+        self.assertNotEqual(before,patients_revision())
+    def test_list_has_baseline_row_anchors_and_preserves_applied_filter(self):
+        from .live import patients_revision
+        patient=Patient.objects.create(nombre='Paciente',apellido='Prueba',ci='ROW-POLL')
+        response=self.other.get('/pacientes/?q=Paciente&page=1')
+        self.assertContains(response, f'id="patient-{patient.pk}"')
+        self.assertContains(response, f'data-revision="{patients_revision()}"')
+        self.assertContains(response,'value="Paciente"')
+        self.assertContains(response,'core/js/list_live.js')
+        edit=self.other.get(f'/pacientes/editar/{patient.pk}/')
+        self.assertNotContains(edit,'core/js/list_live.js')
+    def test_polling_does_not_add_activity(self):
+        before=Activity.objects.count()
+        for _ in range(3): self.other.get(self.url)
+        self.assertEqual(before,Activity.objects.count())
