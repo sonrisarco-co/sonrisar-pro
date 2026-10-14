@@ -1779,16 +1779,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const root = document.documentElement;
 
     function getTopOffset() {
-        let nav = null;
-        const navs = Array.from(document.querySelectorAll("nav, .navbar"));
-        nav = navs.find(el => el.offsetHeight > 30) || null;
-
-        let topOffset = 58;
-        if (nav) {
-            const rect = nav.getBoundingClientRect();
-            topOffset = rect.bottom + 2;
-        }
-        return topOffset;
+        const header = document.querySelector(".header-fijo-sonrisar");
+        return header ? Math.max(0, Math.ceil(header.getBoundingClientRect().bottom)) + 2 : 2;
     }
 
     function updateSidebarFixed() {
@@ -1799,12 +1791,14 @@ document.addEventListener("DOMContentLoaded", function () {
             sidebarWrap.style.top = "";
             sidebarWrap.style.left = "";
             sidebarWrap.style.width = "";
+            sidebarWrap.style.maxHeight = "";
+            sidebarWrap.style.overflowY = "";
             sidebarCol.style.height = "";
             return;
         }
 
         const topOffset = getTopOffset();
-        const sidebarExtraTop = 80;
+        const sidebarExtraTop = 12;
         const colRect = sidebarCol.getBoundingClientRect();
 
         sidebarCol.style.height = sidebarWrap.offsetHeight + "px";
@@ -1812,6 +1806,8 @@ document.addEventListener("DOMContentLoaded", function () {
         sidebarWrap.style.top = (topOffset + sidebarExtraTop) + "px";
         sidebarWrap.style.left = colRect.left + "px";
         sidebarWrap.style.width = sidebarCol.offsetWidth + "px";
+        sidebarWrap.style.maxHeight = Math.max(120, window.innerHeight - topOffset - sidebarExtraTop - 12) + "px";
+        sidebarWrap.style.overflowY = "auto";
     }
 
     function updateStickyMetrics() {
@@ -1845,6 +1841,14 @@ document.addEventListener("DOMContentLoaded", function () {
     updateStickyMetrics();
     updateSidebarFixed();
     syncHorizontalScroll();
+    const header = document.querySelector(".header-fijo-sonrisar");
+    if (header && "ResizeObserver" in window) {
+        const headerObserver = new ResizeObserver(() => {
+            updateStickyMetrics();
+            updateSidebarFixed();
+        });
+        headerObserver.observe(header);
+    }
 
     function focusSavedAppointment() {
         if (!/^#(?:cita-\d+|hora-\d{4})$/.test(window.location.hash)) return;
@@ -1865,7 +1869,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Wait for images and fonts so the final layout determines the position.
     window.addEventListener("load", function () {
         const ready = document.fonts ? document.fonts.ready : Promise.resolve();
-        ready.then(() => requestAnimationFrame(focusSavedAppointment));
+        ready.then(() => requestAnimationFrame(() => {
+            updateStickyMetrics();
+            updateSidebarFixed();
+            focusSavedAppointment();
+        }));
     }, {once: true});
     window.addEventListener("hashchange", focusSavedAppointment);
 
