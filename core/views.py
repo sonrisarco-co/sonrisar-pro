@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 50511)
-Total output lines: 6471
-
 from django.shortcuts import render, redirect, get_object_or_404
 from datetime import date, time, timedelta, datetime
 import requests
@@ -1290,7 +1287,4020 @@ def clinical_record_new(request, patient_id):
                 p.nombre for p in cita.procedimientos.all()
             ))
             if not tratamientos and cita.motivo:
-                tratamientos =…30511 tokens truncated…o,
+                tratamientos = [cita.motivo]
+            tratamientos_txt = ", ".join(tratamientos)
+
+            form.initial["motivo"] = cita.motivo
+
+            fecha_hoy = fecha_registro.strftime("%d/%m/%Y")
+
+            texto_evolucion = (
+                f"{fecha_hoy} – Tratamiento: {tratamientos_txt}.\n"
+                "Arco sup:\n"
+                "Arco inf:\n"
+                "Próxima cita:"
+            )
+
+            form.initial["evolucion"] = texto_evolucion
+
+    if not volver_url:
+        volver_url = reverse("clinical_records_list", args=[paciente.id])
+
+    return render(
+        request,
+        "core/clinical_record_form.html",
+        {
+            "form": form,
+            "paciente": paciente,
+            "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
+            "fecha_hoy_date": timezone.localdate(),
+            "volver_url": volver_url,
+            "appointment_id": cita.id if cita else "",
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+            "avisos_clinicos": ClinicalAlert.objects.filter(
+                paciente=paciente,
+                realizado=False
+            ).order_by("fecha_revision", "-creado"),
+        },
+    )
+
+
+def clinical_record_detail(request, registro_id):
+    registro = get_object_or_404(ClinicalRecord, id=registro_id)
+    paciente = registro.paciente
+
+    historias = ClinicalRecord.objects.filter(
+        paciente=paciente
+    ).order_by("-fecha", "-id")
+
+    rayos = paciente.rayos_x.all().order_by("-fecha")
+
+    pagos_cobros, pagos_error = obtener_pagos_cobros_paciente(request, paciente)
+
+    edad = calcular_edad(paciente.fecha_nacimiento)
+
+    return render(
+        request,
+        "core/clinical_record_detail.html",
+        {
+            "registro": registro,
+            "paciente": paciente,
+            "edad": edad,
+            "historias": historias,
+            "rayos": rayos,
+            "pagos_cobros": pagos_cobros,
+            "pagos_error": pagos_error,
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+        }
+    )
+
+
+def clinical_record_edit(request, registro_id):
+    registro = get_object_or_404(ClinicalRecord, id=registro_id)
+    paciente = registro.paciente
+    evolucion_anterior = (registro.evolucion or "").strip()
+
+    # Debe definirse antes del bloque POST porque se usa al guardar.
+    volver_url = request.GET.get("next") or request.POST.get("next")
+
+    cita_id = request.GET.get("appointment_id") or request.POST.get("appointment_id")
+    cita = None
+
+    if cita_id:
+        cita = Appointment.objects.filter(
+            id=cita_id,
+            paciente=paciente
+        ).prefetch_related("procedimientos").first()
+
+    if request.method == "POST":
+        form = ClinicalRecordForm(request.POST, instance=registro)
+
+        if form.is_valid():
+            registro_actualizado = form.save(commit=False)
+
+            if cita:
+                evolucion_nueva = (form.cleaned_data.get("evolucion") or "").strip()
+                partes_evolucion = [
+                    parte for parte in (evolucion_nueva, evolucion_anterior) if parte
+                ]
+                registro_actualizado.evolucion = "\n\n".join(partes_evolucion)
+
+            registro_actualizado.save()
+            form.save_m2m()
+            guardar_odontograma_desde_post(request, paciente)
+
+            # Si la Historia Clínica se abrió desde una cita de Agenda,
+            # marcamos únicamente que la HC fue actualizada.
+            # NO modificamos el estado de asistencia.
+            if cita and not cita.historia_actualizada:
+                cita.historia_actualizada = True
+                cita.save(update_fields=["historia_actualizada"])
+
+            if volver_url:
+                return redirect(volver_url)
+
+            return redirect("clinical_record_detail", registro_id=registro.id)
+
+    else:
+        form = ClinicalRecordForm(instance=registro)
+
+        fecha_evolucion = cita.fecha if cita else timezone.localdate()
+        hoy = fecha_evolucion.strftime("%d/%m/%Y")
+        texto_actual = evolucion_anterior
+
+        if cita:
+            tratamientos = list(dict.fromkeys(
+                p.nombre for p in cita.procedimientos.all()
+            ))
+            if not tratamientos and cita.motivo:
+                tratamientos = [cita.motivo]
+            tratamientos_txt = ", ".join(tratamientos)
+
+            nuevo_bloque = (
+                f"{hoy} – Tratamiento: {tratamientos_txt}.\n"
+                "Arco sup:\n"
+                "Arco inf:\n"
+                "Próxima cita:"
+            )
+
+            form.initial["evolucion"] = nuevo_bloque
+
+            if not registro.motivo:
+                form.initial["motivo"] = cita.motivo
+
+        else:
+            if texto_actual:
+                form.initial["evolucion"] = f"{texto_actual}\n{hoy} "
+            else:
+                form.initial["evolucion"] = f"{hoy} "
+
+    if not volver_url:
+        volver_url = reverse("clinical_record_detail", args=[registro.id])
+
+    return render(
+        request,
+        "core/clinical_record_form.html",
+        {
+            "form": form,
+            "paciente": paciente,
+            "registro": registro,
+            "fecha_hoy": timezone.localdate().strftime("%d/%m/%Y"),
+            "fecha_hoy_date": timezone.localdate(),
+            "volver_url": volver_url,
+            "appointment_id": cita.id if cita else "",
+            "evolucion_anterior": evolucion_anterior if cita else "",
+            "odontograma_marcas": json.dumps(obtener_marcas_odontograma(paciente)),
+            "avisos_clinicos": ClinicalAlert.objects.filter(
+                paciente=paciente,
+                realizado=False
+            ).order_by("fecha_revision", "-creado"),
+        },
+    )
+
+
+def abrir_historia_desde_cita(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+
+    cita_id = request.GET.get("appointment_id")
+    next_url = request.GET.get("next", "")
+
+    ultimo_registro = (
+        ClinicalRecord.objects
+        .filter(paciente=paciente)
+        .order_by("-fecha", "-id")
+        .first()
+    )
+
+    if ultimo_registro:
+        url = reverse("clinical_record_edit", args=[ultimo_registro.id])
+
+        params = []
+        if cita_id:
+            params.append(f"appointment_id={cita_id}")
+        if next_url:
+            params.append(f"next={next_url}")
+
+        if params:
+            url += "?" + "&".join(params)
+
+        return redirect(url)
+
+    url = reverse("clinical_record_new", args=[paciente.id])
+
+    params = []
+    if cita_id:
+        params.append(f"appointment_id={cita_id}")
+    if next_url:
+        params.append(f"next={next_url}")
+
+    if params:
+        url += "?" + "&".join(params)
+
+    return redirect(url)
+
+
+def clinical_record_open_from_appointment(request, patient_id, appointment_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+
+    cita = get_object_or_404(
+        Appointment.objects.prefetch_related("procedimientos"),
+        id=appointment_id,
+        paciente=paciente
+    )
+
+    ultimo_registro = (
+        ClinicalRecord.objects.filter(paciente=paciente)
+        .order_by("-fecha", "-id")
+        .first()
+    )
+
+    next_url = request.GET.get("next", "")
+
+    if ultimo_registro:
+        url = reverse("clinical_record_edit", args=[ultimo_registro.id])
+        params = {
+            "appointment_id": cita.id,
+        }
+        if next_url:
+            params["next"] = next_url
+        return redirect(f"{url}?{urlencode(params)}")
+
+    url = reverse("clinical_record_new", args=[paciente.id])
+    params = {
+        "appointment_id": cita.id,
+    }
+    if next_url:
+        params["next"] = next_url
+    return redirect(f"{url}?{urlencode(params)}")
+
+
+def clinical_record_delete(request, registro_id):
+    registro = get_object_or_404(ClinicalRecord, id=registro_id)
+    paciente_id = registro.paciente.id
+
+    registro.delete()
+
+    return redirect("clinical_records_list", patient_id=paciente_id)
+
+
+def clinical_record_search(request):
+    query = request.GET.get("q", "").strip()
+
+    pacientes_qs = Patient.objects.all()
+
+    if query:
+        pacientes_qs = pacientes_qs.filter(
+            Q(nombre__icontains=query) |
+            Q(apellido__icontains=query) |
+            Q(ci__icontains=query) |
+            Q(telefono__icontains=query)
+        )
+
+    pacientes_qs = pacientes_qs.order_by("apellido", "nombre")
+
+    paginator = Paginator(pacientes_qs, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "core/clinical_record_search.html",
+        {
+            "page_obj": page_obj,
+            "query": query,
+        }
+    )
+
+
+
+# =========================
+# 🔍 BUSCAR PACIENTE → HC
+# =========================
+def buscar_paciente_hc(request):
+    query = request.GET.get("q", "").strip()
+
+    if not query:
+        return redirect("/pacientes/")
+
+    patients = Patient.objects.filter(
+        Q(nombre__icontains=query) |
+        Q(apellido__icontains=query) |
+        Q(ci__icontains=query)
+    )
+
+    if patients.count() == 1:
+        patient = patients.first()
+        record = ClinicalRecord.objects.filter(patient=patient).first()
+
+        if record:
+            return redirect("clinical_record_detail", id=record.id)
+        else:
+            return redirect("clinical_record_new", patient_id=patient.id)
+
+    return redirect(f"/pacientes/?q={query}")
+
+
+# 💰 PRESUPUESTOS
+
+def budgets_list(request):
+    presupuestos = Budget.objects.select_related("paciente").order_by("-fecha")
+
+    return render(
+        request,
+        "core/budgets_list.html",
+        {
+            "presupuestos": presupuestos
+        }
+    )
+
+
+def patient_budgets(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+    next_url = request.GET.get("next", "")
+
+    presupuestos = Budget.objects.filter(
+        paciente=paciente
+    ).order_by("-fecha")
+
+    return render(request, "core/patient_budgets.html", {
+        "paciente": paciente,
+        "presupuestos": presupuestos,
+        "next": next_url,
+    })
+
+
+
+def budget_new(request, paciente_id):
+    """
+    Crear un nuevo presupuesto para un paciente específico.
+    """
+
+    # 🔒 Paciente fijo (viene desde la URL)
+    paciente = get_object_or_404(Patient, id=paciente_id)
+
+    # 🔁 Conserva de dónde venimos: Agenda del día / Calendario
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
+
+    patients_return_url = _patients_return_url(next_url)
+
+    if request.method == "POST":
+        diagnostico = request.POST.get("diagnostico")
+        conceptos = request.POST.getlist("concepto[]")
+        cantidades = request.POST.getlist("cantidad[]")
+        valores = request.POST.getlist("valor[]")
+
+        # Crear presupuesto principal
+        presupuesto = Budget.objects.create(
+            paciente=paciente,
+            diagnostico=diagnostico,
+            total=0
+        )
+
+        total_general = 0
+
+        # Guardar ítems del presupuesto
+        for concepto, cantidad, valor in zip(conceptos, cantidades, valores):
+            if not concepto or concepto.strip() == "":
+                continue
+
+            cantidad = int(cantidad) if cantidad else 0
+            valor = float(valor) if valor else 0
+            total_item = cantidad * valor
+
+            BudgetItem.objects.create(
+                presupuesto=presupuesto,
+                concepto=concepto,
+                cantidad=cantidad,
+                valor=valor,
+                total_item=total_item
+            )
+
+            total_general += total_item
+
+        # Actualizar total del presupuesto
+        presupuesto.total = total_general
+        presupuesto.save()
+
+        messages.success(request, "Presupuesto creado correctamente.")
+
+        # 🔁 Volver a la ficha conservando Agenda/Calendario
+        if patients_return_url:
+            return redirect(patients_return_url)
+
+        url_ficha = reverse("patient_detail", args=[paciente.id])
+
+        if next_url:
+            return redirect(
+                f"{url_ficha}?next={quote(next_url)}"
+            )
+
+        return redirect(url_ficha)
+
+    # GET → mostrar formulario
+    form = BudgetForm()
+
+    return render(
+        request,
+        "core/budget_form.html",
+        {
+            "form": form,
+            "paciente": paciente,
+            "next": next_url,
+            "patients_return_url": patients_return_url,
+        }
+    )
+
+
+# ==========================
+# EDITAR PRESUPUESTO
+# ==========================
+
+
+
+def budget_edit(request, id):
+    presupuesto = get_object_or_404(Budget, id=id)
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
+
+    if request.method == "POST":
+        paciente_id = request.POST.get("paciente")
+        diagnostico = request.POST.get("diagnostico", "").strip()
+
+        if paciente_id:
+            try:
+                presupuesto.paciente = Patient.objects.get(id=paciente_id)
+            except Patient.DoesNotExist:
+                pass
+
+        presupuesto.diagnostico = diagnostico
+        presupuesto.save()
+
+        # Borrar items viejos
+        presupuesto.items.all().delete()
+
+        conceptos = request.POST.getlist("concepto[]")
+        cantidades = request.POST.getlist("cantidad[]")
+        valores = request.POST.getlist("valor[]")
+        subtotales = request.POST.getlist("subtotal[]")
+
+        total_general = 0
+
+        for c, cant, v, sub in zip(conceptos, cantidades, valores, subtotales):
+            c = (c or "").strip()
+            if not c:
+                continue
+
+            try:
+                cantidad = int(cant) if cant else 0
+            except ValueError:
+                cantidad = 0
+
+            try:
+                valor = float(str(v).replace(",", ".")) if v else 0
+            except ValueError:
+                valor = 0
+
+            try:
+                total_item = float(str(sub).replace(",", ".")) if sub else 0
+            except ValueError:
+                total_item = 0
+
+            BudgetItem.objects.create(
+                presupuesto=presupuesto,
+                concepto=c,
+                cantidad=cantidad,
+                valor=valor,
+                total_item=total_item
+            )
+
+            total_general += total_item
+
+        presupuesto.total = total_general
+        presupuesto.save()
+
+        url_ficha = reverse("patient_detail", args=[presupuesto.paciente_id])
+        if next_url:
+            return redirect(f"{url_ficha}?next={quote(next_url)}")
+        return redirect(url_ficha)
+
+    return render(request, "core/budget_form.html", {
+        "presupuesto": presupuesto,
+        "items": presupuesto.items.all(),
+        "modo": "editar",
+        "next": next_url,
+    })
+
+
+# ==========================
+# ELIMINAR PRESUPUESTO
+# ==========================
+
+
+
+def budget_delete(request, id):
+    presupuesto = get_object_or_404(Budget, id=id)
+    paciente_id = presupuesto.paciente_id
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
+
+    if request.method == "POST":
+        presupuesto.delete()
+        messages.success(request, "Presupuesto eliminado.")
+
+    url_presupuestos = reverse("patient_budgets", args=[paciente_id])
+    if next_url:
+        return redirect(f"{url_presupuestos}?next={quote(next_url)}")
+    return redirect(url_presupuestos)
+
+
+def budget_detail(request, id):
+    presupuesto = get_object_or_404(Budget, id=id)
+    next_url = request.GET.get("next", "")
+
+    return render(request, "core/budget_detail.html", {
+        "presupuesto": presupuesto,
+        "items": presupuesto.items.all(),
+        "pagos": presupuesto.pagos.all().order_by("-id"),
+        "next": next_url,
+    })
+
+
+
+
+# ==========================
+# IMPRIMIR / PDF
+# ==========================
+def budget_pdf(request, id):
+    presupuesto = get_object_or_404(Budget, id=id)
+    items = presupuesto.items.all()
+
+    return render(
+        request,
+        "core/budget_print.html",
+        {
+            "presupuesto": presupuesto,
+            "items": items,
+        }
+    )
+
+
+def budget_print(request, id):
+    """
+    Vista para imprimir / ver presupuesto en formato PDF (HTML por ahora)
+    """
+    presupuesto = get_object_or_404(Budget, id=id)
+    items = presupuesto.items.all()
+
+    return render(
+        request,
+        "core/budget_print.html",
+        {
+            "presupuesto": presupuesto,
+            "items": items,
+        }
+    )
+
+def budget_add_payment(request, id):
+    presupuesto = get_object_or_404(Budget, id=id)
+
+    if request.method == "POST":
+        form = BudgetPaymentForm(request.POST)
+
+        if form.is_valid():
+            pago = form.save(commit=False)
+            pago.presupuesto = presupuesto
+
+            if pago.monto <= 0:
+                messages.error(request, "El monto debe ser mayor a 0.")
+            elif pago.monto > presupuesto.saldo_pendiente:
+                messages.error(
+                    request,
+                    f"El monto no puede ser mayor al saldo pendiente (${presupuesto.saldo_pendiente})."
+                )
+            else:
+                pago.save()
+
+                if presupuesto.estado == "pendiente":
+                    presupuesto.estado = "confirmado"
+                    presupuesto.save()
+
+                messages.success(request, "Pago registrado correctamente.")
+                return redirect("budget_payment_receipt", payment_id=pago.id)
+
+    else:
+        form = BudgetPaymentForm()
+
+    return render(request, "core/budget_payment_form.html", {
+        "presupuesto": presupuesto,
+        "form": form,
+    })
+
+
+def budget_change_status(request, id):
+    presupuesto = get_object_or_404(Budget, id=id)
+
+    if request.method == "POST":
+        nuevo_estado = request.POST.get("estado")
+
+        estados_validos = [
+            "pendiente",
+            "confirmado",
+            "en_proceso",
+            "entregado",
+            "cancelado",
+        ]
+
+        if nuevo_estado in estados_validos:
+            presupuesto.estado = nuevo_estado
+            presupuesto.save()
+
+    return redirect("budget_detail", id=presupuesto.id)
+
+
+def budget_payment_receipt(request, payment_id):
+    pago = get_object_or_404(
+        BudgetPayment.objects.select_related("presupuesto").prefetch_related(
+            "presupuesto__ajustes",
+            "presupuesto__transferencias_recibidas",
+        ),
+        id=payment_id,
+    )
+    presupuesto = pago.presupuesto
+
+    saldo_luego_del_pago = presupuesto.total_efectivo - presupuesto.credito_recibido - sum(
+        p.monto for p in presupuesto.pagos.filter(id__lte=pago.id)
+    )
+    saldo_luego_del_pago = max(saldo_luego_del_pago, Decimal("0.00"))
+
+    return render(request, "core/budget_payment_receipt.html", {
+        "pago": pago,
+        "presupuesto": presupuesto,
+        "saldo_luego_del_pago": saldo_luego_del_pago,
+    })
+
+
+
+def budget_payment_delete(request, payment_id):
+    pago = get_object_or_404(BudgetPayment, id=payment_id)
+    presupuesto_id = pago.presupuesto.id
+
+    if request.method == "POST":
+        pago.delete()
+        messages.success(request, "Pago eliminado correctamente.")
+
+    return redirect("budget_detail", id=presupuesto_id)
+
+
+@require_POST
+def budget_add_adjustment(request, id):
+    presupuesto_base = get_object_or_404(Budget, id=id)
+    try:
+        monto = Decimal(request.POST.get("monto", "").replace(",", "."))
+    except (InvalidOperation, AttributeError):
+        messages.error(request, "Ingresá un monto de ajuste válido.")
+        return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+    with transaction.atomic():
+        presupuesto = (
+            Budget.objects.select_for_update()
+            .prefetch_related(
+                "pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas"
+            )
+            .get(id=id)
+        )
+        ajuste = BudgetAdjustment(
+            presupuesto=presupuesto,
+            monto=monto,
+            motivo=request.POST.get("motivo", "").strip(),
+        )
+        try:
+            ajuste.full_clean()
+            ajuste.save()
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
+        else:
+            messages.success(request, f"Ajuste de presupuesto registrado por ${monto}.")
+    return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+
+@require_POST
+def budget_transfer_credit(request, id):
+    presupuesto_base = get_object_or_404(Budget, id=id)
+    try:
+        monto = Decimal(request.POST.get("monto", "").replace(",", "."))
+        destino_id = int(request.POST.get("presupuesto_destino", ""))
+    except (InvalidOperation, AttributeError, TypeError, ValueError):
+        messages.error(request, "Completá un destino y un monto válidos.")
+        return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+    with transaction.atomic():
+        ids = sorted([id, destino_id])
+        bloqueados = {
+            presupuesto.id: presupuesto
+            for presupuesto in Budget.objects.select_for_update()
+            .filter(id__in=ids)
+            .prefetch_related(
+                "pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas"
+            )
+        }
+        origen = bloqueados.get(id)
+        destino = bloqueados.get(destino_id)
+        if not origen or not destino:
+            messages.error(request, "No se encontró uno de los presupuestos seleccionados.")
+            return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+        transferencia = BudgetCreditTransfer(
+            presupuesto_origen=origen,
+            presupuesto_destino=destino,
+            monto=monto,
+            motivo=request.POST.get("motivo", "").strip(),
+        )
+        try:
+            transferencia.full_clean()
+            if monto > origen.credito_disponible:
+                raise ValidationError(
+                    f"El monto supera el crédito disponible (${origen.credito_disponible})."
+                )
+            transferencia.save()
+        except ValidationError as error:
+            messages.error(request, " ".join(error.messages))
+        else:
+            messages.success(
+                request,
+                f"Se transfirieron ${monto} del presupuesto #{origen.id} al #{destino.id}.",
+            )
+    return redirect("patient_finances", id=presupuesto_base.paciente_id)
+
+
+# =============================
+# 💵 PAGOS
+# =============================
+def payments_list(request):
+    pagos = Payment.objects.all().order_by("-fecha")
+    return render(request, "core/payments.html", {"pagos": pagos})
+
+
+def payment_new(request):
+    if request.method == "POST":
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("payments_list")
+    else:
+        form = PaymentForm()
+    return render(request, "core/payment_form.html", {"form": form, "titulo": "Nuevo Pago"})
+
+
+def payment_edit(request, id):
+    pago = get_object_or_404(Payment, id=id)
+    if request.method == "POST":
+        form = PaymentForm(request.POST, instance=pago)
+        if form.is_valid():
+            form.save()
+            return redirect("payments_list")
+    else:
+        form = PaymentForm(instance=pago)
+    return render(request, "core/payment_form.html", {"form": form, "titulo": "Editar Pago"})
+
+
+def payment_delete(request, id):
+    pago = get_object_or_404(Payment, id=id)
+    pago.delete()
+    return redirect("payments_list")
+
+# =============================
+# 🧾 INVENTARIO
+# =============================
+
+def inventory_list(request):
+    productos = Inventory.objects.all().order_by("nombre")
+    return render(request, "core/inventory_list.html", {"productos": productos})
+
+
+def inventory_new(request):
+    if request.method == "POST":
+        form = InventoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("inventory_list")
+    else:
+        form = InventoryForm()
+
+    return render(request, "core/inventory_new.html", {"form": form})
+
+
+def inventory_edit(request, pk):
+    producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.GET.get("next") or request.POST.get("next")
+
+    if request.method == "POST":
+        form = InventoryForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            if next_url:
+                return redirect(next_url)
+            return redirect("inventory_list")
+    else:
+        form = InventoryForm(instance=producto)
+
+    return render(request, "core/inventory_edit.html", {
+        "form": form,
+        "producto": producto,
+        "next": next_url,
+    })
+
+
+def inventory_delete(request, pk):
+    producto = get_object_or_404(Inventory, pk=pk)
+
+    if request.method == "POST":
+        producto.delete()
+        return redirect("inventory_list")
+
+    return render(
+        request, 
+        "core/inventory_confirmar_eliminar.html", 
+        {"producto": producto}
+    )
+
+def inventory_adjust_stock(request, pk, action):
+    producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.POST.get("next") or request.GET.get("next") or "inventory_list"
+
+    if request.method == "POST":
+        if action == "sumar":
+            producto.stock = producto.stock + 1
+            producto.save()
+
+            InventoryMovement.objects.create(
+                producto=producto,
+                tipo="entrada",
+                cantidad=1,
+                observacion="Ajuste rápido desde inventario"
+            )
+
+        elif action == "restar":
+            if producto.stock > 0:
+                producto.stock = producto.stock - 1
+                producto.save()
+
+                InventoryMovement.objects.create(
+                    producto=producto,
+                    tipo="salida",
+                    cantidad=1,
+                    observacion="Ajuste rápido desde inventario"
+                )
+
+    return redirect(next_url)
+
+
+def inventory_history(request, pk):
+    producto = get_object_or_404(Inventory, pk=pk)
+
+    movimientos = InventoryMovement.objects.filter(
+        producto=producto
+    ).order_by("-fecha")
+
+    return render(request, "core/inventory_history.html", {
+        "producto": producto,
+        "movimientos": movimientos,
+    })
+
+def inventory_shopping_list(request):
+    productos = Inventory.objects.filter(
+        stock__lte=F("stock_minimo")
+    ).order_by("proveedor", "nombre")
+
+    return render(request, "core/inventory_shopping_list.html", {
+        "productos": productos,
+    })
+
+def inventory_movement_new(request):
+    if request.method == "POST":
+        form = InventoryMovementForm(request.POST)
+
+        if form.is_valid():
+            movimiento = form.save(commit=False)
+            producto = movimiento.producto
+            cantidad = movimiento.cantidad
+
+            if movimiento.tipo == "entrada":
+                producto.stock += cantidad
+
+            elif movimiento.tipo == "salida":
+                if producto.stock < cantidad:
+                    form.add_error(
+                        "cantidad",
+                        "No hay stock suficiente para registrar esta salida."
+                    )
+                    return render(request, "core/inventory_movement_form.html", {
+                        "form": form,
+                    })
+
+                producto.stock -= cantidad
+
+            producto.save()
+            movimiento.save()
+
+            return redirect("inventory_list")
+
+    else:
+        form = InventoryMovementForm()
+
+    return render(request, "core/inventory_movement_form.html", {
+        "form": form,
+    })
+
+
+
+# =============================
+# 🦷 PRÓTESIS
+# =============================
+
+def protesis_list(request):
+    filtro = request.GET.get("filtro", "activas")
+
+    # Traemos todas las prótesis una sola vez. select_related evita una consulta
+    # adicional por cada paciente y prefetch_related carga las órdenes en bloque.
+    todas = list(
+        Prosthesis.objects
+        .select_related("paciente")
+        .prefetch_related("ordenes_laboratorio")
+        .order_by("-fecha_inicio", "-id")
+    )
+
+    activas = sum(1 for item in todas if item.estado != "entregada")
+    laboratorio = sum(1 for item in todas if item.estado == "laboratorio")
+    prueba = sum(1 for item in todas if item.estado == "prueba")
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "http://127.0.0.1:8001",
+    ).rstrip("/")
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_PROTESIS_PATH",
+        "/pagos/api/por-protesis/",
+    )
+
+    def consultar_pago(item):
+        cache_key = f"protesis_pago_resumen_{item.id}"
+        guardado = cache.get(cache_key)
+        if guardado is not None:
+            return item.id, guardado
+
+        total_pagado = Decimal("0.00")
+        try:
+            response = requests.get(
+                f"{cobros_base_url}{cobros_api_path}",
+                params={"protesis_id": item.id},
+                timeout=1.5,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if data.get("ok"):
+                total_pagado = _decimal_seguro(data.get("total_pagado", 0))
+        except Exception:
+            # La página de Prótesis no debe quedar bloqueada si Cobros está apagado.
+            total_pagado = Decimal("0.00")
+
+        resultado = {"total_pagado": total_pagado}
+        cache.set(cache_key, resultado, 30)
+        return item.id, resultado
+
+    pagos_por_id = {}
+    if todas:
+        # Las consultas se realizan simultáneamente. Si Cobros no responde,
+        # la espera máxima ronda 1,5 segundos y no 1,5 segundos por prótesis.
+        trabajadores = min(8, len(todas))
+        with ThreadPoolExecutor(max_workers=trabajadores) as executor:
+            futuros = [executor.submit(consultar_pago, item) for item in todas]
+            for futuro in as_completed(futuros):
+                try:
+                    item_id, resumen = futuro.result()
+                    pagos_por_id[item_id] = resumen
+                except Exception:
+                    pass
+
+    pendientes_pago = 0
+
+    for item in todas:
+        total_pagado = pagos_por_id.get(
+            item.id,
+            {"total_pagado": Decimal("0.00")},
+        )["total_pagado"]
+
+        monto_total = item.monto_total or Decimal("0.00")
+        saldo = monto_total - total_pagado
+        if saldo < Decimal("0.00"):
+            saldo = Decimal("0.00")
+
+        item.total_pagado_mostrado = total_pagado
+        item.saldo_mostrado = saldo
+
+        if saldo > Decimal("0.00"):
+            pendientes_pago += 1
+
+        trabajo_mostrado = (item.trabajo or "").strip()
+        if not trabajo_mostrado:
+            ordenes = list(item.ordenes_laboratorio.all())
+            if ordenes:
+                ultima_orden = max(ordenes, key=lambda orden: orden.id or 0)
+                trabajo_mostrado = ultima_orden.resumen_trabajo
+        item.trabajo_mostrado = trabajo_mostrado
+
+    if filtro == "activas":
+        protesis = [item for item in todas if item.estado != "entregada"]
+    elif filtro == "entregadas":
+        protesis = [item for item in todas if item.estado == "entregada"]
+    else:
+        protesis = todas
+
+    return render(
+        request,
+        "core/protesis_list.html",
+        {
+            "protesis": protesis,
+            "filtro": filtro,
+            "activas": activas,
+            "laboratorio": laboratorio,
+            "prueba": prueba,
+            "pendientes_pago": pendientes_pago,
+            "estados_protesis": Prosthesis._meta.get_field("estado").choices,
+            "etapas_protesis": Prosthesis._meta.get_field("etapa").choices,
+        },
+    )
+
+@require_POST
+def protesis_cambiar_estado(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+    nuevo_estado = request.POST.get("estado", "")
+    estados_validos = {
+        valor for valor, _ in Prosthesis._meta.get_field("estado").choices
+    }
+    if nuevo_estado in estados_validos:
+        protesis.estado = nuevo_estado
+        protesis.save(update_fields=["estado"])
+    else:
+        messages.error(request, "Estado de prótesis no válido.")
+
+    filtro = request.POST.get("filtro", "activas")
+    if filtro not in {"activas", "entregadas", "todas"}:
+        filtro = "activas"
+    return redirect(f"{reverse('protesis_list')}?{urlencode({'filtro': filtro})}")
+
+
+@require_POST
+def protesis_cambiar_etapa(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+    nueva_etapa = request.POST.get("etapa", "")
+    etapas_validas = {
+        valor for valor, _ in Prosthesis._meta.get_field("etapa").choices
+    }
+    if nueva_etapa in etapas_validas:
+        protesis.etapa = nueva_etapa
+        protesis.save(update_fields=["etapa"])
+    else:
+        messages.error(request, "Etapa de prótesis no válida.")
+
+    filtro = request.POST.get("filtro", "activas")
+    if filtro not in {"activas", "entregadas", "todas"}:
+        filtro = "activas"
+    return redirect(f"{reverse('protesis_list')}?{urlencode({'filtro': filtro})}")
+
+
+def protesis_activas_informe(request):
+    protesis = list(
+        Prosthesis.objects
+        .exclude(estado="entregada")
+        .select_related("paciente")
+        .prefetch_related("ordenes_laboratorio")
+        .order_by("fecha_retorno", "fecha_inicio", "id")
+    )
+    for item in protesis:
+        ordenes = list(item.ordenes_laboratorio.all())
+        ultima_orden = max(ordenes, key=lambda orden: orden.id or 0) if ordenes else None
+        item.fecha_envio_informe = ultima_orden.fecha_envio if ultima_orden else None
+        item.fecha_solicitada_informe = ultima_orden.fecha_entrega_prometida if ultima_orden else None
+        item.hora_solicitada_informe = ultima_orden.hora_entrega_solicitada if ultima_orden else None
+        trabajo_mostrado = (item.trabajo or "").strip()
+        if not trabajo_mostrado and ultima_orden:
+            trabajo_mostrado = ultima_orden.resumen_trabajo
+        item.trabajo_mostrado = trabajo_mostrado
+
+    return render(request, "core/protesis_activas_informe.html", {
+        "protesis": protesis,
+        "fecha": localdate(),
+    })
+
+
+def protesis_new(request):
+    if request.method == "POST":
+        form = ProsthesisForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect("protesis_list")
+    else:
+        form = ProsthesisForm()
+
+    return render(
+        request,
+        "core/protesis_form.html",
+        {
+            "form": form,
+            "titulo": "Nueva Prótesis",
+        }
+    )
+
+
+def protesis_edit(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+
+    if request.method == "POST":
+        form = ProsthesisForm(request.POST, instance=protesis)
+        if form.is_valid():
+            form.save()
+            return redirect("protesis_list")
+    else:
+        form = ProsthesisForm(instance=protesis)
+
+    return render(
+        request,
+        "core/protesis_form.html",
+        {"form": form, "titulo": "Editar Prótesis"},
+    )
+
+
+def protesis_delete(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+    protesis.delete()
+    return redirect("protesis_list")
+
+
+def protesis_detail(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+
+    ordenes = protesis.ordenes_laboratorio.all().order_by("-id")
+
+    return render(
+        request,
+        "core/protesis_detail.html",
+        {
+            "protesis": protesis,
+            "ordenes": ordenes,
+        }
+    )
+
+
+def protesis_print(request, id):
+    protesis = get_object_or_404(Prosthesis, id=id)
+
+    return render(
+        request,
+        "core/protesis_print.html",
+        {
+            "protesis": protesis
+        }
+    )
+
+
+# =============================
+# 🧪 ORDENES DE LABORATORIO
+# =============================
+
+
+def _configuracion_inicial_orden(protesis):
+    """
+    Precarga la orden según el tipo y el trabajo principal de la prótesis.
+    No bloquea campos: el usuario puede modificar o desmarcar lo propuesto.
+    """
+    tipo = (protesis.tipo_protesis or "").strip()
+
+    initial = {
+        "estado": "pendiente",
+        "odontologo": "Dr. Rodrigo Suma",
+    }
+
+    mapa_trabajos = {
+        "protesis_completa": "protesis_completa",
+        "prótesis completa": "protesis_completa",
+        "parcial_cromo": "parcial_cromo",
+        "prótesis parcial cromo": "parcial_cromo",
+        "parcial cromo": "parcial_cromo",
+        "parcial_acrilica": "parcial_acrilica",
+        "prótesis parcial acrílica": "parcial_acrilica",
+        "parcial acrílica": "parcial_acrilica",
+        "protesis_flexible": "protesis_flexible",
+        "prótesis flexible": "protesis_flexible",
+        "provisorio_placa": "provisorio_placa",
+        "provisorio a placa": "provisorio_placa",
+        "corona_unitaria": "corona_unitaria",
+        "corona unitaria": "corona_unitaria",
+        "puente_fijo": "puente_fijo",
+        "puente fijo": "puente_fijo",
+        "jacket": "jacket",
+        "perno_munon": "perno_metalico",
+        "perno muñón": "perno_metalico",
+        "perno metálico": "perno_metalico",
+        "incrustacion": "incrustacion",
+        "incrustación": "incrustacion",
+        "provisorio_fijo": "provisorio_fijo",
+        "provisorio fijo": "provisorio_fijo",
+        "contencion": "contencion",
+        "contención": "contencion",
+        "placa_neuromiorrelajante": "placa_relajacion",
+        "placa neuromiorrelajante": "placa_relajacion",
+        "placa de relajación": "placa_relajacion",
+        "reparacion": "reparacion",
+        "reparación": "reparacion",
+        "rebase": "rebasado",
+        "rebasado": "rebasado",
+        "agregado_diente": "agregado_diente",
+        "agregado de diente": "agregado_diente",
+        "agregado_gancho": "agregado_gancho",
+        "agregado de gancho": "agregado_gancho",
+    }
+
+    trabajos = protesis.trabajos_detalle
+    campos_trabajo = set()
+    arcadas = set()
+    for item in trabajos:
+        campo_trabajo = mapa_trabajos.get((item.get("trabajo") or "").lower())
+        if campo_trabajo:
+            initial[campo_trabajo] = True
+            campos_trabajo.add(campo_trabajo)
+        if item.get("arcada"):
+            arcadas.add(item["arcada"])
+
+    # Si el caso tiene una parte superior y otra inferior, la orden se envía
+    # como "Ambas"; sigue siendo totalmente editable antes de guardar.
+    if "ambas" in arcadas or {"superior", "inferior"}.issubset(arcadas):
+        initial["arcada"] = "ambas"
+    elif len(arcadas) == 1:
+        initial["arcada"] = arcadas.pop()
+
+    # Propuestas habituales, siempre editables.
+    if "parcial_cromo" in campos_trabajo:
+        initial["solicita_cromo"] = True
+    if campos_trabajo & {"rebasado", "reparacion", "agregado_diente", "agregado_gancho"}:
+        initial["protesis_a_reparar"] = True
+
+    if tipo == "fija":
+        grupo = "fija"
+    elif tipo == "ortodoncia":
+        grupo = "otros"
+    elif tipo == "reparacion":
+        grupo = "removible"
+    else:
+        grupo = "removible"
+
+    return initial, grupo
+
+
+def _grupo_orden_existente(orden, protesis):
+    if any([
+        orden.corona_unitaria, orden.corona, orden.puente_fijo,
+        orden.jacket, orden.perno_metalico, orden.incrustacion,
+        orden.provisorio_fijo,
+    ]):
+        return "fija"
+
+    if any([orden.contencion, orden.placa_relajacion]):
+        return "otros"
+
+    if protesis.tipo_protesis == "fija":
+        return "fija"
+    if protesis.tipo_protesis == "ortodoncia":
+        return "otros"
+    return "removible"
+
+
+def orden_laboratorio_nueva(request, protesis_id):
+    protesis = get_object_or_404(
+        Prosthesis.objects.select_related("paciente"),
+        id=protesis_id,
+    )
+
+    initial, grupo_activo = _configuracion_inicial_orden(protesis)
+
+    if request.method == "POST":
+        form = OrdenLaboratorioForm(request.POST)
+
+        if form.is_valid():
+            orden = form.save(commit=False)
+            orden.protesis = protesis
+            orden.save()
+
+            protesis.trabajo = orden.resumen_trabajo
+            protesis.save(update_fields=["trabajo"])
+
+            return redirect("protesis_detail", id=protesis.id)
+
+        grupo_activo = request.POST.get("grupo_activo", grupo_activo)
+    else:
+        form = OrdenLaboratorioForm(initial=initial)
+
+    return render(
+        request,
+        "core/orden_laboratorio_form.html",
+        {
+            "form": form,
+            "protesis": protesis,
+            "titulo": "Nueva Orden de Laboratorio",
+            "grupo_activo": grupo_activo,
+            "trabajo_principal": protesis.trabajo,
+        },
+    )
+
+
+def orden_laboratorio_detalle(request, orden_id):
+    orden = get_object_or_404(
+        OrdenLaboratorio.objects.select_related("protesis__paciente"),
+        id=orden_id,
+    )
+
+    return render(
+        request,
+        "core/orden_laboratorio_detalle.html",
+        {
+            "orden": orden,
+            "protesis": orden.protesis,
+            "grupo_activo": _grupo_orden_existente(orden, orden.protesis),
+        },
+    )
+
+
+def orden_laboratorio_editar(request, orden_id):
+    orden = get_object_or_404(
+        OrdenLaboratorio.objects.select_related("protesis__paciente"),
+        id=orden_id,
+    )
+    protesis = orden.protesis
+    grupo_activo = _grupo_orden_existente(orden, protesis)
+
+    if request.method == "POST":
+        form = OrdenLaboratorioForm(request.POST, instance=orden)
+
+        if form.is_valid():
+            orden = form.save()
+            protesis.trabajo = orden.resumen_trabajo
+            protesis.save(update_fields=["trabajo"])
+            return redirect("protesis_detail", id=protesis.id)
+
+        grupo_activo = request.POST.get("grupo_activo", grupo_activo)
+    else:
+        form = OrdenLaboratorioForm(instance=orden)
+
+    return render(
+        request,
+        "core/orden_laboratorio_form.html",
+        {
+            "form": form,
+            "protesis": protesis,
+            "titulo": "Editar Orden de Laboratorio",
+            "grupo_activo": grupo_activo,
+            "trabajo_principal": protesis.trabajo,
+        },
+    )
+
+
+def orden_laboratorio_print(request, orden_id):
+    orden = get_object_or_404(
+        OrdenLaboratorio.objects.select_related("protesis__paciente"),
+        id=orden_id,
+    )
+    protesis = orden.protesis
+
+    return render(
+        request,
+        "core/orden_laboratorio_print.html",
+        {
+            "orden": orden,
+            "protesis": protesis,
+            "grupo_activo": _grupo_orden_existente(orden, protesis),
+        },
+    )
+
+
+# -----------------------------
+# AGENDA: MES / SEMANA / DÍA
+# -----------------------------
+
+# ============================
+# AGENDA DEL DÍA — COMPLETO
+# ============================
+
+
+def generar_horarios():
+    """Genera horarios cada 30 minutos de 09:00 a 20:00"""
+    hora = time(9, 0)
+    lista = []
+    for i in range(0, 22):  # 9:00 → 19:00
+        lista.append(time(hora.hour, hora.minute))
+        # avanzar 30 min
+        total_min = hora.hour * 60 + hora.minute + 30
+        hora = time(total_min // 60, total_min % 60)
+    return lista
+
+def horarios_para_fecha(fecha):
+    """Esquema mixto de lunes a viernes; sábados conservan la grilla anterior."""
+    if fecha.weekday() >= 5:
+        return generar_horarios()
+    return [time(h, m) for h in range(10, 19)
+            for m in ((0, 30, 45) if h in (10, 12, 15, 17)
+                      else (0, 15, 30) if h != 14 else (0, 30))]
+
+
+def bloque_para_fecha(hora, fecha):
+    if fecha.weekday() >= 5:
+        return floor_to_30_minutes(hora)
+    horarios = horarios_para_fecha(fecha)
+    # Conservar la hora exacta de citas antiguas fuera del horario nuevo.
+    if hora < horarios[0] or hora >= time(19):
+        return hora
+    return max(h for h in horarios if h <= hora)
+
+
+def floor_to_30_minutes(hora_obj):
+    """
+    Redondea hacia abajo una hora al bloque de 30 min.
+    Ej:
+    10:00 -> 10:00
+    10:15 -> 10:00
+    10:29 -> 10:00
+    10:30 -> 10:30
+    10:45 -> 10:30
+    """
+    total_min = hora_obj.hour * 60 + hora_obj.minute
+    bloque_min = (total_min // 30) * 30
+    return time(bloque_min // 60, bloque_min % 60)
+
+
+def agrupar_citas_por_bloque(citas, mixto=False):
+    """
+    Devuelve un diccionario:
+    {
+        hora_bloque: [cita1, cita2, ...]
+    }
+    ordenadas por hora real.
+    """
+    citas_por_bloque = {}
+
+    for cita in citas:
+        bloque = bloque_para_fecha(cita.hora, cita.fecha) if mixto else floor_to_30_minutes(cita.hora)
+
+        if bloque not in citas_por_bloque:
+            citas_por_bloque[bloque] = []
+
+        citas_por_bloque[bloque].append(cita)
+
+    for bloque in citas_por_bloque:
+        citas_por_bloque[bloque].sort(key=lambda c: c.hora)
+
+    return citas_por_bloque
+
+
+
+def _decimal_seguro(valor, defecto="0"):
+    try:
+        if valor is None or valor == "":
+            return Decimal(str(defecto))
+        return Decimal(str(valor))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal(str(defecto))
+
+
+def obtener_total_cobrable_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Total de cargos del paciente en Sonrisar Pro.
+    Esto NO descuenta pagos. Los pagos se descuentan desde Sonrisar Cobros.
+    """
+    citas_qs = (
+        Appointment.objects
+        .filter(paciente=paciente)
+        .exclude(estado="cancelado")
+    )
+
+    if fecha_hasta:
+        citas_qs = citas_qs.filter(fecha__lte=fecha_hasta)
+
+    total = Decimal("0")
+
+    for monto in citas_qs.values_list("monto_total", flat=True):
+        total += _decimal_seguro(monto)
+
+    return total
+
+
+def obtener_resumen_cobros_pacientes_bulk(patient_ids):
+    """
+    Consulta Sonrisar Cobros en bloque para varios pacientes.
+
+    Producción:
+    - Usa únicamente SONRISAR_COBROS_BASE_URL.
+
+    Desarrollo local (DEBUG=True):
+    - Consulta la base configurada (normalmente http://127.0.0.1:8001).
+    - Consulta también Cobros de producción para conservar el historial real.
+    - Para cada paciente toma el MAYOR total pagado entre ambas fuentes.
+      No suma los importes, evitando duplicar pagos presentes en las dos bases.
+
+    Rendimiento:
+    - Máximo 2 consultas HTTP por pantalla en desarrollo.
+    - 1 sola consulta HTTP en producción.
+    - Nunca hace una consulta por paciente/cita.
+    """
+    patient_ids_limpios = []
+
+    for patient_id in patient_ids:
+        try:
+            patient_id_int = int(patient_id)
+        except (TypeError, ValueError):
+            continue
+
+        if patient_id_int not in patient_ids_limpios:
+            patient_ids_limpios.append(patient_id_int)
+
+    if not patient_ids_limpios:
+        return {}
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_RESUMEN_PACIENTES_PATH",
+        "/pagos/api/resumen-pacientes/"
+    )
+
+    patient_ids_param = ",".join(str(x) for x in patient_ids_limpios)
+
+    def consultar_fuente(base_url):
+        base_url = (base_url or "").strip().rstrip("/")
+
+        if not base_url:
+            return None, "URL de Sonrisar Cobros vacía."
+
+        api_url = (
+            f"{base_url}"
+            f"{cobros_api_path}"
+            f"?{urlencode({'patient_ids': patient_ids_param})}"
+        )
+
+        try:
+            response = requests.get(api_url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            if not data.get("ok"):
+                raise ValueError(
+                    data.get("error", "Respuesta inválida de Cobros")
+                )
+
+            resumenes = {}
+
+            for item in data.get("pacientes", []):
+                patient_id = item.get("patient_id")
+
+                if patient_id is None:
+                    continue
+
+                try:
+                    patient_id = int(patient_id)
+                except (TypeError, ValueError):
+                    continue
+
+                resumenes[patient_id] = {
+                    "ok": True,
+                    "total_pagado": _decimal_seguro(
+                        item.get("total_pagado", 0)
+                    ),
+                    "tipo_pago": item.get("tipo_pago", "pagado"),
+                    "cantidad_pagos": int(
+                        item.get("cantidad_pagos", 0) or 0
+                    ),
+                    "error": None,
+                }
+
+            for patient_id in patient_ids_limpios:
+                resumenes.setdefault(
+                    patient_id,
+                    {
+                        "ok": True,
+                        "total_pagado": Decimal("0"),
+                        "tipo_pago": "pagado",
+                        "cantidad_pagos": 0,
+                        "error": None,
+                    }
+                )
+
+            return resumenes, None
+
+        except Exception as e:
+            print(
+                "ERROR CONECTANDO COBROS:",
+                base_url,
+                str(e)
+            )
+            return None, str(e)
+
+    base_configurada = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        (
+            "http://127.0.0.1:8001"
+            if settings.DEBUG
+            else "https://sonrisar-cobros-1.onrender.com"
+        )
+    ).rstrip("/")
+
+    if not settings.DEBUG:
+        resumenes, error = consultar_fuente(base_configurada)
+
+        if resumenes is not None:
+            return resumenes
+
+        return {
+            patient_id: {
+                "ok": False,
+                "total_pagado": Decimal("0"),
+                "tipo_pago": "pagado",
+                "cantidad_pagos": 0,
+                "error": (
+                    "No fue posible conectar con Sonrisar Cobros: "
+                    f"{error}"
+                ),
+            }
+            for patient_id in patient_ids_limpios
+        }
+
+    base_produccion = "https://sonrisar-cobros-1.onrender.com"
+
+    fuentes = []
+    for base_url in (base_configurada, base_produccion):
+        normalizada = (base_url or "").strip().rstrip("/")
+        if normalizada and normalizada not in fuentes:
+            fuentes.append(normalizada)
+
+    resultados_validos = []
+    errores = []
+
+    for base_url in fuentes:
+        resumenes, error = consultar_fuente(base_url)
+
+        if resumenes is not None:
+            resultados_validos.append(resumenes)
+        elif error:
+            errores.append(f"{base_url}: {error}")
+
+    if not resultados_validos:
+        detalle_error = " | ".join(errores) or "Sin respuesta de Cobros."
+
+        return {
+            patient_id: {
+                "ok": False,
+                "total_pagado": Decimal("0"),
+                "tipo_pago": "pagado",
+                "cantidad_pagos": 0,
+                "error": (
+                    "No fue posible conectar con ninguna fuente "
+                    f"de Sonrisar Cobros: {detalle_error}"
+                ),
+            }
+            for patient_id in patient_ids_limpios
+        }
+
+    combinados = {}
+
+    for patient_id in patient_ids_limpios:
+        candidatos = [
+            resumen.get(
+                patient_id,
+                {
+                    "ok": True,
+                    "total_pagado": Decimal("0"),
+                    "tipo_pago": "pagado",
+                    "cantidad_pagos": 0,
+                    "error": None,
+                }
+            )
+            for resumen in resultados_validos
+        ]
+
+        mejor = max(
+            candidatos,
+            key=lambda item: _decimal_seguro(
+                item.get("total_pagado", 0)
+            )
+        )
+
+        total_mayor = _decimal_seguro(
+            mejor.get("total_pagado", 0)
+        )
+
+        cantidad_mayor = max(
+            int(item.get("cantidad_pagos", 0) or 0)
+            for item in candidatos
+        )
+
+        tipo_pago = (
+            "sena"
+            if any(
+                item.get("tipo_pago") == "sena"
+                for item in candidatos
+            )
+            else mejor.get("tipo_pago", "pagado")
+        )
+
+        combinados[patient_id] = {
+            "ok": True,
+            "total_pagado": total_mayor,
+            "tipo_pago": tipo_pago,
+            "cantidad_pagos": cantidad_mayor,
+            "error": None,
+        }
+
+    return combinados
+
+
+def obtener_resumen_cobros_paciente(paciente):
+    """
+    Compatibilidad para pantallas que consultan un solo paciente.
+    Internamente usa la consulta rápida agrupada.
+    """
+    resumenes = obtener_resumen_cobros_pacientes_bulk([paciente.id])
+    return resumenes.get(paciente.id, {
+        "ok": False,
+        "total_pagado": Decimal("0"),
+        "tipo_pago": "pagado",
+        "cantidad_pagos": 0,
+        "error": "No fue posible obtener pagos de Cobros.",
+    })
+
+
+def obtener_deuda_total_paciente_desde_pro(paciente, fecha_hasta=None):
+    """
+    Deuda real del paciente:
+    total cobrable en Sonrisar Pro - total pagado/señado en Sonrisar Cobros.
+    """
+    total_cobrable = obtener_total_cobrable_paciente_desde_pro(
+        paciente,
+        fecha_hasta=fecha_hasta,
+    )
+
+    resumen_cobros = obtener_resumen_cobros_paciente(paciente)
+    total_pagado = resumen_cobros.get("total_pagado", Decimal("0"))
+
+    saldo = total_cobrable - total_pagado
+
+    if saldo < 0:
+        saldo = Decimal("0")
+
+    return saldo
+
+
+def obtener_saldo_tratamiento(cita_actual):
+    """
+    Compatibilidad con código viejo.
+    Ya no se heredan saldos por motivo/cita porque eso duplicaba deuda.
+    """
+    if not cita_actual or not cita_actual.paciente_id:
+        return Decimal("0")
+
+    return obtener_deuda_total_paciente_desde_pro(
+        cita_actual.paciente,
+        fecha_hasta=cita_actual.fecha,
+    )
+
+
+def _obtener_pagos_cobros_citas_bulk(appointment_ids, base_url=None):
+    """
+    Consulta Sonrisar Cobros una sola vez para varias citas.
+    Si falla, devuelve None para que se use el método viejo.
+
+    base_url es opcional:
+    - None conserva exactamente el origen habitual configurado.
+    - En desarrollo puede usarse para consultar Cobros local solo para
+      las citas visibles del día, sin alterar deudas históricas.
+    """
+
+    appointment_ids_limpios = []
+
+    for appointment_id in appointment_ids:
+        try:
+            appointment_id_int = int(appointment_id)
+        except (TypeError, ValueError):
+            continue
+
+        if appointment_id_int not in appointment_ids_limpios:
+            appointment_ids_limpios.append(appointment_id_int)
+
+    if not appointment_ids_limpios:
+        return {}
+
+    if base_url:
+        cobros_base_url = base_url.rstrip("/")
+    else:
+        cobros_base_url = getattr(
+            settings,
+            "SONRISAR_COBROS_BASE_URL",
+            "http://127.0.0.1:8001"
+        ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_RESUMEN_CITAS_PATH",
+        "/pagos/api/resumen-citas/"
+    )
+
+    api_url = (
+        f"{cobros_base_url}"
+        f"{cobros_api_path}"
+        f"?{urlencode({'appointment_ids': ','.join(str(x) for x in appointment_ids_limpios)})}"
+    )
+
+    try:
+        response = requests.get(api_url, timeout=6)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data.get("ok"):
+            return None
+
+        resumenes = {}
+
+        for item in data.get("citas", []):
+            appointment_id = item.get("appointment_id")
+
+            try:
+                appointment_id = int(appointment_id)
+            except (TypeError, ValueError):
+                continue
+
+            resumenes[appointment_id] = {
+                "tiene_pago": _decimal_seguro(item.get("total_pagado", 0)) > 0,
+                "total_pagado": str(item.get("total_pagado", "0")),
+                "tipo_pago": item.get("tipo_pago", "pagado"),
+                "pagos": item.get("pagos", []),
+                "error": None,
+            }
+
+        return resumenes
+
+    except Exception as e:
+        print("ERROR COBROS BULK CITAS:", str(e))
+        return None
+
+
+def _combinar_pagos_citas(*fuentes):
+    """Une Cobros local y web sin duplicar una misma cita."""
+    combinados = {}
+
+    for fuente in fuentes:
+        if not fuente:
+            continue
+
+        for appointment_id, pago_info in fuente.items():
+            actual = combinados.get(appointment_id)
+            total_nuevo = _decimal_seguro(pago_info.get("total_pagado", 0))
+            total_actual = _decimal_seguro(
+                actual.get("total_pagado", 0) if actual else 0
+            )
+
+            if actual is None or total_nuevo > total_actual:
+                combinados[appointment_id] = pago_info
+
+    return combinados
+
+
+def _obtener_contexto_financiero_citas(citas_dia, fecha):
+    """
+    Calcula pagos, deuda y saldo a favor de forma cronológica por paciente.
+    Usa consulta rápida a Cobros. Si falla, vuelve al método anterior cita por cita.
+    """
+
+    contextos = {}
+
+    total_citas_procesadas = 0
+
+    pacientes_ids = []
+    pacientes_por_id = {}
+
+    for cita in citas_dia:
+        if cita.paciente_id not in pacientes_ids:
+            pacientes_ids.append(cita.paciente_id)
+            pacientes_por_id[cita.paciente_id] = cita.paciente
+
+    citas_por_paciente = {}
+    appointment_ids = []
+
+    for patient_id in pacientes_ids:
+        paciente = pacientes_por_id[patient_id]
+
+        citas_paciente = list(
+            Appointment.objects
+            .filter(
+                paciente=paciente,
+                fecha__lte=fecha
+            )
+            .exclude(estado="cancelado")
+            .select_related("paciente")
+            .prefetch_related("procedimientos")
+            .order_by("fecha", "hora", "id")
+        )
+
+        total_citas_procesadas += len(citas_paciente)
+
+        citas_por_paciente[patient_id] = citas_paciente
+
+        for cita in citas_paciente:
+            appointment_ids.append(cita.id)
+
+
+    # Pagos históricos desde la fuente configurada.
+    pagos_bulk = _obtener_pagos_cobros_citas_bulk(appointment_ids)
+
+    # En desarrollo local combinamos el historial real de Cobros web con los
+    # pagos de Cobros local. Si una cita está en ambos, conservamos el total
+    # mayor para evitar duplicar importes.
+    if settings.DEBUG:
+        pagos_web = _obtener_pagos_cobros_citas_bulk(
+            appointment_ids,
+            base_url="https://sonrisar-cobros-1.onrender.com",
+        )
+        pagos_bulk = _combinar_pagos_citas(pagos_bulk, pagos_web)
+
+    for patient_id, citas_paciente in citas_por_paciente.items():
+
+        deuda_acumulada = Decimal("0")
+        saldo_a_favor_disponible = Decimal("0")
+
+        for cita in citas_paciente:
+            monto_cita = _decimal_seguro(cita.monto_total)
+
+            if pagos_bulk is not None:
+                pago_info = pagos_bulk.get(cita.id, {
+                    "tiene_pago": False,
+                    "total_pagado": "0",
+                    "tipo_pago": "pagado",
+                    "pagos": [],
+                    "error": None,
+                })
+            else:
+                pago_info = obtener_pago_cobros_cita(
+                    appointment_id=cita.id,
+                    patient_id=patient_id
+                )
+
+            pago_cita = _decimal_seguro(
+                pago_info.get("total_pagado", 0)
+            )
+
+            tiene_pago_cita = pago_cita > 0
+
+            saldo_usado = Decimal("0")
+            saldo_generado = Decimal("0")
+
+            if monto_cita > 0:
+                deuda_acumulada += monto_cita
+
+            # IMPORTANTE:
+            # Si esta cita tiene un pago propio en Sonrisar Cobros,
+            # ese pago se aplica primero a la cita actual y NO consume
+            # un saldo a favor generado por pagos anteriores.
+            #
+            # El saldo previo solamente se utiliza cuando la cita
+            # no tiene ningún pago propio registrado.
+            if pago_cita > 0:
+                if deuda_acumulada > 0:
+                    if pago_cita >= deuda_acumulada:
+                        sobra = pago_cita - deuda_acumulada
+                        deuda_acumulada = Decimal("0")
+
+                        if sobra > 0:
+                            saldo_generado = sobra
+                            saldo_a_favor_disponible += sobra
+                    else:
+                        deuda_acumulada -= pago_cita
+                else:
+                    saldo_generado = pago_cita
+                    saldo_a_favor_disponible += pago_cita
+
+            # Después de aplicar el pago propio de la cita, si todavía queda
+            # parte del monto sin cubrir, recién entonces se puede usar el
+            # saldo a favor previo. Esto permite una cita mixta:
+            # parte pagada aparte + parte cubierta por el presupuesto.
+            if deuda_acumulada > 0 and saldo_a_favor_disponible > 0:
+                saldo_usado = min(
+                    saldo_a_favor_disponible,
+                    deuda_acumulada
+                )
+                deuda_acumulada -= saldo_usado
+                saldo_a_favor_disponible -= saldo_usado
+
+            pagos_cita = pago_info.get("pagos", []) or []
+            ultimo_pago_id = pagos_cita[0].get("id") if pagos_cita else None
+
+            contextos[cita.id] = {
+                "pago_cita": pago_cita,
+                "tiene_pago_cita": tiene_pago_cita,
+                "tipo_pago": pago_info.get("tipo_pago", "pagado"),
+                "ultimo_pago_id": ultimo_pago_id,
+                "deuda_cita": deuda_acumulada,
+                "saldo_usado": saldo_usado,
+                "saldo_generado": saldo_generado,
+                "saldo_a_favor_restante": saldo_a_favor_disponible,
+                "tiene_saldo_generado": saldo_generado > 0,
+                "usa_saldo_a_favor": saldo_usado > 0 and not tiene_pago_cita,
+                "cobros_error": pago_info.get("error"),
+            }
+
+    return contextos
+
+
+def _armar_cita_agenda_rapida(cita, contextos_financieros):
+    contexto_financiero = contextos_financieros.get(cita.id, {})
+
+    edad = calcular_edad(cita.paciente.fecha_nacimiento)
+
+    monto_total = _decimal_seguro(cita.monto_total)
+    pago_cita = _decimal_seguro(contexto_financiero.get("pago_cita", 0))
+    deuda_cita = _decimal_seguro(contexto_financiero.get("deuda_cita", 0))
+    saldo_generado = _decimal_seguro(contexto_financiero.get("saldo_generado", 0))
+    saldo_usado = _decimal_seguro(contexto_financiero.get("saldo_usado", 0))
+    saldo_a_favor_restante = _decimal_seguro(
+        contexto_financiero.get("saldo_a_favor_restante", 0)
+    )
+
+    tiene_pago_cita = pago_cita > 0
+    tiene_monto = monto_total > 0
+    cita_atendida = cita.estado == "asistio"
+
+    tiene_entrega_parcial = tiene_pago_cita and deuda_cita > 0
+    cita_pagada_visual = tiene_monto and deuda_cita <= 0
+
+    # El distintivo de la agenda debe reflejar el saldo que el paciente tiene
+    # disponible en este momento, no solamente el excedente generado por esta
+    # cita. Así el crédito sigue visible en las citas posteriores hasta usarse.
+    tiene_saldo_generado = saldo_generado > 0
+    tiene_saldo_a_favor = saldo_a_favor_restante > 0
+    usa_saldo_a_favor = saldo_usado > 0
+    es_pago_mixto = tiene_pago_cita and saldo_usado > 0
+
+    mostrar_pago_cobros = (
+        tiene_pago_cita
+        or tiene_saldo_generado
+        or usa_saldo_a_favor
+        or (cita_atendida and cita_pagada_visual)
+    )
+
+    if tiene_saldo_generado:
+        tipo_pago_visual = "saldo_a_favor"
+    elif es_pago_mixto:
+        tipo_pago_visual = "mixto"
+    elif usa_saldo_a_favor:
+        tipo_pago_visual = "saldo_usado"
+    elif tiene_entrega_parcial:
+        tipo_pago_visual = "sena"
+    elif cita_pagada_visual:
+        tipo_pago_visual = "pagado"
+    else:
+        tipo_pago_visual = "pendiente"
+
+    ultimo_pago_id = contexto_financiero.get("ultimo_pago_id")
+    # El recibo se abre en Sonrisar Cobros LOCAL, sin modificar la URL
+    # usada por las APIs ni el flujo actual del botón Cobrar.
+    cobros_recibos_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "http://127.0.0.1:8001"
+    ).rstrip("/")
+    recibo_url = ""
+    if ultimo_pago_id:
+        recibo_url = f"{cobros_recibos_base_url}/pagos/{ultimo_pago_id}/recibo/"
+
+        ci_paciente = (cita.paciente.ci or "").strip()
+        if ci_paciente:
+            recibo_url += "?" + urlencode({"ci": ci_paciente})
+
+    return {
+        "id": cita.id,
+        "patient_id": cita.paciente.id,
+        "hora_real": cita.hora,
+        "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+        "es_primera_vez": cita.id == getattr(cita, "primera_cita_id", None),
+        "edad": edad,
+        "motivo": cita.motivo,
+        "motivo_slug": slugify(cita.motivo or ""),
+        "procedimientos": [p.nombre for p in cita.procedimientos.all()],
+        "estado": cita.get_estado_display(),
+        "estado_slug": cita.estado,
+        "historia_actualizada": cita.historia_actualizada,
+        "pagado": cita_pagada_visual,
+        "tiene_pago_cobros": mostrar_pago_cobros,
+        "total_pagado": str(pago_cita),
+        "total_pagado_paciente": str(pago_cita),
+        "tipo_pago": tipo_pago_visual,
+        "monto_total": monto_total,
+        "total_cobrable_paciente": monto_total,
+        "debe": deuda_cita,
+        "deuda_cita": deuda_cita,
+        "deuda_total_paciente": deuda_cita,
+        "saldo_a_favor": saldo_a_favor_restante,
+        "saldo_a_favor_restante": saldo_a_favor_restante,
+        "saldo_usado": saldo_usado,
+        "tiene_saldo_a_favor": tiene_saldo_a_favor,
+        "usa_saldo_a_favor": usa_saldo_a_favor,
+        "es_pago_mixto": es_pago_mixto,
+        "cobros_error": contexto_financiero.get("cobros_error"),
+        "ultimo_pago_id": ultimo_pago_id,
+        "recibo_url": recibo_url,
+    }
+
+
+def agenda_patient_search(request):
+    """Search the full patient registry, independently of appointments."""
+    query = request.GET.get("q", "").strip()
+    patients = Patient.objects.all().order_by("apellido", "nombre", "pk")
+    if not query:
+        return JsonResponse({"results": [], "count": 0, "has_next": False})
+    for term in query.replace(",", " ").split():
+        patients = patients.filter(
+            Q(nombre__icontains=term) | Q(apellido__icontains=term)
+            | Q(ci__icontains=term) | Q(telefono__icontains=term)
+        )
+    page = Paginator(patients, 20).get_page(request.GET.get("page"))
+    response = JsonResponse({
+        "results": [{
+            "id": p.pk, "name": str(p), "ci": p.ci,
+            "detail_url": reverse("patient_detail", args=[p.pk]),
+            "clinical_url": reverse("clinical_records_list", args=[p.pk]),
+        } for p in page],
+        "count": page.paginator.count,
+        "has_next": page.has_next(),
+        "page": page.number,
+    })
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+def agenda_day(request, day, month, year):
+    import calendar
+    from activity.live import agenda_revision
+    # Capture before reading the agenda: changes made while rendering must be
+    # picked up by the next poll rather than acknowledged as already visible.
+    live_revision = agenda_revision()
+
+    fecha = date(year, month, day)
+    volver_dia_str = request.GET.get("volver_dia", "").strip()
+    try:
+        volver_dia = datetime.strptime(volver_dia_str, "%Y-%m-%d").date()
+    except ValueError:
+        volver_dia = None
+    print("DEBUG AGENDA_DAY EJECUTADA", fecha)
+
+    dia_bloqueado = DayBlock.objects.filter(
+        fecha=fecha
+    ).first()
+
+    bloqueos_horarios = {
+        bloqueo.hora: bloqueo
+        for bloqueo in TimeBlock.objects.filter(fecha=fecha)
+    }
+
+    primera_cita_paciente = (
+        Appointment.objects
+        .filter(paciente_id=OuterRef("paciente_id"))
+        .order_by("fecha", "hora", "id")
+        .values("id")[:1]
+    )
+
+    citas = list(
+        Appointment.objects.filter(fecha=fecha)
+        .annotate(primera_cita_id=Subquery(primera_cita_paciente))
+        .select_related("paciente")
+        .prefetch_related("procedimientos")
+        .order_by("hora", "id")
+    )
+
+    HORARIOS_BLOQUEADOS = {"14:00", "14:15", "14:30", "14:45"}
+
+    contextos_financieros = _obtener_contexto_financiero_citas(
+        citas,
+        fecha
+    )
+
+    # Deuda de presupuestos aceptados SIN duplicar pagos de Sonrisar Cobros.
+    #
+    # El presupuesto representa el valor total del tratamiento, mientras que
+    # las citas pueden ir cargando partes de ese mismo tratamiento. Por eso NO
+    # debemos sumar deuda de citas + deuda de presupuesto: eso duplica deuda.
+    #
+    # Para cada paciente calculamos cuánto queda del presupuesto luego de los
+    # pagos registrados en Cobros. Más abajo se mostrará el mayor saldo entre
+    # citas y presupuesto, evitando contar dos veces el mismo tratamiento.
+    patient_ids_dia = {cita.paciente_id for cita in citas if cita.paciente_id}
+
+    total_presupuestos_por_paciente = {
+        patient_id: Decimal("0") for patient_id in patient_ids_dia
+    }
+    total_pagado_presupuesto_local_por_paciente = {
+        patient_id: Decimal("0") for patient_id in patient_ids_dia
+    }
+
+    presupuestos_confirmados_dia = (
+        Budget.objects
+        .filter(
+            paciente_id__in=patient_ids_dia,
+            estado="confirmado",
+        )
+        .prefetch_related("pagos", "ajustes", "transferencias_enviadas", "transferencias_recibidas")
+    )
+
+    for presupuesto in presupuestos_confirmados_dia:
+        patient_id = presupuesto.paciente_id
+        total_presupuestos_por_paciente[patient_id] = (
+            total_presupuestos_por_paciente.get(patient_id, Decimal("0"))
+            + _decimal_seguro(presupuesto.total_efectivo)
+        )
+        total_pagado_presupuesto_local_por_paciente[patient_id] = (
+            total_pagado_presupuesto_local_por_paciente.get(patient_id, Decimal("0"))
+            + _decimal_seguro(presupuesto.total_pagado)
+        )
+
+    resumenes_cobros_dia = obtener_resumen_cobros_pacientes_bulk(
+        list(patient_ids_dia)
+    ) if patient_ids_dia else {}
+
+    # Deuda TOTAL de citas por paciente, calculada en bloque.
+    #
+    # Importante para rendimiento: NO llamamos
+    # obtener_total_cobrable_paciente_desde_pro() una vez por paciente.
+    # Hacemos una sola consulta SQL agrupada y reutilizamos el mismo resumen
+    # de Cobros que ya se pidió arriba para todos los pacientes del día.
+    totales_cobrables_por_paciente = {
+        patient_id: Decimal("0") for patient_id in patient_ids_dia
+    }
+
+    if patient_ids_dia:
+        totales_cobrables_qs = (
+            Appointment.objects
+            .filter(paciente_id__in=patient_ids_dia)
+            .exclude(estado="cancelado")
+            .values("paciente_id")
+            .annotate(total_cobrable=Sum("monto_total"))
+        )
+
+        for fila in totales_cobrables_qs:
+            totales_cobrables_por_paciente[fila["paciente_id"]] = _decimal_seguro(
+                fila.get("total_cobrable", 0)
+            )
+
+    deuda_citas_por_paciente = {}
+    deuda_presupuestos_por_paciente = {}
+    saldo_a_favor_por_paciente = {}
+
+    for patient_id in patient_ids_dia:
+        total_pagado_cobros = _decimal_seguro(
+            resumenes_cobros_dia.get(patient_id, {}).get("total_pagado", 0)
+        )
+
+        # Saldo general igual al de Finanzas: pagos netos menos cargos de
+        # citas no canceladas. No depende del pago ni del estado de esta cita.
+        saldo_a_favor_por_paciente[patient_id] = max(
+            total_pagado_cobros
+            - totales_cobrables_por_paciente.get(patient_id, Decimal("0")),
+            Decimal("0"),
+        )
+
+        # Misma lógica usada por Pacientes deudores:
+        # total de citas cobrables - total pagado por el paciente.
+        deuda_citas = (
+            totales_cobrables_por_paciente.get(patient_id, Decimal("0"))
+            - total_pagado_cobros
+        )
+        if deuda_citas < 0:
+            deuda_citas = Decimal("0")
+
+        deuda_citas_por_paciente[patient_id] = deuda_citas
+
+        total_presupuestos = total_presupuestos_por_paciente.get(
+            patient_id,
+            Decimal("0"),
+        )
+        total_pagado_local = total_pagado_presupuesto_local_por_paciente.get(
+            patient_id,
+            Decimal("0"),
+        )
+
+        # Si un pago está también asentado localmente en el presupuesto, usar el
+        # mayor de ambos totales evita descontarlo dos veces.
+        total_pagado_reconocido = max(total_pagado_cobros, total_pagado_local)
+
+        deuda_presupuesto = total_presupuestos - total_pagado_reconocido
+        if deuda_presupuesto < 0:
+            deuda_presupuesto = Decimal("0")
+
+        deuda_presupuestos_por_paciente[patient_id] = deuda_presupuesto
+
+    citas_por_bloque = agrupar_citas_por_bloque(citas, mixto=True)
+
+    horarios = []
+
+    for h in sorted(set(horarios_para_fecha(fecha)) | set(citas_por_bloque)):
+        hora_txt = h.strftime("%H:%M")
+
+        if dia_bloqueado and not citas_por_bloque.get(h):
+            horarios.append({
+                "hora": h,
+                "bloqueado": True,
+                "motivo": dia_bloqueado.motivo or "Día bloqueado",
+                "ocupado_exacto": False,
+                "citas_exactas": [],
+                "citas_extra": [],
+            })
+            continue
+
+        bloqueo_horario = bloqueos_horarios.get(h)
+        if bloqueo_horario and not citas_por_bloque.get(h):
+            horarios.append({
+                "hora": h,
+                "bloqueado": True,
+                "motivo": bloqueo_horario.motivo or "Horario bloqueado",
+                "ocupado_exacto": False,
+                "citas_exactas": [],
+                "citas_extra": [],
+            })
+            continue
+
+        if hora_txt in HORARIOS_BLOQUEADOS and fecha.weekday() != 5 and not citas_por_bloque.get(h):
+            horarios.append({
+                "hora": h,
+                "bloqueado": True,
+                "motivo": "Descanso",
+                "ocupado_exacto": False,
+                "citas_exactas": [],
+                "citas_extra": [],
+            })
+            continue
+
+        citas_en_bloque = citas_por_bloque.get(h, [])
+
+        citas_exactas = [
+            c for c in citas_en_bloque
+            if c.hora == h
+        ]
+
+        citas_extra = [
+            c for c in citas_en_bloque
+            if c.hora != h
+        ]
+
+        citas_exactas_data = [
+            _armar_cita_agenda_rapida(
+                cita,
+                contextos_financieros
+            )
+            for cita in citas_exactas
+        ]
+
+        citas_extra_data = [
+            _armar_cita_agenda_rapida(
+                cita,
+                contextos_financieros
+            )
+            for cita in citas_extra
+        ]
+
+        # Citas y presupuesto pueden representar el mismo tratamiento.
+        # Mostrar el saldo mayor evita duplicar deuda cuando ambos contienen
+        # importes del mismo tratamiento.
+        for cita_data in citas_exactas_data + citas_extra_data:
+            patient_id = cita_data.get("patient_id")
+            deuda_citas = deuda_citas_por_paciente.get(
+                patient_id,
+                Decimal("0"),
+            )
+            deuda_presupuestos = deuda_presupuestos_por_paciente.get(
+                patient_id,
+                Decimal("0"),
+            )
+            deuda_total = max(deuda_citas, deuda_presupuestos)
+
+            cita_data["deuda_citas"] = deuda_citas
+            cita_data["deuda_presupuestos"] = deuda_presupuestos
+            # IMPORTANTE: "debe" conserva la deuda calculada para el flujo
+            # de ESTA cita. No se reemplaza por la deuda global del paciente,
+            # porque ese valor se usa para decidir Pendiente / Ya cobrado.
+            cita_data["deuda_total_paciente"] = deuda_total
+            cita_data["saldo_a_favor_paciente"] = saldo_a_favor_por_paciente.get(
+                patient_id, Decimal("0"),
+            )
+
+        horarios.append({
+            "hora": h,
+            "bloqueado": False,
+            "motivo": "",
+            "ocupado_exacto": len(citas_exactas) > 0,
+            "citas_exactas": citas_exactas_data,
+            "citas_extra": citas_extra_data,
+        })
+
+    deudores = []
+    pacientes_ya_agregados = set()
+
+    if not dia_bloqueado:
+        for h in horarios:
+            if h.get("bloqueado"):
+                continue
+
+            for cita in h.get("citas_exactas", []) + h.get("citas_extra", []):
+                deuda_total_paciente = _decimal_seguro(
+                    cita.get("deuda_total_paciente", 0)
+                )
+                patient_id = cita.get("patient_id")
+
+                if (
+                    deuda_total_paciente > 0
+                    and patient_id not in pacientes_ya_agregados
+                ):
+                    deudores.append(cita)
+                    pacientes_ya_agregados.add(patient_id)
+
+    total_deuda_dia = sum(
+        (
+            _decimal_seguro(d.get("deuda_total_paciente", 0))
+            for d in deudores
+        ),
+        Decimal("0")
+    )
+
+    almanaque_mes_str = request.GET.get("almanaque_mes", "").strip()
+    try:
+        almanaque_base = datetime.strptime(almanaque_mes_str, "%Y-%m-%d").date()
+    except ValueError:
+        almanaque_base = fecha
+
+    calendario = calendar.Calendar(firstweekday=0)
+    semanas_raw = calendario.monthdatescalendar(
+        almanaque_base.year,
+        almanaque_base.month,
+    )
+    inicio_mes_visible = semanas_raw[0][0]
+    fin_mes_visible = semanas_raw[-1][-1]
+    fechas_con_citas = set(
+        Appointment.objects
+        .filter(fecha__range=[inicio_mes_visible, fin_mes_visible])
+        .values_list("fecha", flat=True)
+    )
+    semanas_almanaque = []
+    hoy = date.today()
+    for semana in semanas_raw:
+        semanas_almanaque.append([
+            {
+                "fecha": dia,
+                "numero": dia.day,
+                "es_del_mes": dia.month == almanaque_base.month,
+                "seleccionado": dia == fecha,
+                "es_hoy": dia == hoy,
+                "tiene_citas": dia in fechas_con_citas,
+            }
+            for dia in semana
+        ])
+
+    primer_dia_mes = almanaque_base.replace(day=1)
+    mes_anterior = (primer_dia_mes - timedelta(days=1)).replace(day=1)
+    if almanaque_base.month == 12:
+        mes_siguiente = almanaque_base.replace(
+            year=almanaque_base.year + 1,
+            month=1,
+            day=1,
+        )
+    else:
+        mes_siguiente = almanaque_base.replace(
+            month=almanaque_base.month + 1,
+            day=1,
+        )
+
+    nombres_meses = [
+        "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    return render(
+        request,
+        "core/agenda_day.html",
+        {
+            "agenda_live_revision": live_revision,
+            "fecha": fecha,
+            "fecha_anterior": fecha - timedelta(days=1),
+            "fecha_siguiente": fecha + timedelta(days=1),
+            "volver_dia": volver_dia,
+            "almanaque_titulo": f"{nombres_meses[almanaque_base.month]} {almanaque_base.year}",
+            "almanaque_semanas": semanas_almanaque,
+            "mes_anterior": mes_anterior,
+            "mes_siguiente": mes_siguiente,
+            "horarios": horarios,
+            "deudores": deudores,
+            "total_deuda_dia": total_deuda_dia,
+            "dia_bloqueado": dia_bloqueado,
+        }
+    )
+
+def _absolute_url(request, path_or_url):
+    """
+    Convierte una ruta relativa (/agenda/...) en URL absoluta.
+    Si ya viene absoluta, la devuelve tal cual.
+    """
+    if not path_or_url:
+        return ""
+
+    path_or_url = path_or_url.strip()
+
+    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        return path_or_url
+
+    return request.build_absolute_uri(path_or_url)
+
+
+def cobros_nuevo_desde_cita(request, appointment_id):
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=appointment_id
+    )
+
+    # En desarrollo local, el botón Cobrar debe abrir Sonrisar Cobros local.
+    # En producción, usa la URL configurada para Sonrisar Cobros web.
+    if settings.DEBUG:
+        cobros_base_url = "http://127.0.0.1:8001"
+    else:
+        cobros_base_url = getattr(
+            settings,
+            "SONRISAR_COBROS_BASE_URL",
+            "https://sonrisar-cobros-1.onrender.com"
+        ).rstrip("/")
+
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
+
+    paciente_nombre = f"{cita.paciente.apellido}, {cita.paciente.nombre}".strip(", ")
+
+    # Puede venir relativo o absoluto
+    next_param = request.GET.get("next", "").strip()
+    next_url = _absolute_url(request, next_param) if next_param else ""
+
+    # URL intermedia en Sonrisar Pro:
+    # Cobros guarda -> vuelve aquí -> aquí marcamos Asistió -> redirigimos al destino final
+    confirmar_pago_url = request.build_absolute_uri(
+        reverse("confirmar_pago_desde_cobros")
+    )
+
+    confirmar_params = {
+        "appointment_id": cita.id,
+    }
+
+    if next_url:
+        confirmar_params["next"] = next_url
+
+    confirmar_pago_url = f"{confirmar_pago_url}?{urlencode(confirmar_params)}"
+
+    params = {
+        "paciente": paciente_nombre,
+        "concepto": cita.motivo or "Consulta odontológica",
+        "appointment_id": cita.id,
+        "patient_id": cita.paciente.id,
+        "fecha_cita": cita.fecha.strftime("%Y-%m-%d"),
+        "next": confirmar_pago_url,
+    }
+
+    ci = getattr(cita.paciente, "ci", "")
+    if ci:
+        params["ci"] = ci
+
+    cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
+    return redirect(cobros_url)
+
+
+def confirmar_pago_desde_cobros(request):
+    appointment_id = request.GET.get("appointment_id")
+    next_url = request.GET.get("next", "").strip()
+
+    if not appointment_id:
+        messages.warning(request, "No se recibió la cita a actualizar.")
+        return redirect(next_url or reverse("agenda_pro"))
+
+    cita = get_object_or_404(Appointment, id=appointment_id)
+
+    if cita.estado != "cancelado":
+        cita.estado = "asistio"
+
+    cita.save()
+
+    cita.refresh_from_db()
+
+    return redirect(next_url or reverse("agenda_pro"))
+
+
+
+def cobros_nuevo_desde_paciente(request, patient_id):
+    paciente = get_object_or_404(Patient, id=patient_id)
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros-1.onrender.com"
+    ).rstrip("/")
+
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
+
+    paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
+
+    next_param = request.GET.get("next", "").strip()
+    next_url = _absolute_url(request, next_param) if next_param else ""
+
+    params = {
+        "paciente": paciente_nombre,
+        "concepto": "Pago odontológico",
+        "patient_id": paciente.id,
+    }
+
+    ci = getattr(paciente, "ci", "")
+    if ci:
+        params["ci"] = ci
+
+    if next_url:
+        params["next"] = next_url
+
+    cobros_url = f"{cobros_base_url}{cobros_path}?{urlencode(params)}"
+    return redirect(cobros_url)
+
+
+def cobros_nuevo_desde_protesis(request, protesis_id):
+
+    protesis = get_object_or_404(
+        Prosthesis.objects.select_related("paciente"),
+        id=protesis_id
+    )
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "http://127.0.0.1:8001"
+    ).rstrip("/")
+
+    cobros_path = getattr(
+        settings,
+        "SONRISAR_COBROS_NUEVO_PATH",
+        "/pagos/nuevo/"
+    )
+
+    paciente_nombre = (
+        f"{protesis.paciente.apellido}, "
+        f"{protesis.paciente.nombre}"
+    ).strip(", ")
+
+    next_url = request.build_absolute_uri(reverse("protesis_list"))
+
+    params = {
+        "paciente": paciente_nombre,
+        "concepto": protesis.get_tipo_protesis_display(),
+        "patient_id": protesis.paciente.id,
+        "protesis_id": protesis.id,
+        "next": next_url,
+    }
+
+    cobros_url = (
+        f"{cobros_base_url}"
+        f"{cobros_path}"
+        f"?{urlencode(params)}"
+    )
+
+    return redirect(cobros_url)
+
+
+
+def obtener_pagos_cobros_paciente(request, paciente):
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros-1.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_PACIENTE_PATH",
+        "/pagos/api/por-paciente/"
+    )
+
+    paciente_nombre = f"{paciente.apellido}, {paciente.nombre}".strip(", ")
+
+    api_url = f"{cobros_base_url}{cobros_api_path}?{urlencode({'paciente': paciente_nombre})}"
+
+    try:
+        with urlopen(api_url, timeout=6) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        if data.get("ok"):
+            return data.get("pagos", []), None
+
+        return [], data.get("error", "No se pudieron obtener los pagos.")
+
+    except (URLError, HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+        return [], "No fue posible conectar con Sonrisar Cobros."
+        
+
+def obtener_pago_cobros_cita(
+    appointment_id,
+    patient_id=None
+):
+
+    cobros_base_url = getattr(
+        settings,
+        "SONRISAR_COBROS_BASE_URL",
+        "https://sonrisar-cobros-1.onrender.com"
+    ).rstrip("/")
+
+    cobros_api_path = getattr(
+        settings,
+        "SONRISAR_COBROS_API_CITA_PATH",
+        "/pagos/api/por-cita/"
+    )
+
+    params = {
+        "appointment_id": appointment_id,
+    }
+
+    # =====================================
+    # NUEVO
+    # =====================================
+    if patient_id:
+        params["patient_id"] = patient_id
+
+    api_url = (
+        f"{cobros_base_url}"
+        f"{cobros_api_path}"
+        f"?{urlencode(params)}"
+    )
+
+    try:
+
+        with urlopen(api_url, timeout=6) as response:
+
+            data = json.loads(
+                response.read().decode("utf-8")
+            )
+
+        total_pagado = Decimal(
+            str(data.get("total_pagado", 0))
+        )
+
+        if data.get("ok"):
+
+            return {
+                "tiene_pago": total_pagado > 0,
+                "total_pagado": str(total_pagado),
+                "tipo_pago": data.get(
+                    "tipo_pago",
+                    "pagado"
+                ),
+                "pagos": data.get(
+                    "pagos",
+                    []
+                ),
+                "error": None,
+            }
+
+        return {
+            "tiene_pago": False,
+            "total_pagado": "0",
+            "tipo_pago": "pagado",
+            "pagos": [],
+            "error": data.get(
+                "error",
+                "No se pudo obtener el pago."
+            ),
+        }
+
+    except (
+        URLError,
+        HTTPError,
+        TimeoutError,
+        ValueError,
+        json.JSONDecodeError
+    ):
+
+        return {
+            "tiene_pago": False,
+            "total_pagado": "0",
+            "tipo_pago": "pagado",
+            "pagos": [],
+            "error": (
+                "No fue posible conectar "
+                "con Sonrisar Cobros."
+            ),
+        }
+
+def obtener_pacientes_con_pago(request, pacientes):
+    """
+    Devuelve un set con ids de pacientes que tienen al menos un pago
+    registrado en Sonrisar Cobros.
+    """
+    pacientes_pagados = set()
+
+    for paciente in pacientes:
+        pagos, error = obtener_pagos_cobros_paciente(request, paciente)
+        if pagos and not error:
+            pacientes_pagados.add(paciente.id)
+
+    return pacientes_pagados
+
+
+
+def agenda_week(request):
+    hoy = date.today()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # lunes
+    fin_semana = inicio_semana + timedelta(days=6)
+
+    selected_day = request.GET.get("day")  # 1=lunes ... 7=domingo
+
+    # Citas de la semana (optimizado)
+    citas_qs = (
+        Appointment.objects.filter(fecha__range=[inicio_semana, fin_semana])
+        .select_related("paciente")
+        .order_by("fecha", "hora")
+    )
+
+    if selected_day:
+        citas_qs = citas_qs.filter(fecha__iso_week_day=int(selected_day))
+
+    # Lista de días a mostrar (si filtra, mostramos solo ese día)
+    if selected_day:
+        dias = [inicio_semana + timedelta(days=int(selected_day) - 1)]
+    else:
+        dias = [inicio_semana + timedelta(days=i) for i in range(7)]
+
+    # Armamos la grilla: por cada día, todos los horarios + ocupado/libre
+    week_grid = []
+    horarios_base = generar_horarios()  # 09:00 a 19:30 cada 30 min
+
+    for dia in dias:
+        citas_del_dia = [c for c in citas_qs if c.fecha == dia]
+        citas_por_hora = {c.hora: c for c in citas_del_dia}
+
+        slots = []
+        for h in horarios_base:
+            cita = citas_por_hora.get(h)
+            if cita:
+                slots.append({
+                    "hora": h,
+                    "ocupado": True,
+                    "id": cita.id,
+                    "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
+                    "motivo": cita.motivo,
+                    "estado": cita.estado,
+                })
+            else:
+                slots.append({
+                    "hora": h,
+                    "ocupado": False,
+                })
+
+        week_grid.append({
+            "fecha": dia,
+            "slots": slots
+        })
+
+    contexto = {
+        "week_grid": week_grid,
+        "inicio": inicio_semana,
+        "fin": fin_semana,
+        "selected_day": selected_day,
+    }
+
+    return render(request, "core/agenda_week.html", contexto)
+
+
+def agenda_month(request):
+    hoy = date.today()
+    primer_dia = hoy.replace(day=1)
+
+    if hoy.month == 12:
+        ultimo_dia = date(hoy.year, 12, 31)
+    else:
+        ultimo_dia = date(hoy.year, hoy.month + 1, 1) - timedelta(days=1)
+
+    citas = Appointment.objects.filter(
+        fecha__range=[primer_dia, ultimo_dia]
+    ).order_by("fecha", "hora")
+
+    # 🔥 FORMATO LISTO, SIMPLE, SIN FILTROS DJANGO
+    meses = {
+        1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+        5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+        9: "setiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+    }
+
+    primer_texto = f"{primer_dia.day} de {meses[primer_dia.month]} de {primer_dia.year}"
+    ultimo_texto = f"{ultimo_dia.day} de {meses[ultimo_dia.month]} de {ultimo_dia.year}"
+
+    contexto = {
+        "primer_texto": primer_texto,
+        "ultimo_texto": ultimo_texto,
+        "citas": citas,
+    }
+
+    return render(request, "core/agenda_month.html", contexto)
+
+
+# VISTA DEL CALENDARIO MENSUAL
+def agenda_mensual_calendario(request):
+    hoy = date.today()
+    year = int(request.GET.get("year", hoy.year))
+    month = int(request.GET.get("month", hoy.month))
+
+    q = request.GET.get("q", "").strip()
+    resultados = None
+
+    if q:
+        resultados = Appointment.objects.filter(
+            Q(paciente__nombre__icontains=q) |
+            Q(paciente__apellido__icontains=q) |
+            Q(paciente__ci__icontains=q) |
+            Q(motivo__icontains=q)
+        ).select_related("paciente").order_by("fecha", "hora")
+
+    cal = calendar.Calendar(firstweekday=0)
+    semanas = cal.monthdayscalendar(year, month)
+
+    citas = (
+        Appointment.objects.filter(
+            fecha__year=year,
+            fecha__month=month
+        )
+        .select_related("paciente")
+        .order_by("fecha", "hora")
+    )
+
+    citas_por_dia = {}
+    for cita in citas:
+        dia = cita.fecha.day
+        citas_por_dia.setdefault(dia, []).append(cita)
+
+    bloqueos_mes = DayBlock.objects.filter(
+        fecha__year=year,
+        fecha__month=month
+    )
+
+    bloqueos_por_dia = {
+        bloqueo.fecha.day: bloqueo
+        for bloqueo in bloqueos_mes
+    }
+
+    horarios_base = generar_horarios()
+    slots_por_dia = {}
+    HORARIOS_BLOQUEADOS = {"14:00", "14:15", "14:30", "14:45"}
+
+    dias_en_grilla = set()
+    for semana in semanas:
+        for d in semana:
+            if d != 0:
+                dias_en_grilla.add(d)
+
+    for d in dias_en_grilla:
+        dia_bloqueado = bloqueos_por_dia.get(d)
+        citas_del_dia = citas_por_dia.get(d, [])
+        citas_por_bloque = agrupar_citas_por_bloque(citas_del_dia)
+
+        slots = []
+
+        for h in horarios_base:
+            hora_txt = h.strftime("%H:%M")
+
+            if dia_bloqueado:
+                slots.append({
+                    "hora": h,
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "motivo_bloqueo": dia_bloqueado.motivo or "Día bloqueado",
+                    "citas": [],
+                })
+                continue
+
+            if hora_txt in HORARIOS_BLOQUEADOS and date(year, month, d).weekday() != 5:
+                slots.append({
+                    "hora": h,
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "motivo_bloqueo": "Descanso",
+                    "citas": [],
+                })
+                continue
+
+            citas_en_bloque = citas_por_bloque.get(h, [])
+
+            if citas_en_bloque:
+                slots.append({
+                    "hora": h,
+                    "ocupado": True,
+                    "bloqueado": False,
+                    "citas": [
+                        {
+                            "id": c.id,
+                            "patient_id": c.paciente.id,
+                            "hora_real": c.hora,
+                            "paciente": f"{c.paciente.apellido}, {c.paciente.nombre}",
+                            "motivo": c.motivo,
+                            "estado": c.estado,
+                        }
+                        for c in citas_en_bloque
+                    ],
+                })
+            else:
+                slots.append({
+                    "hora": h,
+                    "ocupado": False,
+                    "bloqueado": False,
+                    "citas": [],
+                })
+
+        slots_por_dia[d] = slots
+
+    slots_por_dia_str = {str(k): v for k, v in slots_por_dia.items()}
+
+    prev_month = month - 1
+    prev_year = year
+    if prev_month == 0:
+        prev_month = 12
+        prev_year -= 1
+
+    next_month = month + 1
+    next_year = year
+    if next_month == 13:
+        next_month = 1
+        next_year += 1
+
+    MESES = [
+        "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    return render(
+        request,
+        "core/agenda_mensual_calendario.html",
+        {
+            "hoy": hoy,
+            "year": year,
+            "month": month,
+            "nombre_mes": MESES[month],
+            "semanas": semanas,
+            "citas_por_dia": citas_por_dia,
+            "slots_por_dia": slots_por_dia,
+            "slots_por_dia_str": slots_por_dia_str,
+            "bloqueos_por_dia": bloqueos_por_dia,
+            "prev_month": prev_month,
+            "prev_year": prev_year,
+            "next_month": next_month,
+            "next_year": next_year,
+            "q": q,
+            "resultados": resultados,
+        }
+    )
+
+# ENDPOINT JSON PARA FULLCALENDAR
+
+def agenda_citas_json(request):
+    citas = Appointment.objects.select_related("paciente")
+
+    eventos = []
+    for cita in citas:
+        eventos.append({
+            "id": cita.id,
+            "title": f"{cita.paciente}",   # nombre del paciente
+            "start": f"{cita.fecha}T{cita.hora}",
+            "url": reverse("appointment_edit", args=[cita.id]),
+            "extendedProps": {
+                "estado": cita.estado,
+                "motivo": cita.motivo,    # ← AGREGADO
+            }
+        })
+
+    return JsonResponse(eventos, safe=False)
+
+
+# 📅 AGENDA SEMANAL (CALENDARIO)
+def agenda_semanal_calendario(request):
+    return render(request, "core/agenda_semanal_calendario.html")
+
+
+def patient_delete(request, id):
+    paciente = get_object_or_404(Patient, id=id)
+
+    if request.method == "POST":
+        paciente.delete()
+        return redirect("patient_list")
+
+    return render(request, "core/patient_confirm_delete.html", {
+        "paciente": paciente
+    })
+
+
+# =============================
+# 📅 AGENDA (alias seguro)
+# =============================
+def agenda(request):
+    return redirect("citas_list")
+
+
+# =============================
+# 📲 WHATSAPP (recordatorios)
+# =============================
+
+def _normalizar_telefono_uy(telefono):
+    """
+    Limpia el teléfono y lo deja listo para WhatsApp.
+
+    Uruguay:
+    092706293 -> 59892706293
+    59892706293 -> 59892706293
+
+    Argentina:
+    1123456789 -> 5491123456789
+    5491123456789 -> 5491123456789
+    +54 9 11 2345 6789 -> 5491123456789
+    """
+
+    telefono_num = "".join(c for c in str(telefono or "") if c.isdigit())
+
+    if not telefono_num:
+        return ""
+
+    # Uruguay ya completo
+    if telefono_num.startswith("598"):
+        return telefono_num
+
+    # Argentina ya completo para WhatsApp
+    if telefono_num.startswith("549"):
+        return telefono_num
+
+    # Argentina escrito como 54 + número celular sin el 9
+    # Ej: 541123456789 -> 5491123456789
+    if telefono_num.startswith("54") and not telefono_num.startswith("549"):
+        return "549" + telefono_num[2:]
+
+    # Argentina celular CABA/Buenos Aires sin código país
+    # Ej: 1123456789 -> 5491123456789
+    if telefono_num.startswith("11") and len(telefono_num) == 10:
+        return "549" + telefono_num
+
+    # Uruguay con 0 adelante
+    # Ej: 099123456 -> 99123456
+    if telefono_num.startswith("0"):
+        telefono_num = telefono_num[1:]
+
+    # Uruguay sin código país
+    # Ej: 99123456 -> 59899123456
+    if telefono_num and not telefono_num.startswith("598"):
+        telefono_num = "598" + telefono_num
+
+    return telefono_num
+
+
+def _mensaje_recordatorio(cita, tipo_recordatorio="24h"):
+    paciente = cita.paciente
+    nombre = paciente.nombre
+
+    dias = {
+        0: "Lunes",
+        1: "Martes",
+        2: "Miércoles",
+        3: "Jueves",
+        4: "Viernes",
+        5: "Sábado",
+        6: "Domingo",
+    }
+
+    fecha_txt = f"{dias[cita.fecha.weekday()]} {cita.fecha.strftime('%d/%m/%Y')}"
+    hora_txt = cita.hora.strftime("%H:%M")
+
+    if tipo_recordatorio == "72h":
+        return (
+            f"Hola {nombre} 😊\n\n"
+            f"Te recordamos tu cita odontológica el *{fecha_txt}* "
+            f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
+            f"📍 Román Guerra 752, Maldonado\n\n"
+            f"Agradecemos que *CONFIRMES* tu asistencia por este medio.\n\n"
+            f"📌 24 horas antes te enviaremos un nuevo recordatorio.\n\n"
+            f"¡Muchas gracias! 🦷✨\n\n"
+            f"https://maps.google.com/?q=Roman+Guerra+752+Maldonado+Uruguay"
+        )
+
+    return (
+        f"Hola {nombre} 😊\n\n"
+        f"Te recordamos tu cita odontológica para mañana *{fecha_txt}* "
+        f"a las *{hora_txt}* en *Sonrisar – Centro Odontológico*.\n\n"
+        f"Para mantener tu reserva, necesitamos que vuelvas a *CONFIRMAR* tu asistencia.\n\n"
+        f"¡Te esperamos! 🦷✨\n\n"
+    )
+
+    
+
+def iniciar_recordatorios_manana(request):
+    fecha_objetivo = date.today() + timedelta(days=1)
+
+    citas = (
+        Appointment.objects
+        .filter(fecha=fecha_objetivo)
+        .exclude(estado="cancelado")
+        .select_related("paciente")
+        .order_by("hora")
+    )
+
+    if not citas.exists():
+        messages.warning(request, "No hay citas para mañana.")
+        return redirect("whatsapp_reminders")
+
+    request.session["recordatorios_lista"] = [c.id for c in citas]
+    request.session["tipo_recordatorio"] = "24h"
+
+    return redirect("siguiente_recordatorio")
+
+
+def iniciar_recordatorios_72h(request):
+    fecha_objetivo = date.today() + timedelta(days=3)
+
+    citas = (
+        Appointment.objects
+        .filter(fecha=fecha_objetivo)
+        .exclude(estado="cancelado")
+        .select_related("paciente")
+        .order_by("hora")
+    )
+
+    if not citas.exists():
+        messages.warning(request, "No hay citas para dentro de 72 horas.")
+        return redirect("whatsapp_reminders")
+
+    request.session["recordatorios_lista"] = [c.id for c in citas]
+    request.session["tipo_recordatorio"] = "72h"
+
+    return redirect("siguiente_recordatorio")
+
+
+def siguiente_recordatorio(request):
+    lista = request.session.get("recordatorios_lista", [])
+
+    if not lista:
+        request.session.pop("tipo_recordatorio", None)
+        messages.success(request, "Todos los recordatorios fueron enviados correctamente.")
+        return redirect("whatsapp_reminders")
+
+    cita_id = lista[0]  # No se borra hasta confirmar envío
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=cita_id
+    )
+
+    paciente = cita.paciente
+    telefono_num = _normalizar_telefono_uy(paciente.telefono)
+
+    if not telefono_num:
+        messages.warning(request, f"El paciente {paciente} no tiene teléfono cargado. Se salta.")
+        lista.pop(0)
+        request.session["recordatorios_lista"] = lista
+        return redirect("siguiente_recordatorio")
+
+    tipo_recordatorio = request.session.get("tipo_recordatorio", "24h")
+    mensaje = _mensaje_recordatorio(cita, tipo_recordatorio)
+
+    params = urlencode({"text": mensaje})
+    url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
+
+    return render(request, "core/esperando.html", {
+        "url_whatsapp": url_whatsapp,
+        "cita": cita,
+        "tipo_recordatorio": tipo_recordatorio,
+    })
+
+
+def confirmar_envio(request):
+    lista = request.session.get("recordatorios_lista", [])
+
+    if lista:
+        lista.pop(0)
+        request.session["recordatorios_lista"] = lista
+
+    if not lista:
+        request.session.pop("tipo_recordatorio", None)
+        messages.success(request, "Todos los recordatorios fueron enviados.")
+        return redirect("whatsapp_reminders")
+
+    return redirect("siguiente_recordatorio")
+
+
+def cita_recordatorio(request, id):
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=id
+    )
+
+    tipo = request.GET.get("tipo", "24h")
+    if tipo not in ["24h", "72h"]:
+        tipo = "24h"
+
+    paciente = cita.paciente
+    telefono_num = _normalizar_telefono_uy(paciente.telefono)
+
+    if not telefono_num:
+        messages.warning(request, "Este paciente no tiene teléfono cargado.")
+        return redirect("whatsapp_reminders")
+
+    mensaje = _mensaje_recordatorio(cita, tipo)
+    params = urlencode({"text": mensaje})
+    url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
+
+    return redirect(url_whatsapp)
+
+
+def whatsapp_reminders(request):
+    tipo = request.GET.get("tipo", "24h")
+
+    if tipo == "72h":
+        fecha_objetivo = date.today() + timedelta(days=3)
+        titulo_fecha = "Recordatorios 72 h"
+    else:
+        tipo = "24h"
+        fecha_objetivo = date.today() + timedelta(days=1)
+        titulo_fecha = "Recordatorios 24 h"
+
+    citas = (
+        Appointment.objects
+        .filter(fecha=fecha_objetivo)
+        .exclude(estado="cancelado")
+        .select_related("paciente")
+        .order_by("hora")
+    )
+
+    return render(
+        request,
+        "core/whatsapp_reminders.html",
+        {
+            "citas": citas,
+            "fecha_objetivo": fecha_objetivo,
+            "tipo": tipo,
+            "titulo_fecha": titulo_fecha,
+        }
+    )
+
+
+def whatsapp_paciente(request, id):
+    cita = get_object_or_404(
+        Appointment.objects.select_related("paciente"),
+        id=id
+    )
+
+    paciente = cita.paciente
+    telefono_num = _normalizar_telefono_uy(paciente.telefono)
+
+    if not telefono_num:
+        messages.warning(request, "Este paciente no tiene teléfono cargado.")
+        return redirect("whatsapp_reminders")
+
+    mensaje = _mensaje_recordatorio(cita, "24h")
+    params = urlencode({"text": mensaje})
+    url_whatsapp = f"https://web.whatsapp.com/send?phone={telefono_num}&{params}"
+
+    return redirect(url_whatsapp)
+
+
+# =========================
+# RAYOS X
+# =========================
+
+def rayos_x_list(request, paciente_id):
+    paciente = get_object_or_404(Patient, id=paciente_id)
+    rayos = RayosX.objects.filter(paciente=paciente).order_by("-fecha")
+
+    return render(
+        request,
+        "core/rayos_x_list.html",
+        {
+            "paciente": paciente,
+            "rayos": rayos,
+        }
+    )
+
+
+def rayos_x_new(request, paciente_id):
+    paciente = get_object_or_404(Patient, id=paciente_id)
+    next_url = request.GET.get("next") or request.POST.get("next") or ""
+
+    if request.method == "POST":
+        form = RayosXForm(request.POST, request.FILES)
+        if form.is_valid():
+            rx = form.save(commit=False)
+            rx.paciente = paciente
+            rx.save()
+            url_lista = reverse("rayos_x_list", args=[paciente.id])
+            if next_url:
+                url_lista += "?" + urlencode({"next": next_url})
+            return redirect(url_lista)
+    else:
+        form = RayosXForm()
+
+    return render(
+        request,
+        "core/rayos_x_form.html",
+        {
+            "form": form,
+            "paciente": paciente,
+            "next_url": next_url,
+        }
+    )
+
+
+def rayos_x_detail(request, rx_id):
+    rx = get_object_or_404(RayosX, id=rx_id)
+
+    return render(
+        request,
+        "core/rayos_x_detail.html",
+        {
+            "rx": rx,
+        }
+    )
+
+
+def rayos_x_delete(request, rx_id):
+    rx = get_object_or_404(RayosX, id=rx_id)
+    paciente_id = rx.paciente.id
+
+    if request.method == "POST":
+        rx.delete()
+        return redirect("rayos_x_list", paciente_id=paciente_id)
+
+    return render(
+        request,
+        "core/rayos_x_confirm_delete.html",
+        {
+            "rx": rx,
+        }
+    )
+
+# ============================
+# LISTA DE TODAS LAS CITAS
+# ============================
+def lista_de_citas(request):
+    citas = Appointment.objects.select_related("paciente").order_by("fecha", "hora")
+    return render(request, "core/appointments_list.html", {"citas": citas})
+
+
+# =============================
+# INVENTARIO
+# =============================
+
+
+def inventory_list(request):
+    query = request.GET.get("q", "")
+    faltantes = request.GET.get("faltantes", "")
+
+    productos = Inventory.objects.all().order_by("nombre")
+
+    if query:
+        productos = productos.filter(
+            Q(nombre__icontains=query) |
+            Q(codigo__icontains=query) |
+            Q(categoria__icontains=query) |
+            Q(proveedor__icontains=query)
+        )
+
+    if faltantes == "1":
+        productos = productos.filter(stock__lte=F("stock_minimo"))
+
+    total_productos = Inventory.objects.count()
+    sin_stock = Inventory.objects.filter(stock=0).count()
+    bajo_stock = Inventory.objects.filter(
+        stock__gt=0,
+        stock__lte=F("stock_minimo")
+    ).count()
+    total_faltantes = Inventory.objects.filter(
+        stock__lte=F("stock_minimo")
+    ).count()
+
+    valor_total = sum(
+        (p.stock or 0) * (p.precio or 0)
+        for p in Inventory.objects.all()
+    )
+
+    paginator = Paginator(productos, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "core/inventory_list.html",
+        {
+            "productos": page_obj,
+            "query": query,
+            "page_obj": page_obj,
+            "faltantes": faltantes,
+            "total_faltantes": total_faltantes,
+            "total_productos": total_productos,
+            "sin_stock": sin_stock,
+            "bajo_stock": bajo_stock,
+            "valor_total": valor_total,
+        }
+    )
+
+
+def inventory_new(request):
+    if request.method == "POST":
+        form = InventoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("inventory_list")
+    else:
+        form = InventoryForm()
+
+    return render(request, "core/inventory_form.html", {
+        "form": form,
+        "modo": "nuevo",
+        "producto": None
+    })
+
+
+def inventory_edit(request, pk):
+    producto = get_object_or_404(Inventory, pk=pk)
+    next_url = request.GET.get("next") or request.POST.get("next")
+
+    if request.method == "POST":
+        form = InventoryForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            if next_url:
+                return redirect(next_url)
+            return redirect("inventory_list")
+    else:
+        form = InventoryForm(instance=producto)
+
+    return render(request, "core/inventory_edit.html", {
+        "form": form,
+        "producto": producto,
+        "next": next_url,
+    })
+
+
+def inventory_delete(request, pk):
+    producto = get_object_or_404(Inventory, pk=pk)
+
+    # Si querés confirmación, podés hacer un template confirm.
+    # Para hacerlo simple: borra directo por GET (funciona)
+    producto.delete()
+    return redirect("inventory_list")
+    
+
+
+def agenda_calendar_month(request):
+    hoy = date.today()
+    year = hoy.year
+    month = hoy.month
+
+    primer_dia = date(year, month, 1)
+    ultimo_dia = date(year, month, monthrange(year, month)[1])
+
+    turnos = (
+        Appointment.objects
+        .filter(fecha__range=(primer_dia, ultimo_dia))
+        .select_related()  # 🔒 SIN nombre → no rompe nada
+        .order_by("fecha", "hora")
+    )
+
+    context = {
+        "year": year,
+        "month": month,
+        "turnos": turnos,
+    }
+
+    return render(request, "core/agenda_month.html", context)
+
+
+
+def agenda_calendario(request):
+    today = date.today()
+
+    month = int(request.GET.get("month", today.month))
+    year = int(request.GET.get("year", today.year))
+
+    # ============================
+    # 🔍 BUSCADOR DE CITAS
+    # ============================
+    q = request.GET.get("q", "").strip()
+    resultados = None
+
+    if q:
+        resultados = Appointment.objects.filter(
+            Q(paciente__nombre__icontains=q) |
+            Q(paciente__apellido__icontains=q) |
+            Q(paciente__ci__icontains=q) |
+            Q(motivo__icontains=q)
+        ).select_related("paciente").order_by("fecha", "hora")
+
+    # ============================
+    # 📅 GENERAR CALENDARIO
+    # ============================
+    cal = calendar.Calendar(firstweekday=0)
+    semanas = cal.monthdayscalendar(year, month)
+
+    # Cargar citas del mes
+    citas = Appointment.objects.filter(
+        fecha__year=year,
+        fecha__month=month
+    ).select_related("paciente")
+
+    citas_por_dia = {}
+    for c in citas:
+        d = c.fecha.day
+        citas_por_dia.setdefault(d, []).append(c)
+
+    # Meses en español
+    meses = {
+        1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+        5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+        9: "setiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
+    }
+
+    # Navegación entre meses
+    prev_month = month - 1 if month > 1 else 12
+    prev_year  = year - 1 if month == 1 else year
+
+    next_month = month + 1 if month < 12 else 1
+    next_year  = year + 1 if month == 12 else year
+
+    return render(
+        request,
+        "core/agenda_mensual_calendario.html",
+        {
+            "month": month,
+            "year": year,
+            "semanas": semanas,
+            "citas_por_dia": citas_por_dia,
+            "nombre_mes": meses[month],
+
+            # Navegación
+            "prev_month": prev_month,
+            "prev_year": prev_year,
+            "next_month": next_month,
+            "next_year": next_year,
+
+            # 🔥 VARIABLES DEL BUSCADOR (esto antes NO estaba)
+            "q": q,
+            "resultados": resultados,
+        }
+    )
+
+
+def agenda_horarios_dia(request, year, month, day):
+    fecha = date(year, month, day)
+
+    # Horario del consultorio: 09:00 a 19:00 cada 30 minutos
+    inicio = datetime.combine(fecha, time(9, 0))
+    fin = datetime.combine(fecha, time(19, 0))
+
+    horarios = []
+    actual = inicio
+    while actual < fin:
+        horarios.append(actual.time())
+        actual += timedelta(minutes=30)
+
+    ocupados = Appointment.objects.filter(
+        fecha=fecha
+    ).values_list("hora", flat=True)
+
+    return render(request, "core/agenda_horarios_dia.html", {
+        "fecha": fecha,
+        "horarios": horarios,
+        "ocupados": ocupados,
+    })
+
+
+def agenda_hoy(request):
+    hoy = date.today()
+    return redirect(
+        "agenda_day",
+        day=hoy.day,
+        month=hoy.month,
+        year=hoy.year
+    )
+
+from django.http import HttpResponse
+from core.utils.wati import enviar_whatsapp
+
+def test_whatsapp(request):
+    numero = "59892706293"   # sin signo +
+    mensaje = "Hola! Este es un mensaje de prueba desde SonrisAR Pro ✔️"
+    
+    status, result = enviar_whatsapp(numero, mensaje)
+    return HttpResponse(f"STATUS: {status}<br>RESPUESTA: {result}")
+
+
+from django.db.models import Count
+from datetime import date
+
+def dashboard_asistencia(request):
+    today = date.today()
+    month = int(request.GET.get("month", today.month))
+    year = int(request.GET.get("year", today.year))
+
+    citas = Appointment.objects.filter(
+        fecha__year=year,
+        fecha__month=month
+    )
+
+    total = citas.count()
+    asistieron = citas.filter(estado="asistio").count()
+    no_asistieron = citas.filter(estado="no_asistio").count()
+    confirmados = citas.filter(estado="confirmado").count()
+    cancelados = citas.filter(estado="cancelado").count()
+    pendientes = citas.filter(estado="pendiente").count()
+
+    porcentaje = 0
+    if total > 0:
+        porcentaje = round((asistieron / total) * 100, 1)
+
+    # 🔥 RANKING PACIENTES QUE MÁS FALTAN
+    ranking = (
+        citas.filter(estado="no_asistio")
+        .values("paciente__apellido", "paciente__nombre")
+        .annotate(faltas=Count("id"))
+        .order_by("-faltas")
+    )
+
+    context = {
+        "month": month,
+        "year": year,
+        "total": total,
+        "asistieron": asistieron,
+        "no_asistieron": no_asistieron,
+        "confirmados": confirmados,
+        "cancelados": cancelados,
+        "pendientes": pendientes,
+        "porcentaje": porcentaje,
+        "ranking": ranking,
+    }
+
+    return render(request, "core/dashboard_asistencia.html", context)
+
+
+from django.http import HttpResponse
+
+def service_worker(request):
+    js = """
+const CACHE_NAME = "sonrisar-static-v3";
+
+const urlsToCache = [
+  "/static/manifest.json"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
+    })
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET" || !new URL(event.request.url).pathname.startsWith("/static/")) return;
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
+});
+"""
+    return HttpResponse(js, content_type="application/javascript")
+
+
+# ===================================
+# CALENDARIO PRO SONRISAR
+# ===================================
+def color_cita_por_motivo(motivo):
+    if not motivo:
+        return "#6b7280"  # gris
+
+    m = motivo.lower()
+
+    if "consulta" in m or "diagnóstico" in m or "diagnostico" in m or "valoración" in m or "valoracion" in m:
+        return "#6b7280"  # gris
+
+    if "limpieza" in m:
+        return "#1f9bd1"  # celeste
+
+    if "resina" in m:
+        return "#ffd400"  # amarillo
+
+    if "ajuste" in m and "ortodoncia" in m:
+        return "#1aa7a1"  # turquesa
+
+    if "segunda colocación" in m or "segunda colocacion" in m:
+        return "#2e7d32"  # verde fuerte
+
+    if "provisorio" in m:
+        return "#e67e22"  # naranja
+
+    if "contenciones" in m or "contención" in m or "contencion" in m:
+        return "#287c8e"  # azul petróleo
+
+    if "placa nmr" in m:
+        return "#8e6bbe"  # violeta suave
+
+    if "control" in m:
+        return "#607d8b"  # gris azulado
+
+    if "corona" in m:
+        return "#a66a00"  # dorado oscuro
+
+    if "puente fijo" in m:
+        return "#4f46e5"  # índigo
+
+    if "colocación nueva" in m or "colocacion nueva" in m:
+        return "#2563eb"  # azul
+
+    if "retiro" in m and "bracket" in m:
+        return "#795548"  # marrón
+
+    if "ajuste" in m and "limpieza" in m:
+        return "#00bfa5"  # verde agua
+
+    if "endodoncia" in m:
+        return "#8e24aa"  # lila
+
+    if "extracción" in m or "extraccion" in m:
+        return "#d32f2f"  # rojo
+
+    if "prótesis" in m or "protesis" in m:
+        return "#e91e63"  # rosado
+
+    if "urgencia" in m:
+        return "#ff8c00"  # naranja
+
+    if "despegados" in m:
+        return "#ff6b6b"  # rojo suave
+
+    if "blanqueamiento" in m:
+        return "#c8b6e2"  # lila pastel medio
+
+    return "#26ABA5"
+
+
+def agenda_pro(request):
+    import calendar
+
+    hoy = date.today()
+
+    fecha_str = request.GET.get("fecha")
+    q = request.GET.get("q", "").strip()
+
+    if fecha_str:
+        try:
+            fecha_base = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        except ValueError:
+            fecha_base = hoy
+    else:
+        fecha_base = hoy
+
+    inicio_semana = fecha_base - timedelta(days=fecha_base.weekday())
+    fin_semana = inicio_semana + timedelta(days=5)
+
+    dias = [inicio_semana + timedelta(days=i) for i in range(6)]
+    horarios = sorted({h for dia in dias for h in horarios_para_fecha(dia)})
+
+    bloqueos_semana = DayBlock.objects.filter(fecha__range=[inicio_semana, fin_semana])
+
+    bloqueos_por_dia = {bloqueo.fecha: bloqueo for bloqueo in bloqueos_semana}
+    bloqueos_por_dia_str = {bloqueo.fecha.strftime("%Y-%m-%d"): bloqueo for bloqueo in bloqueos_semana}
+
+    bloqueos_horarios_semana = TimeBlock.objects.filter(
+        fecha__range=[inicio_semana, fin_semana]
+    )
+    bloqueos_horarios = {
+        (bloqueo.fecha, bloqueo.hora): bloqueo
+        for bloqueo in bloqueos_horarios_semana
+    }
+
+    primera_cita_paciente = (
+        Appointment.objects
+        .filter(paciente_id=OuterRef("paciente_id"))
+        .order_by("fecha", "hora", "id")
+        .values("id")[:1]
+    )
+
+    citas_semana = (
+        Appointment.objects
+        .filter(fecha__range=[inicio_semana, fin_semana])
+        .annotate(primera_cita_id=Subquery(primera_cita_paciente))
+        .select_related("paciente")
+        .prefetch_related("procedimientos")
+        .order_by("fecha", "hora")
+    )
+
+    if q:
+        filtro = Q()
+        for palabra in q.split():
+            filtro &= (
+                Q(paciente__nombre__icontains=palabra) |
+                Q(paciente__apellido__icontains=palabra) |
+                Q(paciente__ci__icontains=palabra)
+            )
+        citas_semana = citas_semana.filter(filtro)
+
+    citas_por_dia = {dia: {} for dia in dias}
+
+    for cita in citas_semana:
+        bloque = bloque_para_fecha(cita.hora, cita.fecha)
+        citas_por_dia.setdefault(cita.fecha, {}).setdefault(bloque, []).append(cita)
+
+    for dia in citas_por_dia:
+        for bloque in citas_por_dia[dia]:
+            citas_por_dia[dia][bloque].sort(key=lambda c: c.hora)
+
+    horarios = sorted(set(horarios) | {h for bloques in citas_por_dia.values() for h in bloques})
+    filas = []
+
+    for hora in horarios:
+        celdas = []
+
+        for dia in dias:
+            dia_bloqueado = bloqueos_por_dia.get(dia)
+            citas_en_bloque = citas_por_dia.get(dia, {}).get(hora, [])
+
+            if not citas_en_bloque and hora not in horarios_para_fecha(dia):
+                celdas.append({"ocupado": False, "bloqueado": True,
+                               "tipo_bloqueo": "fuera", "motivo_bloqueo": "Fuera de horario",
+                               "citas": [], "fecha": dia, "hora": hora})
+                continue
+
+            if not citas_en_bloque and dia.weekday() < 5 and hora.hour == 14:
+                celdas.append({"ocupado": False, "bloqueado": True,
+                               "tipo_bloqueo": "descanso", "motivo_bloqueo": "Descanso",
+                               "citas": [], "fecha": dia, "hora": hora})
+                continue
+
+            if dia_bloqueado and not citas_en_bloque:
+                celdas.append({
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "tipo_bloqueo": "dia",
+                    "motivo_bloqueo": dia_bloqueado.motivo or "Día bloqueado",
+                    "citas": [],
+                    "fecha": dia,
+                    "hora": hora,
+                })
+                continue
+
+            bloqueo_horario = bloqueos_horarios.get((dia, hora))
+            if bloqueo_horario and not citas_en_bloque:
+                celdas.append({
+                    "ocupado": False,
+                    "bloqueado": True,
+                    "tipo_bloqueo": "horario",
+                    "motivo_bloqueo": bloqueo_horario.motivo or "Horario bloqueado",
+                    "citas": [],
+                    "fecha": dia,
+                    "hora": hora,
+                })
+                continue
+
+            if citas_en_bloque:
+                citas_preparadas = []
+
+                for cita in citas_en_bloque:
+                    estado_texto = cita.get_estado_display()
+
+                    if estado_texto == "En espera":
+                        estado_color = "#c8b6e2"
+                    elif cita.estado == "pendiente":
+                        estado_color = "#ffc107"
+                    elif cita.estado == "confirmado":
+                        estado_color = "#0d6efd"
+                    elif cita.estado == "asistio":
+                        estado_color = "#198754"
+                    elif cita.estado == "no_asistio":
+                        estado_color = "#dc3545"
+                    elif cita.estado == "cancelado":
+                        estado_color = "#6c757d"
+                    else:
+                        estado_color = "#6c757d"
+
+                    citas_preparadas.append({
+                        "id": cita.id,
+                        "paciente": cita.paciente,
+                        "es_primera_vez": cita.id == cita.primera_cita_id,
+                        "motivo": cita.motivo,
                         "procedimientos": [p.nombre for p in cita.procedimientos.all()],
                         "hora": cita.hora,
                         "color": color_cita_por_motivo(cita.motivo),
