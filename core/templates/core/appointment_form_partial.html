@@ -84,6 +84,13 @@
             </div>
 
             <div class="col-md-6 mb-3">
+                <label for="id_duracion">Duración</label>
+                {{ form.duracion }}
+                <small class="text-muted" id="duracion-resumen">Tiempo reservado: 15, 30, 45 o 60 minutos.</small>
+                <div class="text-danger small">{{ form.duracion.errors }}</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
                 <label for="id_estado">Estado</label>
                 {{ form.estado }}
                 {% if form.estado.errors %}
@@ -428,5 +435,23 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!section.contains(document.activeElement)) close();
         }, 0);
     });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hora = document.getElementById("id_hora");
+    const duracion = document.getElementById("id_duracion");
+    const resumen = document.getElementById("duracion-resumen");
+    function actualizarDuracion() {
+        if (!hora || !duracion || !resumen || !hora.value) return;
+        const partes = hora.value.split(":").map(Number);
+        const fin = partes[0] * 60 + partes[1] + Number(duracion.value);
+        resumen.textContent = "Hasta las " + String(Math.floor(fin / 60) % 24).padStart(2, "0")
+            + ":" + String(fin % 60).padStart(2, "0") + " · " + duracion.value + " minutos reservados.";
+    }
+    hora?.addEventListener("input", actualizarDuracion);
+    duracion?.addEventListener("change", actualizarDuracion);
+    actualizarDuracion();
 });
 </script>

@@ -48,6 +48,11 @@ class Appointment(models.Model):
     paciente = models.ForeignKey(Patient, on_delete=models.CASCADE)
     fecha = models.DateField()
     hora = models.TimeField()
+    duracion = models.PositiveSmallIntegerField(
+        "Duración", choices=[(15, "15 minutos"), (30, "30 minutos"),
+                              (45, "45 minutos"), (60, "60 minutos")],
+        default=15,
+    )
     motivo = models.CharField(max_length=200)
     procedimientos = models.ManyToManyField(
         Procedure,
@@ -74,6 +79,17 @@ class Appointment(models.Model):
 
     class Meta:
         ordering = ["fecha", "hora"]
+
+    @property
+    def hora_fin(self):
+        from datetime import datetime, timedelta
+        return (datetime.combine(self.fecha, self.hora)
+                + timedelta(minutes=self.duracion)).time()
+
+    def clean(self):
+        super().clean()
+        from .scheduling import validar_reserva
+        validar_reserva(self)
 
     def __str__(self):
         return f"{self.paciente} - {self.fecha} {self.hora}"

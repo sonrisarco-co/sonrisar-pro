@@ -123,6 +123,7 @@ class AppointmentForm(forms.ModelForm):
             "paciente",
             "fecha",
             "hora",
+            "duracion",
             "motivo",
             "procedimientos",
             "estado",
@@ -158,6 +159,9 @@ class AppointmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["duracion"].widget.attrs["class"] = "form-select"
+        if not self.instance.pk and not self.is_bound:
+            self.initial.setdefault("duracion", 30)
 
         if self.instance and self.instance.pk and self.instance.paciente_id:
             self.fields["paciente"].initial = self.instance.paciente_id

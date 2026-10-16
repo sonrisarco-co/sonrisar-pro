@@ -174,7 +174,7 @@
                                          id="cita-{{ cita.id }}" style="scroll-margin-top: 180px;" data-id="{{ cita.id }}">
 
                                         <div style="font-size: 13px; color:#146B6C; font-weight:700;">
-                                            {{ cita.hora_real|time:"H:i" }}
+                                            {{ cita.hora_real|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min
                                         </div>
 
                                         <div style="font-weight:600;">
@@ -514,7 +514,7 @@
                                          id="cita-{{ cita.id }}" style="scroll-margin-top: 180px;" data-id="{{ cita.id }}">
 
                                         <div style="font-size: 13px; color:#146B6C; font-weight:700;">
-                                            {{ cita.hora_real|time:"H:i" }}
+                                            {{ cita.hora_real|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min
                                         </div>
 
                                         <div style="font-weight:600;">
@@ -1484,7 +1484,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
                     body: new URLSearchParams({
-                        hora: hora
+                        hora: hora, fecha: "{{ fecha|date:'Y-m-d' }}"
                     })
                 });
 

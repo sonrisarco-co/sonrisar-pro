@@ -260,6 +260,8 @@ class AgendaSaldoAFavorTests(SimpleTestCase):
             }
         }
 
+        cita.duracion = 15
+        cita.hora_fin = time(10, 45)
         cita_agenda = _armar_cita_agenda_rapida(cita, contexto)
 
         self.assertTrue(cita_agenda["tiene_saldo_a_favor"])
@@ -269,11 +271,11 @@ class AgendaSaldoAFavorTests(SimpleTestCase):
 class EsquemaTurnosMixtosTests(SimpleTestCase):
     def test_horarios_lunes_a_viernes_coinciden_con_referencia(self):
         from .views import horarios_para_fecha
-        esperado = ['10:00', '10:30', '10:45', '11:00', '11:15', '11:30',
+        esperado = ['09:00', '09:30', '10:00', '10:30', '10:45', '11:00', '11:15', '11:30',
                     '12:00', '12:30', '12:45', '13:00', '13:15', '13:30',
                     '14:00', '14:30', '15:00', '15:30', '15:45', '16:00',
                     '16:15', '16:30', '17:00', '17:30', '17:45',
-                    '18:00', '18:15', '18:30']
+                    '18:00', '18:15', '18:30', '19:00', '19:30']
         for dia in range(12, 17):
             self.assertEqual([h.strftime('%H:%M') for h in horarios_para_fecha(date(2026, 10, dia))], esperado)
 
@@ -287,7 +289,7 @@ class EsquemaTurnosMixtosTests(SimpleTestCase):
         citas = [SimpleNamespace(fecha=fecha, hora=h) for h in
                  [time(9, 15), time(10, 45), time(11, 14), time(11, 15), time(18, 30), time(19, 30)]]
         bloques = agrupar_citas_por_bloque(citas, mixto=True)
-        self.assertEqual(set(bloques), {time(9, 15), time(10, 45), time(11), time(11, 15), time(18, 30), time(19, 30)})
+        self.assertEqual(set(bloques), {time(9), time(10, 45), time(11), time(11, 15), time(18, 30), time(19, 30)})
         self.assertEqual(bloques[time(11)][0].hora, time(11, 14))
         self.assertEqual(sum(map(len, bloques.values())), len(citas))
 
@@ -304,7 +306,7 @@ class GrillaTurnosMixtosTests(TestCase):
         self.assertFalse(filas[time(10, 45)][2]['bloqueado'])
         self.assertTrue(filas[time(10, 45)][5]['bloqueado'])
         self.assertFalse(filas[time(9)][5]['bloqueado'])
-        self.assertTrue(filas[time(9)][2]['bloqueado'])
+        self.assertFalse(filas[time(9)][2]['bloqueado'])
         self.assertEqual(filas[time(14)][2]['motivo_bloqueo'], 'Descanso')
         self.assertFalse(filas[time(14)][5]['bloqueado'])
 

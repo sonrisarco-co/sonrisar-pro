@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from .scheduling import minutos, se_cruzan, reservar_grilla, validar_reserva, bloquear_agenda_fecha
 from datetime import date, time, timedelta, datetime
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -582,6 +583,7 @@ def _calendar_saved_appointment_url(next_url, cita):
     return f"{target.path}?{urlencode(params)}#cita-{cita.pk}"
 
 
+@transaction.atomic
 def appointment_new(request):
     fecha = request.GET.get("fecha")
     hora = request.GET.get("hora")
@@ -731,6 +733,7 @@ def appointment_new(request):
     )
 
 
+@transaction.atomic
 def appointment_edit(request, id):
     cita = get_object_or_404(Appointment, id=id)
 
@@ -882,6 +885,7 @@ def appointment_delete(request, id):
 
 
 @require_POST
+@transaction.atomic
 def appointment_move_time(request, id):
 
     cita = get_object_or_404(Appointment, id=id)
@@ -943,6 +947,10 @@ def appointment_move_time(request, id):
 
     cita.hora = nueva_hora
     cita.fecha = nueva_fecha
+    try:
+        validar_reserva(cita)
+    except ValidationError as error:
+        return JsonResponse({"success": False, "error": " ".join(error.messages)}, status=400)
 
     cita.save(update_fields=["hora", "fecha"])
 
@@ -3387,6 +3395,8 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "id": cita.id,
         "patient_id": cita.paciente.id,
         "hora_real": cita.hora,
+        "hora_fin": cita.hora_fin,
+        "duracion": cita.duracion,
         "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
         "es_primera_vez": cita.id == getattr(cita, "primera_cita_id", None),
         "edad": edad,
@@ -3603,11 +3613,14 @@ def agenda_day(request, day, month, year):
 
         deuda_presupuestos_por_paciente[patient_id] = deuda_presupuesto
 
-    citas_por_bloque = agrupar_citas_por_bloque(citas, mixto=True)
+    citas_por_bloque = {}
+    for cita in citas:
+        citas_por_bloque.setdefault(cita.hora, []).append(cita)
 
     horarios = []
 
-    for h in sorted(set(horarios_para_fecha(fecha)) | set(citas_por_bloque)):
+    extremos = {c.hora for c in citas} | {c.hora_fin for c in citas if c.hora_fin < time(20)}
+    for h in sorted(set(horarios_para_fecha(fecha)) | set(citas_por_bloque) | extremos):
         hora_txt = h.strftime("%H:%M")
 
         if dia_bloqueado and not citas_por_bloque.get(h):
@@ -3645,6 +3658,13 @@ def agenda_day(request, day, month, year):
             continue
 
         citas_en_bloque = citas_por_bloque.get(h, [])
+        en_curso = [c for c in citas if c.estado != "cancelado"
+                    and minutos(c.hora) <= minutos(h) < minutos(c.hora) + c.duracion]
+        if en_curso and not citas_en_bloque:
+            horarios.append({"hora": h, "bloqueado": True,
+                             "motivo": f"Reservado hasta {max(c.hora_fin for c in en_curso):%H:%M}",
+                             "ocupado_exacto": True, "citas_exactas": [], "citas_extra": []})
+            continue
 
         citas_exactas = [
             c for c in citas_en_bloque
@@ -3701,7 +3721,7 @@ def agenda_day(request, day, month, year):
             "hora": h,
             "bloqueado": False,
             "motivo": "",
-            "ocupado_exacto": len(citas_exactas) > 0,
+            "ocupado_exacto": len(citas_exactas) > 0 or bool(en_curso),
             "citas_exactas": citas_exactas_data,
             "citas_extra": citas_extra_data,
         })
@@ -5211,6 +5231,8 @@ def agenda_pro(request):
         .order_by("fecha", "hora")
     )
 
+    todas_citas_reservadas = list(citas_semana)
+
     if q:
         filtro = Q()
         for palabra in q.split():
@@ -5224,7 +5246,7 @@ def agenda_pro(request):
     citas_por_dia = {dia: {} for dia in dias}
 
     for cita in citas_semana:
-        bloque = bloque_para_fecha(cita.hora, cita.fecha)
+        bloque = cita.hora
         citas_por_dia.setdefault(cita.fecha, {}).setdefault(bloque, []).append(cita)
 
     for dia in citas_por_dia:
@@ -5232,6 +5254,9 @@ def agenda_pro(request):
             citas_por_dia[dia][bloque].sort(key=lambda c: c.hora)
 
     horarios = sorted(set(horarios) | {h for bloques in citas_por_dia.values() for h in bloques})
+    extremos = {c.hora for c in todas_citas_reservadas}
+    extremos |= {c.hora_fin for c in todas_citas_reservadas if c.hora_fin < time(20)}
+    horarios = sorted(set(horarios) | extremos)
     filas = []
 
     for hora in horarios:
@@ -5241,7 +5266,9 @@ def agenda_pro(request):
             dia_bloqueado = bloqueos_por_dia.get(dia)
             citas_en_bloque = citas_por_dia.get(dia, {}).get(hora, [])
 
-            if not citas_en_bloque and hora not in horarios_para_fecha(dia):
+            finales_del_dia = {c.hora_fin for c in todas_citas_reservadas
+                               if c.fecha == dia and c.estado != "cancelado"}
+            if not citas_en_bloque and hora not in horarios_para_fecha(dia) and hora not in finales_del_dia:
                 celdas.append({"ocupado": False, "bloqueado": True,
                                "tipo_bloqueo": "fuera", "motivo_bloqueo": "Fuera de horario",
                                "citas": [], "fecha": dia, "hora": hora})
@@ -5306,6 +5333,8 @@ def agenda_pro(request):
                         "motivo": cita.motivo,
                         "procedimientos": [p.nombre for p in cita.procedimientos.all()],
                         "hora": cita.hora,
+                        "hora_fin": cita.hora_fin,
+                        "duracion": cita.duracion,
                         "color": color_cita_por_motivo(cita.motivo),
                         "estado": cita.estado,
                         "estado_texto": estado_texto,
@@ -5333,6 +5362,8 @@ def agenda_pro(request):
                 })
 
         filas.append({"hora": hora, "celdas": celdas})
+
+    reservar_grilla(filas, todas_citas_reservadas, dias)
 
     resultados_paciente = []
 
@@ -6213,6 +6244,7 @@ def patient_finances(request, id):
 # ============================
 
 @require_POST
+@transaction.atomic
 def bloquear_dia(request):
 
     fecha = request.POST.get("fecha")
@@ -6232,6 +6264,7 @@ def bloquear_dia(request):
         messages.error(request, "Fecha inválida.")
         return redirect("agenda_pro")
 
+    bloquear_agenda_fecha(fecha_obj)
     DayBlock.objects.get_or_create(
         fecha=fecha_obj,
         defaults={
@@ -6284,6 +6317,7 @@ def desbloquear_dia(request):
 # ============================
 
 @require_POST
+@transaction.atomic
 def bloquear_horario(request):
     fecha_str = request.POST.get("fecha", "").strip()
     hora_str = request.POST.get("hora", "").strip()
@@ -6304,15 +6338,12 @@ def bloquear_horario(request):
         messages.error(request, "Ese horario ya corresponde al descanso.")
         return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
 
-    # No permitir ocultar accidentalmente una cita existente dentro del bloque de 30 min.
-    inicio_dt = datetime.combine(fecha_obj, hora_obj)
+    bloquear_agenda_fecha(fecha_obj)
+    # No bloquear ninguna parte de una cita de duración variable.
     siguiente = next((h for h in horarios_para_fecha(fecha_obj) if h > hora_obj), time(20))
-    fin_dt = datetime.combine(fecha_obj, siguiente)
-    if Appointment.objects.filter(
-        fecha=fecha_obj,
-        hora__gte=inicio_dt.time(),
-        hora__lt=fin_dt.time()
-    ).exists():
+    if any(se_cruzan(minutos(c.hora), minutos(c.hora) + c.duracion,
+                      minutos(hora_obj), minutos(siguiente))
+           for c in Appointment.objects.filter(fecha=fecha_obj).exclude(estado="cancelado")):
         messages.error(request, "No se puede bloquear: ya existe una cita en ese horario.")
         return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
 

@@ -266,10 +266,11 @@
                                     <td class="hora-col">{{ fila.hora|time:"H:i" }}</td>
 
                                     {% for celda in fila.celdas %}
-                                    <td class="slot-disponible{% if celda.bloqueado %} slot-dia-bloqueado-cell{% endif %}"
+                                    {% if not celda.ocultar %}
+                                    <td rowspan="{{ celda.rowspan|default:1 }}" class="slot-disponible{% if celda.bloqueado %} slot-dia-bloqueado-cell{% endif %}"
                                         data-fecha="{{ celda.fecha|date:'Y-m-d' }}"
                                         data-hora="{{ celda.hora|time:'H:i' }}"
-                                        data-bloqueado="{% if celda.bloqueado %}1{% else %}0{% endif %}">
+                                        data-bloqueado="{% if celda.bloqueado or celda.ocupado %}1{% else %}0{% endif %}">
 
                                         {% if celda.ocupado %}
                                             <div class="cita-stack">
@@ -339,7 +340,7 @@
                                                                     <small>{{ cita.motivo|motivo_actual }}</small>
                                                                 {% endif %}
 
-                                                                <small>{{ cita.hora|time:"H:i" }}</small>
+                                                                <small class="duracion-cita">{{ cita.hora|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min</small>
 
                                                                 {% if cita.estado == "En espera" or cita.estado_slug == "en_espera" %}
                                                                     <span class="cita-estado-mini" style="background:#c8b6e2; color:#111827;">En espera</span>
@@ -411,6 +412,7 @@
 
                                         {% endif %}
                                     </td>
+                                    {% endif %}
                                     {% endfor %}
                                 </tr>
                                 {% endfor %}
@@ -622,6 +624,9 @@
 {% endfor %}
 
 <style>
+.agenda-pro-table td[rowspan]:not([rowspan="1"]) { background: #e9f6f5; vertical-align: top; border-left: 3px solid #26aba5; }
+.duracion-cita { font-weight: 700; }
+
 .agenda-patient-search { position: relative; width: min(440px, 100%); z-index: 90; background: #fff; border-radius: 9px; box-shadow: 0 3px 8px #16383812; }
 .agenda-patient-search-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #cddfdf; border-radius: 9px; background: #fff; }
 .agenda-patient-search-bar:focus-within { border-color: #20aaa7; box-shadow: 0 0 0 2px #20aaa720; }
@@ -1750,7 +1755,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     fecha: this.dataset.fecha,
                     hora: this.dataset.hora
                 })
-            }).then(() => location.reload());
+            }).then(async response => {
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    alert(data.error || "No se pudo mover la cita.");
+                    return;
+                }
+                location.reload();
+            }).catch(() => alert("No se pudo mover la cita. Revisá la conexión y el horario."));
         });
     });
 
