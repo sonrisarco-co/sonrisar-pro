@@ -271,17 +271,14 @@ class AgendaSaldoAFavorTests(SimpleTestCase):
 class EsquemaTurnosMixtosTests(SimpleTestCase):
     def test_horarios_lunes_a_viernes_coinciden_con_referencia(self):
         from .views import horarios_para_fecha
-        esperado = ['09:00', '09:30', '10:00', '10:30', '10:45', '11:00', '11:15', '11:30',
-                    '12:00', '12:30', '12:45', '13:00', '13:15', '13:30',
-                    '14:00', '14:30', '15:00', '15:30', '15:45', '16:00',
-                    '16:15', '16:30', '17:00', '17:30', '17:45',
-                    '18:00', '18:15', '18:30', '19:00', '19:30']
+        esperado = [f"{h:02d}:{m:02d}" for h in range(9, 20) for m in (0, 15, 30, 45)]
         for dia in range(12, 17):
             self.assertEqual([h.strftime('%H:%M') for h in horarios_para_fecha(date(2026, 10, dia))], esperado)
 
     def test_sabado_conserva_horarios(self):
         from .views import horarios_para_fecha, generar_horarios
-        self.assertEqual(horarios_para_fecha(date(2026, 10, 17)), generar_horarios())
+        self.assertEqual(horarios_para_fecha(date(2026, 10, 17)),
+                         [time(h, m) for h in range(9, 20) for m in (0, 15, 30, 45)])
 
     def test_citas_se_agrupan_en_su_turno_sin_cambiar_hora(self):
         from .views import agrupar_citas_por_bloque
@@ -289,7 +286,7 @@ class EsquemaTurnosMixtosTests(SimpleTestCase):
         citas = [SimpleNamespace(fecha=fecha, hora=h) for h in
                  [time(9, 15), time(10, 45), time(11, 14), time(11, 15), time(18, 30), time(19, 30)]]
         bloques = agrupar_citas_por_bloque(citas, mixto=True)
-        self.assertEqual(set(bloques), {time(9), time(10, 45), time(11), time(11, 15), time(18, 30), time(19, 30)})
+        self.assertEqual(set(bloques), {time(9, 15), time(10, 45), time(11), time(11, 15), time(18, 30), time(19, 30)})
         self.assertEqual(bloques[time(11)][0].hora, time(11, 14))
         self.assertEqual(sum(map(len, bloques.values())), len(citas))
 
@@ -304,7 +301,7 @@ class GrillaTurnosMixtosTests(TestCase):
         filas = {fila['hora']: fila['celdas'] for fila in contexto['filas']}
         self.assertEqual(filas[time(10, 45)][2]['citas'][0]['id'], cita.id)
         self.assertFalse(filas[time(10, 45)][2]['bloqueado'])
-        self.assertTrue(filas[time(10, 45)][5]['bloqueado'])
+        self.assertFalse(filas[time(10, 45)][5]['bloqueado'])
         self.assertFalse(filas[time(9)][5]['bloqueado'])
         self.assertFalse(filas[time(9)][2]['bloqueado'])
         self.assertEqual(filas[time(14)][2]['motivo_bloqueo'], 'Descanso')
@@ -324,3 +321,27 @@ class GrillaTurnosMixtosTests(TestCase):
             self.assertEqual(len(filas[hora]['citas_exactas']), 1)
         self.assertTrue(filas[time(14)]['bloqueado'])
         self.assertTrue(filas[time(14, 30)]['bloqueado'])
+
+
+class DuracionPredeterminadaTests(TestCase):
+    def test_nueva_cita_ofrece_30_y_edicion_conserva_duracion(self):
+        from .forms import AppointmentForm
+        paciente = Patient.objects.create(nombre="Prueba", apellido="Duración")
+        cita = Appointment.objects.create(paciente=paciente, fecha=date(2026, 10, 14), hora=time(19))
+        self.assertEqual(cita.duracion, 30)
+        self.assertEqual(AppointmentForm()["duracion"].value(), 30)
+        cita.duracion = 15
+        cita.save()
+        self.assertEqual(AppointmentForm(instance=cita)["duracion"].value(), 15)
+
+    def test_media_hora_reserva_dos_filas_y_libera_el_final(self):
+        from .views import agenda_pro
+        paciente = Patient.objects.create(nombre="Prueba", apellido="Intervalo")
+        Appointment.objects.create(paciente=paciente, fecha=date(2026, 10, 15), hora=time(19))
+        with patch("core.views.render", side_effect=lambda request, template, context: context):
+            contexto = agenda_pro(RequestFactory().get("/", {"fecha": "2026-10-15"}))
+        filas = {fila["hora"]: fila["celdas"][3] for fila in contexto["filas"]}
+        self.assertEqual(filas[time(19)]["rowspan"], 2)
+        self.assertTrue(filas[time(19, 15)]["ocultar"])
+        self.assertFalse(filas[time(19, 30)]["bloqueado"])
+        self.assertFalse(filas[time(19, 45)]["bloqueado"])

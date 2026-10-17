@@ -267,7 +267,8 @@
 
                                     {% for celda in fila.celdas %}
                                     {% if not celda.ocultar %}
-                                    <td rowspan="{{ celda.rowspan|default:1 }}" class="slot-disponible{% if celda.bloqueado %} slot-dia-bloqueado-cell{% endif %}"
+                                    <td rowspan="{{ celda.rowspan|default:1 }}" class="slot-disponible{% if celda.ocupado and celda.citas|length == 1 %} slot-cita-completa{% endif %}{% if celda.bloqueado %} slot-dia-bloqueado-cell{% endif %}"
+                                        {% if celda.ocupado and celda.citas|length == 1 %}style="--color-cita: {{ celda.citas.0.color }};"{% endif %}
                                         data-fecha="{{ celda.fecha|date:'Y-m-d' }}"
                                         data-hora="{{ celda.hora|time:'H:i' }}"
                                         data-bloqueado="{% if celda.bloqueado or celda.ocupado %}1{% else %}0{% endif %}">
@@ -626,6 +627,15 @@
 <style>
 .agenda-pro-table td[rowspan]:not([rowspan="1"]) { background: #e9f6f5; vertical-align: top; border-left: 3px solid #26aba5; }
 .duracion-cita { font-weight: 700; }
+/* El fondo alcanza todas las filas reservadas por la cita. */
+.agenda-pro-table td.slot-disponible.slot-cita-completa,
+.agenda-pro-table td.slot-disponible.slot-cita-completa:hover {
+    --bs-table-bg: var(--color-cita);
+    background: var(--color-cita);
+    box-shadow: none;
+    border-left: 0;
+}
+.slot-cita-completa .cita-card { box-shadow: none; border-radius: 0; }
 
 .agenda-patient-search { position: relative; width: min(440px, 100%); z-index: 90; background: #fff; border-radius: 9px; box-shadow: 0 3px 8px #16383812; }
 .agenda-patient-search-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #cddfdf; border-radius: 9px; background: #fff; }

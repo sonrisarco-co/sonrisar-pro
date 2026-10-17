@@ -51,7 +51,7 @@ class Appointment(models.Model):
     duracion = models.PositiveSmallIntegerField(
         "Duración", choices=[(15, "15 minutos"), (30, "30 minutos"),
                               (45, "45 minutos"), (60, "60 minutos")],
-        default=15,
+        default=30,
     )
     motivo = models.CharField(max_length=200)
     procedimientos = models.ManyToManyField(

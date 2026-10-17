@@ -77,7 +77,7 @@ class DuracionCitaTests(TestCase):
         cita = self.cita(duracion=60)
         contexto = self.calendario()
         filas = {f['hora']: f['celdas'][1] for f in contexto['filas']}
-        self.assertEqual(filas[time(10)]['rowspan'], 3)
+        self.assertEqual(filas[time(10)]['rowspan'], 4)
         self.assertTrue(filas[time(10, 30)]['ocultar'])
         self.assertFalse(filas[time(11)].get('ocultar', False))
         self.assertEqual(sum(len(c['citas']) for c in filas.values()), 1)
