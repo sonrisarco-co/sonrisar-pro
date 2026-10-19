@@ -9,7 +9,11 @@ from . import views
 
 
 
+from . import views_tratamientos
+
 urlpatterns = [
+    path("tratamientos-geisha/", views_tratamientos.tratamientos_geisha, name="tratamientos_geisha"),
+    path("tratamientos-geisha/<int:id>/estado/", views_tratamientos.tratamiento_geisha_estado, name="tratamiento_geisha_estado"),
 
     # =====================
     # HOME

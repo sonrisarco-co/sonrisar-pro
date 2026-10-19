@@ -1033,3 +1033,21 @@ class RayosX(models.Model):
 
 
 
+
+
+class TratamientoGeisha(models.Model):
+    ESTADOS = [("en_proceso", "En proceso"), ("terminado", "Terminado")]
+    cita = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="tratamientos_geisha")
+    clave = models.CharField(max_length=40)
+    nombre = models.CharField("Tratamiento", max_length=200)
+    estado = models.CharField(max_length=12, choices=ESTADOS, default="en_proceso", db_index=True)
+    fecha_finalizacion = models.DateField("Fecha de finalización", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Tratamiento de Geisha"
+        verbose_name_plural = "Tratamientos de Geisha"
+        ordering = ["-cita__fecha", "-cita__hora", "id"]
+        constraints = [models.UniqueConstraint(fields=["cita", "clave"], name="tratamiento_geisha_cita_clave")]
+
+    def __str__(self):
+        return f"{self.cita.paciente} · {self.nombre} · {self.get_estado_display()}"

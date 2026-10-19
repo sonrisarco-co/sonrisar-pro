@@ -1,0 +1,120 @@
+{% extends "core/base.html" %}
+{% block title %}Tratamientos de Geisha | Sonrisar Pro{% endblock %}
+{% block content %}
+<div class="container-fluid px-3 px-lg-4 py-4 tratamientos-geisha">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h2 class="titulo-seccion mb-1">Tratamientos de Geisha</h2>
+            <p class="text-muted mb-0">Seguimiento de tratamientos en proceso y terminados.</p>
+        </div>
+        <div class="d-flex gap-2 no-imprimir">
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'home' %}">← Inicio</a>
+            <a class="btn btn-sonrisar btn-sm" href="?{{ parametros }}&amp;imprimir=1" target="_blank" rel="noopener">Imprimir informe</a>
+        </div>
+    </div>
+
+    <div class="alert alert-light border small no-imprimir">
+        Se incluyen únicamente las citas de <strong>Geisha</strong> marcadas como <strong>Asistió</strong>.
+        Cada tratamiento de una cita se registra inicialmente <strong>En proceso</strong>; elegí <strong>Terminado</strong> cuando corresponda.
+        El estado se guarda por tratamiento y cita.
+    </div>
+
+    <form method="get" class="card shadow-sm border-0 p-3 mb-3 no-imprimir">
+        {% if filtros.non_field_errors %}<div class="text-danger mb-2" role="alert">{{ filtros.non_field_errors }}</div>{% endif %}
+        <div class="row g-2 align-items-end">
+            {% for campo in filtros %}
+            <div class="{% if campo.name == 'q' %}col-12 col-lg-4{% else %}col-12 col-sm-4 col-lg-2{% endif %}">
+                <label class="form-label small mb-1" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+                {{ campo }}
+                <div class="text-danger small">{{ campo.errors }}</div>
+            </div>
+            {% endfor %}
+            <div class="col-12 col-lg-2 d-flex gap-2">
+                <button class="btn btn-sonrisar btn-sm" type="submit">Filtrar</button>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'tratamientos_geisha' %}">Limpiar</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="solo-imprimir mb-3">
+        <strong>Sonrisar Pro · Informe de tratamientos de Geisha</strong><br>
+        Emitido: {{ fecha_informe|date:"d/m/Y H:i" }}<br>
+        {% if filtros.cleaned_data.q %}Búsqueda: {{ filtros.cleaned_data.q }} · {% endif %}
+        Estado: {{ estado_filtro }} ·
+        Atención desde: {{ filtros.cleaned_data.desde|date:"d/m/Y"|default:"Sin límite" }} ·
+        hasta: {{ filtros.cleaned_data.hasta|date:"d/m/Y"|default:"Sin límite" }}
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-4"><div class="resumen-geisha"><span>Total</span><strong>{{ resumen.total }}</strong></div></div>
+        <div class="col-4"><div class="resumen-geisha"><span>En proceso</span><strong>{{ resumen.en_proceso }}</strong></div></div>
+        <div class="col-4"><div class="resumen-geisha"><span>Terminados</span><strong>{{ resumen.terminados }}</strong></div></div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 tabla-tratamientos">
+                <thead class="table-sonrisar"><tr>
+                    <th>Atención</th><th>Paciente</th><th>Tratamiento</th><th>Estado</th><th>Finalización</th><th class="no-imprimir">Acciones</th>
+                </tr></thead>
+                <tbody>
+                    {% for registro in registros %}
+                    <tr id="tratamiento-{{ registro.pk }}">
+                        <td class="text-nowrap">{{ registro.cita.fecha|date:"d/m/Y" }}<br><small class="text-muted">{{ registro.cita.hora|time:"H:i" }}</small></td>
+                        <td><strong>{{ registro.cita.paciente }}</strong><br><small class="text-muted">CI: {{ registro.cita.paciente.ci|default:"Sin registrar" }}</small></td>
+                        <td>{{ registro.nombre }}</td>
+                        <td><span class="badge {% if registro.estado == 'terminado' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ registro.get_estado_display }}</span></td>
+                        <td>{{ registro.fecha_finalizacion|date:"d/m/Y"|default:"—" }}</td>
+                        <td class="no-imprimir">
+                            <form method="post" action="{% url 'tratamiento_geisha_estado' registro.pk %}" class="d-flex flex-wrap align-items-center gap-1 mb-1">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}#tratamiento-{{ registro.pk }}">
+                                <label class="visually-hidden" for="estado-{{ registro.pk }}">Estado de {{ registro.nombre }}</label>
+                                <select class="form-select form-select-sm estado-tratamiento" name="estado" id="estado-{{ registro.pk }}">
+                                    {% for valor, etiqueta in estados %}<option value="{{ valor }}" {% if registro.estado == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+                                </select>
+                                <button class="btn btn-sonrisar btn-sm" type="submit">Guardar</button>
+                            </form>
+                            <a class="btn btn-outline-secondary btn-sm" href="{% url 'patient_detail' registro.cita.paciente_id %}?next={{ request.get_full_path|urlencode }}">Ficha</a>
+                            <a class="btn btn-outline-secondary btn-sm" href="{% url 'appointment_edit' registro.cita_id %}?next={{ request.get_full_path|urlencode }}">Ver cita</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-5">No hay tratamientos para los filtros seleccionados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if pagina.has_other_pages %}
+    <nav class="d-flex justify-content-center align-items-center gap-3 mt-3 no-imprimir" aria-label="Páginas del informe">
+        {% if pagina.has_previous %}<a class="btn btn-outline-secondary btn-sm" href="?{{ parametros }}&amp;page={{ pagina.previous_page_number }}">Anterior</a>{% endif %}
+        <span class="small">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+        {% if pagina.has_next %}<a class="btn btn-outline-secondary btn-sm" href="?{{ parametros }}&amp;page={{ pagina.next_page_number }}">Siguiente</a>{% endif %}
+    </nav>
+    {% endif %}
+    {% if imprimir %}<div class="text-center mt-3 no-imprimir"><button type="button" class="btn btn-sonrisar btn-sm" onclick="window.print()">Imprimir / Guardar como PDF</button></div>{% endif %}
+</div>
+<style>
+.resumen-geisha { background: #fff; border: 1px solid #d9e7e5; border-top: 3px solid #26ABA5; border-radius: 10px; padding: 14px 18px; display: flex; flex-direction: column; gap: 3px; }
+.resumen-geisha span { color: #596767; font-size: .85rem; }
+.resumen-geisha strong { color: #168f89; font-size: 1.65rem; }
+.estado-tratamiento { width: 140px; }
+.tabla-tratamientos th { white-space: nowrap; }
+.tabla-tratamientos td { padding: 14px 12px; }
+.solo-imprimir { display: none; }
+tr[id^="tratamiento-"] { scroll-margin-top: 180px; }
+@media print {
+    @page { size: A4 landscape; margin: 12mm; }
+    .header-fijo-sonrisar, .offcanvas, .no-imprimir, .sonrisar-system-live-status, .alert, footer { display: none !important; }
+    .solo-imprimir { display: block; }
+    .tratamientos-geisha { padding: 0 !important; }
+    .table-responsive { overflow: visible !important; }
+    .card { box-shadow: none !important; }
+    .tabla-tratamientos { font-size: 10pt; }
+    .tabla-tratamientos tr { break-inside: avoid; }
+    .tabla-tratamientos thead { display: table-header-group; }
+    .badge { color: #111 !important; background: none !important; border: 1px solid #999; }
+}
+</style>
+{% endblock %}

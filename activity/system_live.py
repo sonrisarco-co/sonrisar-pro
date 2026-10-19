@@ -11,6 +11,7 @@ SCOPES = {
     'presupuestos': ('Pacientes', 'Presupuestos', 'Ítems de presupuesto', 'Pagos de presupuesto', 'Ajustes de presupuesto', 'Transferencias de saldo', 'Pagos en Pro'),
     'pagos': ('Pacientes', 'Agenda', 'Presupuestos', 'Pagos de presupuesto', 'Ajustes de presupuesto', 'Transferencias de saldo', 'Pagos en Pro'),
     'protesis': ('Pacientes', 'Prótesis', 'Laboratorio', 'Pagos en Pro'),
+    'tratamientos_geisha': ('Tratamientos de Geisha', 'Agenda', 'Pacientes', 'Procedimientos'),
     'inventario': ('Inventario', 'Movimientos de inventario'),
     'imagenes': ('Pacientes', 'Rayos X / Fotografías'),
     'general': None,
@@ -29,6 +30,7 @@ for scope, names in {
     'protesis': ('protesis_list', 'protesis_detail', 'protesis_activas_informe', 'orden_laboratorio_detalle'),
     'inventario': ('inventory_list', 'inventory_history', 'inventory_shopping_list'),
     'imagenes': ('rayos_x_list',),
+    'tratamientos_geisha': ('tratamientos_geisha',),
     'actividad': ('activity_daily',),
 }.items():
     for name in names:
