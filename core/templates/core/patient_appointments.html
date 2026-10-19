@@ -31,6 +31,7 @@
                 <tr>
                     <th>Fecha</th>
                     <th>Hora</th>
+                    <th>Odontólogo</th>
                     <th>Motivo</th>
                     <th>Estado</th>
                     <th style="width:220px;">Acciones</th>
@@ -42,6 +43,7 @@
                 <tr>
                     <td>{{ c.fecha|date:"d/m/Y" }}</td>
                     <td>{{ c.hora|time:"H:i" }}</td>
+                    <td>{{ c.odontologo }}</td>
                     <td>{{ c.motivo }}</td>
                     <td>
                         <span class="badge

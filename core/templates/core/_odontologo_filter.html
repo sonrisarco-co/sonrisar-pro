@@ -1,0 +1,31 @@
+<form method="get" class="d-flex align-items-center gap-2 mb-2">
+    {% for clave, valor in request.GET.items %}
+        {% if clave != "odontologo" %}<input type="hidden" name="{{ clave }}" value="{{ valor }}">{% endif %}
+    {% endfor %}
+    <label for="filtro-odontologo" class="small mb-0">Odontólogo</label>
+    <select id="filtro-odontologo" name="odontologo" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        {% for profesional in odontologos %}
+        <option value="{{ profesional.pk }}" {% if profesional.pk|stringformat:"s" == odontologo_seleccionado %}selected{% endif %}>{{ profesional.nombre }}</option>
+        {% endfor %}
+    </select>
+    <noscript><button class="btn btn-sm btn-sonrisar">Filtrar</button></noscript>
+</form>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const profesional = document.getElementById("filtro-odontologo").value;
+    if (!profesional) return;
+    const calendario = "{% url 'agenda_pro' %}";
+    const diaEjemplo = "{% url 'agenda_day' 1 1 2000 %}";
+    const prefijoDia = diaEjemplo.slice(0, diaEjemplo.indexOf("1/1/2000/"));
+    document.querySelectorAll("a[href]").forEach(enlace => {
+        const destino = new URL(enlace.href, location.href);
+        if (destino.origin !== location.origin) return;
+        if (destino.pathname === calendario ||
+            (destino.pathname.startsWith(prefijoDia) && /\/\d+\/\d+\/\d+\/$/.test(destino.pathname))) {
+            destino.searchParams.set("odontologo", profesional);
+            enlace.href = destino.href;
+        }
+    });
+});
+</script>

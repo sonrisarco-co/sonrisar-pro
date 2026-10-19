@@ -58,6 +58,21 @@ from .models import (
     Inventory,
 )
 
+from .models import Odontologo
+
+
+@admin.register(Odontologo)
+class OdontologoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "activo")
+    fields = ("nombre", "activo")
+
+    def save_model(self, request, obj, form, change):
+        if not obj.codigo:
+            from uuid import uuid4
+            obj.codigo = uuid4().hex
+        super().save_model(request, obj, form, change)
+
+
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
     search_fields = ("nombre", "apellido", "ci", "telefono")

@@ -91,6 +91,13 @@
             </div>
 
             <div class="col-md-6 mb-3">
+                <label for="id_odontologo">Odontólogo</label>
+                {{ form.odontologo }}
+                <div class="text-danger small">{{ form.odontologo.errors }}</div>
+                <small class="text-muted">Sillón compartido: los turnos no pueden superponerse.</small>
+            </div>
+
+            <div class="col-md-6 mb-3">
                 <label for="id_estado">Estado</label>
                 {{ form.estado }}
                 {% if form.estado.errors %}

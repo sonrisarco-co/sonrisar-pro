@@ -125,6 +125,7 @@
         </aside>
 
         <main class="agenda-day-schedule-column">
+{% include "core/_odontologo_filter.html" %}
             <section class="agenda-patient-search mb-3" aria-label="Buscar pacientes">
                 <form id="agendaPatientSearch" role="search" class="agenda-patient-search-bar"
                       data-url="{% url 'agenda_patient_search' %}"
@@ -174,7 +175,7 @@
                                          id="cita-{{ cita.id }}" style="scroll-margin-top: 180px;" data-id="{{ cita.id }}">
 
                                         <div style="font-size: 13px; color:#146B6C; font-weight:700;">
-                                            {{ cita.hora_real|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min
+                                            {{ cita.odontologo }} · {{ cita.hora_real|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min
                                         </div>
 
                                         <div style="font-weight:600;">
@@ -514,7 +515,7 @@
                                          id="cita-{{ cita.id }}" style="scroll-margin-top: 180px;" data-id="{{ cita.id }}">
 
                                         <div style="font-size: 13px; color:#146B6C; font-weight:700;">
-                                            {{ cita.hora_real|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min
+                                            {{ cita.odontologo }} · {{ cita.hora_real|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min
                                         </div>
 
                                         <div style="font-weight:600;">

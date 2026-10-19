@@ -34,6 +34,26 @@ class Procedure(models.Model):
         return self.nombre
 
 
+class Odontologo(models.Model):
+    codigo = models.SlugField(unique=True)
+    nombre = models.CharField(max_length=100)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "Odontólogo"
+        verbose_name_plural = "Odontólogos"
+
+    def __str__(self):
+        return self.nombre
+
+
+def odontologo_principal_id():
+    return Odontologo.objects.get_or_create(
+        codigo="rodrigo", defaults={"nombre": "Rodrigo"}
+    )[0].pk
+
+
 class Appointment(models.Model):
     ESTADOS = [
         ("pendiente", "Pendiente"),
@@ -46,6 +66,10 @@ class Appointment(models.Model):
     ]
 
     paciente = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    odontologo = models.ForeignKey(
+        Odontologo, on_delete=models.PROTECT, default=odontologo_principal_id,
+        verbose_name="Odontólogo", related_name="citas",
+    )
     fecha = models.DateField()
     hora = models.TimeField()
     duracion = models.PositiveSmallIntegerField(

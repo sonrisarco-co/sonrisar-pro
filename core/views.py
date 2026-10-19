@@ -417,7 +417,7 @@ def patient_appointments(request, patient_id):
 
     citas = Appointment.objects.filter(
         paciente=paciente
-    ).order_by("fecha", "hora")
+    ).select_related("odontologo").order_by("fecha", "hora")
 
     return render(request, "core/patient_appointments.html", {
         "paciente": paciente,
@@ -578,6 +578,8 @@ def _calendar_saved_appointment_url(next_url, cita):
     params = dict(parse_qsl(target.query, keep_blank_values=True))
     params["fecha"] = cita.fecha.isoformat()
     params["mini_fecha"] = cita.fecha.isoformat()
+    if params.get("odontologo"):
+        params["odontologo"] = str(cita.odontologo_id)
     # A previous patient search may hide the saved appointment.
     params.pop("q", None)
     return f"{target.path}?{urlencode(params)}#cita-{cita.pk}"
@@ -3388,6 +3390,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "hora_real": cita.hora,
         "hora_fin": cita.hora_fin,
         "duracion": cita.duracion,
+        "odontologo": str(getattr(cita, "odontologo", "Rodrigo")),
         "paciente": f"{cita.paciente.apellido}, {cita.paciente.nombre}",
         "es_primera_vez": cita.id == getattr(cita, "primera_cita_id", None),
         "edad": edad,
@@ -3445,6 +3448,15 @@ def agenda_patient_search(request):
     return response
 
 
+def _filtro_odontologo(request):
+    from .models import Odontologo
+    opciones = Odontologo.objects.all()
+    seleccionado = request.GET.get("odontologo", "")
+    if not seleccionado.isdigit() or not opciones.filter(pk=seleccionado).exists():
+        seleccionado = ""
+    return {"odontologos": opciones, "odontologo_seleccionado": seleccionado}
+
+
 def agenda_day(request, day, month, year):
     import calendar
     from activity.live import agenda_revision
@@ -3452,6 +3464,8 @@ def agenda_day(request, day, month, year):
     # picked up by the next poll rather than acknowledged as already visible.
     live_revision = agenda_revision()
 
+    filtro_profesional = _filtro_odontologo(request)
+    profesional = filtro_profesional["odontologo_seleccionado"]
     fecha = date(year, month, day)
     volver_dia_str = request.GET.get("volver_dia", "").strip()
     try:
@@ -3479,7 +3493,7 @@ def agenda_day(request, day, month, year):
     citas = list(
         Appointment.objects.filter(fecha=fecha)
         .annotate(primera_cita_id=Subquery(primera_cita_paciente))
-        .select_related("paciente")
+        .select_related("paciente", "odontologo")
         .prefetch_related("procedimientos")
         .order_by("hora", "id")
     )
@@ -3657,6 +3671,14 @@ def agenda_day(request, day, month, year):
                              "ocupado_exacto": True, "citas_exactas": [], "citas_extra": []})
             continue
 
+        if profesional:
+            citas_en_bloque = [c for c in citas_en_bloque if str(c.odontologo_id) == profesional]
+        if en_curso and not citas_en_bloque:
+            horarios.append({"hora": h, "bloqueado": True,
+                             "motivo": "Sillón ocupado por otro odontólogo",
+                             "ocupado_exacto": True, "citas_exactas": [], "citas_extra": []})
+            continue
+
         citas_exactas = [
             c for c in citas_en_bloque
             if c.hora == h
@@ -3802,6 +3824,7 @@ def agenda_day(request, day, month, year):
         request,
         "core/agenda_day.html",
         {
+            **filtro_profesional,
             "agenda_live_revision": live_revision,
             "fecha": fecha,
             "fecha_anterior": fecha - timedelta(days=1),
@@ -5217,12 +5240,15 @@ def agenda_pro(request):
         Appointment.objects
         .filter(fecha__range=[inicio_semana, fin_semana])
         .annotate(primera_cita_id=Subquery(primera_cita_paciente))
-        .select_related("paciente")
+        .select_related("paciente", "odontologo")
         .prefetch_related("procedimientos")
         .order_by("fecha", "hora")
     )
 
     todas_citas_reservadas = list(citas_semana)
+    profesional = _filtro_odontologo(request)["odontologo_seleccionado"]
+    if profesional:
+        citas_semana = citas_semana.filter(odontologo_id=profesional)
 
     if q:
         filtro = Q()
@@ -5326,6 +5352,7 @@ def agenda_pro(request):
                         "hora": cita.hora,
                         "hora_fin": cita.hora_fin,
                         "duracion": cita.duracion,
+                        "odontologo": str(cita.odontologo),
                         "color": color_cita_por_motivo(cita.motivo),
                         "estado": cita.estado,
                         "estado_texto": estado_texto,
@@ -5371,7 +5398,8 @@ def agenda_pro(request):
         resultados_paciente = (
             Appointment.objects
             .filter(filtro)
-            .select_related("paciente")
+            .filter(**({"odontologo_id": profesional} if profesional else {}))
+            .select_related("paciente", "odontologo")
             .prefetch_related("procedimientos")
             .order_by("-fecha", "-hora")[:80]
         )
@@ -5453,6 +5481,7 @@ def agenda_pro(request):
         request,
         "core/agenda_pro.html",
         {
+            **_filtro_odontologo(request),
             "fecha_base": fecha_base,
             "inicio_semana": inicio_semana,
             "fin_semana": fin_semana,

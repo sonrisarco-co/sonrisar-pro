@@ -1,3 +1,4 @@
+from django.db.models import Q
 import json
 
 from django import forms
@@ -124,6 +125,7 @@ class AppointmentForm(forms.ModelForm):
             "fecha",
             "hora",
             "duracion",
+            "odontologo",
             "motivo",
             "procedimientos",
             "estado",
@@ -160,6 +162,15 @@ class AppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["duracion"].widget.attrs["class"] = "form-select"
+        from .models import Odontologo
+        disponibles = Odontologo.objects.filter(activo=True)
+        if self.instance.pk:
+            disponibles = Odontologo.objects.filter(
+                Q(activo=True) | Q(pk=self.instance.odontologo_id)
+            )
+        self.fields["odontologo"].queryset = disponibles
+        self.fields["odontologo"].empty_label = None
+        self.fields["odontologo"].widget.attrs["class"] = "form-select"
         if not self.instance.pk and not self.is_bound:
             self.initial.setdefault("duracion", 30)
 

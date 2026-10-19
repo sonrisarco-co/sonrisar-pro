@@ -21,6 +21,7 @@ class DuracionCitaTests(TestCase):
     def form(self, hora="10:00", duracion=30, instance=None):
         return AppointmentForm({"paciente": self.paciente.id, "fecha": self.fecha,
             "hora": hora, "duracion": duracion, "estado": "pendiente",
+            "odontologo": Appointment._meta.get_field("odontologo").get_default(),
             "procedimientos": [self.procedimiento.id], "monto_total": "0"}, instance=instance)
 
     def test_opciones_se_guardan_y_se_calcula_el_fin(self):

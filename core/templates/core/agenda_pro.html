@@ -126,6 +126,7 @@
                         </div>
 
                         <div class="agenda-pro-tools">
+{% include "core/_odontologo_filter.html" %}
             <section class="agenda-patient-search" aria-label="Buscar pacientes">
                 <form id="agendaPatientSearch" role="search" class="agenda-patient-search-bar"
                       data-url="{% url 'agenda_patient_search' %}"
@@ -179,7 +180,7 @@
                             <tr>
                                 <td>{{ cita.fecha|date:"d/m/Y" }}</td>
                                 <td>{{ cita.hora|time:"H:i" }}</td>
-                                <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}</td>
+                                <td>{{ cita.paciente.apellido }}, {{ cita.paciente.nombre }}<br><small>{{ cita.odontologo }}</small></td>
                                 <td>
                                     <div>{{ cita.motivo|motivo_actual }}</div>
                                     <small class="text-muted">
@@ -341,7 +342,7 @@
                                                                     <small>{{ cita.motivo|motivo_actual }}</small>
                                                                 {% endif %}
 
-                                                                <small class="duracion-cita">{{ cita.hora|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min</small>
+                                                                <small class="duracion-cita">{{ cita.odontologo }} · {{ cita.hora|time:"H:i" }}–{{ cita.hora_fin|time:"H:i" }} · {{ cita.duracion }} min</small>
 
                                                                 {% if cita.estado == "En espera" or cita.estado_slug == "en_espera" %}
                                                                     <span class="cita-estado-mini" style="background:#c8b6e2; color:#111827;">En espera</span>
