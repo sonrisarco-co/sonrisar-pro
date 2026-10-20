@@ -11,6 +11,7 @@ SCOPES = {
     'presupuestos': ('Pacientes', 'Presupuestos', 'Ítems de presupuesto', 'Pagos de presupuesto', 'Ajustes de presupuesto', 'Transferencias de saldo', 'Pagos en Pro'),
     'pagos': ('Pacientes', 'Agenda', 'Presupuestos', 'Pagos de presupuesto', 'Ajustes de presupuesto', 'Transferencias de saldo', 'Pagos en Pro'),
     'protesis': ('Pacientes', 'Prótesis', 'Laboratorio', 'Pagos en Pro'),
+    'comisiones_geisha': ('Comisiones de Geisha', 'Tratamientos de Geisha', 'Agenda', 'Pacientes'),
     'tratamientos_geisha': ('Tratamientos de Geisha', 'Agenda', 'Pacientes', 'Procedimientos'),
     'inventario': ('Inventario', 'Movimientos de inventario'),
     'imagenes': ('Pacientes', 'Rayos X / Fotografías'),
@@ -37,6 +38,7 @@ for scope, names in {
         VIEWS[name] = {'scope': scope, 'manual': False}
 
 for scope, names in {
+    'comisiones_geisha': ('comisiones_geisha', 'comision_geisha_detalle'),
     'pacientes': ('patient_new', 'patient_edit'),
     'agenda': ('appointment_new', 'appointment_edit', 'agenda_reminder_create', 'agenda_reminder_edit'),
     'clinica': ('clinical_record_new', 'clinical_record_edit'),
@@ -49,7 +51,7 @@ for scope, names in {
     for name in names:
         VIEWS[name] = {'scope': scope, 'manual': True}
 
-FINANCIAL_VIEWS = {'home', 'agenda_pro', 'agenda_week', 'agenda_month', 'agenda_calendar', 'patient_finances', 'patient_detail', 'patient_appointments', 'deudores_general', 'protesis_list', 'protesis_detail', 'budgets_list', 'budget_detail', 'patient_budgets', 'payments_list'}
+FINANCIAL_VIEWS = {'comisiones_geisha', 'comision_geisha_detalle', 'home', 'agenda_pro', 'agenda_week', 'agenda_month', 'agenda_calendar', 'patient_finances', 'patient_detail', 'patient_appointments', 'deudores_general', 'protesis_list', 'protesis_detail', 'budgets_list', 'budget_detail', 'patient_budgets', 'payments_list'}
 
 def revision(scope):
     records = Activity.objects.all()

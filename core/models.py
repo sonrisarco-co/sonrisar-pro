@@ -1036,6 +1036,7 @@ class RayosX(models.Model):
 
 
 class TratamientoGeisha(models.Model):
+    importe = models.DecimalField("Importe final del tratamiento", max_digits=10, decimal_places=2, null=True, blank=True)
     ESTADOS = [("en_proceso", "En proceso"), ("terminado", "Terminado")]
     cita = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="tratamientos_geisha")
     clave = models.CharField(max_length=40)
@@ -1051,3 +1052,45 @@ class TratamientoGeisha(models.Model):
 
     def __str__(self):
         return f"{self.cita.paciente} · {self.nombre} · {self.get_estado_display()}"
+
+
+class CobroTratamientoGeisha(models.Model):
+    tratamiento = models.ForeignKey(TratamientoGeisha, on_delete=models.PROTECT, related_name="cobros_asignados")
+    cita = models.ForeignKey(Appointment, on_delete=models.PROTECT, related_name="asignaciones_geisha")
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["tratamiento", "cita"], name="geisha_asignacion_unica"),
+            models.CheckConstraint(condition=models.Q(monto__gt=0), name="geisha_asignacion_positiva"),
+        ]
+
+    def __str__(self):
+        return f"Tratamiento #{self.tratamiento_id} · cita #{self.cita_id} · ${self.monto}"
+
+
+class LiquidacionGeisha(models.Model):
+    fecha = models.DateField(default=timezone.localdate)
+    metodo = models.CharField(max_length=20, choices=[("efectivo", "Efectivo"), ("transferencia", "Transferencia")])
+    referencia = models.CharField(max_length=200, blank=True)
+    usuario = models.ForeignKey("auth.User", on_delete=models.PROTECT)
+    creada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha", "-id"]
+
+    def __str__(self):
+        return f"Liquidación Geisha #{self.pk} · {self.fecha}"
+
+
+class DetalleLiquidacionGeisha(models.Model):
+    liquidacion = models.ForeignKey(LiquidacionGeisha, on_delete=models.PROTECT, related_name="detalles")
+    tratamiento = models.OneToOneField(TratamientoGeisha, on_delete=models.PROTECT, related_name="comision_pagada")
+    paciente = models.CharField(max_length=220)
+    nombre = models.CharField(max_length=200)
+    importe = models.DecimalField(max_digits=10, decimal_places=2)
+    porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=30)
+    comision = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.paciente} · {self.nombre} · ${self.comision}"

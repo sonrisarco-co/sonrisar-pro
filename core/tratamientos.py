@@ -21,4 +21,6 @@ def sincronizar_tratamientos(cita_id, using="default"):
             registro.save(using=using, update_fields=["nombre"])
     # Una corrección de los procedimientos de la cita se refleja en el informe.
     # Los estados de los procedimientos que permanecen no se modifican.
-    registros.filter(cita=cita).exclude(clave__in=nombres).delete()
+    registros.filter(cita=cita).exclude(clave__in=nombres).filter(
+        cobros_asignados__isnull=True, comision_pagada__isnull=True, importe__isnull=True
+    ).delete()

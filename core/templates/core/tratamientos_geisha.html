@@ -8,6 +8,7 @@
             <p class="text-muted mb-0">Seguimiento de tratamientos en proceso y terminados.</p>
         </div>
         <div class="d-flex gap-2 no-imprimir">
+            {% if sonrisar_manager %}<a class="btn btn-sonrisar btn-sm" href="{% url 'comisiones_geisha' %}">Comisiones de Geisha</a>{% endif %}
             <a class="btn btn-outline-secondary btn-sm" href="{% url 'home' %}">← Inicio</a>
             <a class="btn btn-sonrisar btn-sm" href="?{{ parametros }}&amp;imprimir=1" target="_blank" rel="noopener">Imprimir informe</a>
         </div>

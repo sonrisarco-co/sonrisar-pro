@@ -77,6 +77,8 @@ def tratamiento_geisha_estado(request, id):
     estado = request.POST.get("estado")
     if estado not in dict(TratamientoGeisha.ESTADOS):
         messages.error(request, "Seleccioná un estado válido.")
+    elif estado != registro.estado and hasattr(registro, "comision_pagada"):
+        messages.error(request, "La comisión ya fue pagada; no se puede reabrir el tratamiento.")
     elif estado != registro.estado:
         registro.estado = estado
         registro.fecha_finalizacion = timezone.localdate() if estado == "terminado" else None

@@ -14,7 +14,7 @@ SECTIONS = {'Patient': 'Pacientes', 'Procedure': 'Procedimientos', 'Appointment'
     'BudgetPayment': 'Pagos de presupuesto', 'BudgetAdjustment': 'Ajustes de presupuesto',
     'BudgetCreditTransfer': 'Transferencias de saldo', 'Payment': 'Pagos en Pro', 'Prosthesis': 'Prótesis',
     'OrdenLaboratorio': 'Laboratorio', 'Inventory': 'Inventario', 'InventoryMovement': 'Movimientos de inventario',
-    'RayosX': 'Rayos X / Fotografías', 'TratamientoGeisha': 'Tratamientos de Geisha'}
+    'RayosX': 'Rayos X / Fotografías', 'TratamientoGeisha': 'Tratamientos de Geisha', 'CobroTratamientoGeisha': 'Comisiones de Geisha', 'LiquidacionGeisha': 'Comisiones de Geisha', 'DetalleLiquidacionGeisha': 'Comisiones de Geisha'}
 def snapshot(instance):
     return json.loads(json.dumps({f.name: f.value_from_object(instance) for f in instance._meta.concrete_fields}, cls=DjangoJSONEncoder))
 def record(action, instance=None, changes=None, user=None):

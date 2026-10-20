@@ -9,9 +9,13 @@ from . import views
 
 
 
-from . import views_tratamientos
+from . import views_tratamientos, comisiones_geisha
 
 urlpatterns = [
+    path("comisiones-geisha/", comisiones_geisha.comisiones, name="comisiones_geisha"),
+    path("comisiones-geisha/<int:id>/", comisiones_geisha.detalle, name="comision_geisha_detalle"),
+    path("comisiones-geisha/liquidar/", comisiones_geisha.liquidar, name="comisiones_geisha_liquidar"),
+    path("comisiones-geisha/liquidaciones/<int:id>/", comisiones_geisha.comprobante, name="liquidacion_geisha"),
     path("tratamientos-geisha/", views_tratamientos.tratamientos_geisha, name="tratamientos_geisha"),
     path("tratamientos-geisha/<int:id>/estado/", views_tratamientos.tratamiento_geisha_estado, name="tratamiento_geisha_estado"),
 
