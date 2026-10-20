@@ -1,13 +1,14 @@
 """Comisiones del 30%: fondos asignados por tratamiento, sin duplicar cobros."""
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from functools import wraps
+from types import SimpleNamespace
 
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -53,7 +54,14 @@ def fondos(citas):
 def evaluar(registros):
     asignaciones = list(CobroTratamientoGeisha.objects.filter(
         tratamiento_id__in=[r.pk for r in registros]).select_related("cita"))
-    citas = {a.cita_id for a in asignaciones}
+    # One treatment per appointment has an unambiguous price and payment source.
+    cantidades = dict(TratamientoGeisha.objects.filter(cita_id__in=[r.cita_id for r in registros])
+                     .values("cita_id").annotate(total=Count("pk")).values_list("cita_id", "total"))
+    con_asignaciones = {a.tratamiento_id for a in asignaciones}
+    automaticos = {r.pk for r in registros if cantidades[r.cita_id] == 1
+                  and r.pk not in con_asignaciones
+                  and not DetalleLiquidacionGeisha.objects.filter(tratamiento=r).exists()}
+    citas = {a.cita_id for a in asignaciones} | {r.cita_id for r in registros if r.pk in automaticos}
     totales = dict(CobroTratamientoGeisha.objects.filter(cita_id__in=citas)
                    .values("cita_id").annotate(total=Sum("monto")).values_list("cita_id", "total"))
     error = ""
@@ -66,16 +74,27 @@ def evaluar(registros):
     for asignacion in asignaciones:
         por_tratamiento.setdefault(asignacion.tratamiento_id, []).append(asignacion)
     for registro in registros:
+        registro.automatico = registro.pk in automaticos
+        registro.requiere_desglose = cantidades[registro.cita_id] > 1
+        registro.importe_automatico = False
+        if cantidades[registro.cita_id] == 1 and registro.importe is None:
+            registro.importe = registro.cita.monto_total or CERO
+            registro.importe_automatico = True
         registro.asignaciones = por_tratamiento.get(registro.pk, [])
+        if registro.automatico and registro.importe and registro.importe > 0:
+            libre = max(disponibles.get(registro.cita_id, CERO) - totales.get(registro.cita_id, CERO), CERO)
+            monto = min(registro.importe, libre)
+            if monto:
+                registro.asignaciones = [SimpleNamespace(cita_id=registro.cita_id, cita=registro.cita, monto=monto)]
         registro.cobrado = sum((a.monto for a in registro.asignaciones), CERO)
         registro.comision = ((registro.importe or CERO) * Decimal("0.30")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        registro.alerta = ""
+        registro.alerta = "Cobro sin verificar" if registro.automatico and registro.cita_id not in disponibles else ""
         for a in registro.asignaciones:
             if a.cita.paciente_id != registro.cita.paciente_id:
                 registro.alerta = "Revisar paciente de la asignación"
             elif a.cita_id not in disponibles:
                 registro.alerta = "Cobro sin verificar"
-            elif totales[a.cita_id] > disponibles[a.cita_id]:
+            elif totales.get(a.cita_id, CERO) > disponibles[a.cita_id]:
                 registro.alerta = "Revisar cobros: el importe asignado supera lo cobrado actualmente"
         registro.liquidado = DetalleLiquidacionGeisha.objects.filter(tratamiento=registro).exists()
         registro.disponible = bool(not registro.liquidado and not registro.alerta
@@ -87,7 +106,8 @@ def evaluar(registros):
         elif registro.alerta:
             registro.situacion = registro.alerta
         elif not registro.importe:
-            registro.situacion = "Definir importe"
+            registro.situacion = ("Desglosar importe: varios tratamientos en la cita"
+                                  if registro.requiere_desglose else "Definir el total en la cita")
         elif registro.cobrado < registro.importe:
             registro.situacion = "Pendiente de cobro completo"
         elif registro.estado != "terminado":
@@ -153,6 +173,7 @@ def detalle(request, id):
     registro = get_object_or_404(TratamientoGeisha.objects.select_for_update().select_related(
         "cita__paciente", "cita__odontologo"), pk=id)
     pagado = DetalleLiquidacionGeisha.objects.filter(tratamiento=registro).exists()
+    error = evaluar([registro])
     importe_form = ImporteForm(initial={"importe": registro.importe})
     asignacion_form = AsignacionForm(paciente_id=registro.cita.paciente_id, initial={"cita": registro.cita_id})
     if request.method == "POST":
@@ -193,7 +214,6 @@ def detalle(request, id):
                     return redirect("comision_geisha_detalle", id=id)
         except ValidationError as exc:
             messages.error(request, exc.messages[0])
-    error = evaluar([registro])
     return render(request, "core/comision_geisha_detalle.html", {
         "registro": registro, "importe_form": importe_form, "asignacion_form": asignacion_form,
         "error_cobros": error, "pagado": pagado,
@@ -214,7 +234,8 @@ def liquidar(request):
         return redirect("comisiones_geisha")
     registros = list(TratamientoGeisha.objects.select_for_update(of=("self",)).filter(pk__in=ids)
                      .select_related("cita__paciente", "cita__odontologo").order_by("pk"))
-    fuentes = CobroTratamientoGeisha.objects.filter(tratamiento_id__in=ids).values_list("cita_id", flat=True)
+    fuentes = set(CobroTratamientoGeisha.objects.filter(tratamiento_id__in=ids).values_list("cita_id", flat=True))
+    fuentes.update(r.cita_id for r in registros)
     list(Appointment.objects.select_for_update().filter(pk__in=fuentes).order_by("pk"))
     evaluar(registros)
     if len(registros) != len(ids) or any(not r.disponible for r in registros):
@@ -222,6 +243,11 @@ def liquidar(request):
         return redirect("comisiones_geisha")
     liquidacion = LiquidacionGeisha.objects.create(usuario=request.user, **form.cleaned_data)
     for registro in registros:
+        # Freeze the price and reserve the verified automatic funds only when paid.
+        if registro.importe_automatico:
+            registro.save(update_fields=["importe"])
+        if registro.automatico:
+            CobroTratamientoGeisha.objects.create(tratamiento=registro, cita=registro.cita, monto=registro.importe)
         DetalleLiquidacionGeisha.objects.create(liquidacion=liquidacion, tratamiento=registro,
             paciente=str(registro.cita.paciente), nombre=registro.nombre,
             importe=registro.importe, porcentaje=30, comision=registro.comision)

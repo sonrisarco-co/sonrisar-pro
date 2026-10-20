@@ -140,3 +140,60 @@ class ComisionesGeishaTests(TestCase):
         response = self.client.get(reverse('comisiones_geisha'))
         self.assertContains(response, 'Revisar cobros')
         self.assertEqual(DetalleLiquidacionGeisha.objects.get().comision, Decimal('2400'))
+
+    def preparar_automatico(self):
+        self.r.importe = None
+        self.r.save(update_fields=['importe'])
+        self.cita.monto_total = Decimal('8000')
+        self.cita.save(update_fields=['monto_total'])
+
+    def test_automatico_sin_recargar_importes_ni_asignaciones_y_pago_unico(self):
+        self.preparar_automatico()
+        response = self.client.get(reverse('comisiones_geisha'))
+        self.assertEqual(response.context['total_disponible'], Decimal('2400'))
+        self.assertContains(response, 'Cálculo automático')
+        self.assertFalse(CobroTratamientoGeisha.objects.exists())
+        self.r.refresh_from_db(); self.assertIsNone(self.r.importe)
+        self.pagar()
+        self.assertEqual(DetalleLiquidacionGeisha.objects.get().comision, Decimal('2400'))
+        self.assertEqual(CobroTratamientoGeisha.objects.get().monto, Decimal('8000'))
+        self.pagar(); self.assertEqual(LiquidacionGeisha.objects.count(), 1)
+
+    def test_automatico_parcial_proceso_devolucion_y_cambio_precio(self):
+        self.preparar_automatico()
+        self.total = '4000'
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+        self.total = '8000'
+        self.r.estado = 'en_proceso'; self.r.save(update_fields=['estado'])
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+        self.r.estado = 'terminado'; self.r.save(update_fields=['estado'])
+        self.cita.monto_total = 9000; self.cita.save(update_fields=['monto_total'])
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+        self.cita.monto_total = 8000; self.cita.save(update_fields=['monto_total'])
+        self.total = '7999'
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+
+    def test_automatico_no_duplica_precio_con_varios_tratamientos(self):
+        self.preparar_automatico()
+        TratamientoGeisha.objects.create(cita=self.cita, clave='extra', nombre='Otro')
+        response = self.client.get(reverse('comisiones_geisha'))
+        self.assertEqual(response.context['total_disponible'], 0)
+        self.assertContains(response, 'varios tratamientos en la cita')
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+
+    def test_automatico_respeta_fondos_asignados_a_otro_tratamiento(self):
+        self.preparar_automatico()
+        otra = Appointment.objects.create(paciente=self.paciente,
+            odontologo=Odontologo.objects.get(codigo='geisha'), fecha=self.cita.fecha,
+            hora=time(15), motivo='Otro', estado='asistio')
+        r2 = otra.tratamientos_geisha.get()
+        r2.importe = 1000; r2.save(update_fields=['importe'])
+        CobroTratamientoGeisha.objects.create(tratamiento=r2, cita=self.cita, monto=1000)
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+
+    def test_automatico_sin_conexion_no_habilita(self):
+        self.preparar_automatico()
+        self.mock.side_effect = None; self.mock.return_value = None
+        self.pagar(); self.assertFalse(LiquidacionGeisha.objects.exists())
+        response = self.client.get(reverse('comisiones_geisha'))
+        self.assertContains(response, 'No se pudo verificar')
