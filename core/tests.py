@@ -345,3 +345,48 @@ class DuracionPredeterminadaTests(TestCase):
         self.assertTrue(filas[time(19, 15)]["ocultar"])
         self.assertFalse(filas[time(19, 30)]["bloqueado"])
         self.assertFalse(filas[time(19, 45)]["bloqueado"])
+
+
+class PatientCIFormatTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.patient = Patient.objects.create(
+            nombre="Paciente", apellido="Existente", ci="1.234.567-8", telefono="099123456",
+        )
+
+    def request(self, ci):
+        from django.contrib.messages.storage.fallback import FallbackStorage
+        request = self.factory.post("/pacientes/nuevo/", {
+            "nombre": "Nuevo", "apellido": "Paciente", "ci": ci, "telefono": "099123456",
+        })
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        return request
+
+    def test_reject_duplicate_in_normal_and_quick_create(self):
+        from .views import patient_new, patient_quick_new
+        for ci in ("12345678", "1.234.567-8", "1 234 567-8"):
+            with patch("core.views.render", return_value="invalid"):
+                self.assertEqual(patient_new(self.request(ci)), "invalid")
+            self.assertEqual(patient_quick_new(self.request(ci)).status_code, 400)
+        self.assertEqual(Patient.objects.count(), 1)
+
+    def test_create_stores_searchable_digits_and_preserves_next(self):
+        from .views import patient_new
+        request = self.request("2.345.678-9")
+        request.GET = {"next": "/agenda/"}
+        response = patient_new(request)
+        patient = Patient.objects.get(ci="23456789")
+        self.assertEqual(response.url, f"/agenda/?paciente_id={patient.id}")
+
+    def test_edit_preserves_historical_ci_and_rejects_other_patient_ci(self):
+        from .views import patient_edit
+        response = patient_edit(self.request("12345678"), self.patient.id)
+        self.assertEqual(response.status_code, 302)
+        self.patient.refresh_from_db()
+        self.assertEqual(self.patient.ci, "1.234.567-8")
+        other = Patient.objects.create(nombre="Otro", apellido="Paciente", ci="23456789")
+        with patch("core.views.render", return_value="invalid"):
+            self.assertEqual(patient_edit(self.request("2.345.678-9"), self.patient.id), "invalid")
+        self.patient.refresh_from_db()
+        self.assertEqual(self.patient.ci, "1.234.567-8")

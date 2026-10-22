@@ -426,16 +426,45 @@ def patient_appointments(request, patient_id):
 
 
 
+def _ci_sin_formato(valor):
+    # No descartar letras de documentos extranjeros ni truncar documentos largos.
+    if any(c not in "0123456789.- \t\r\n" for c in valor):
+        return valor.strip()
+    return "".join(c for c in valor.strip() if c not in ".- \t\r\n")
+
+
+def _ci_duplicada(ci, paciente_id=None):
+    from django.db.models import Value
+    from django.db.models.functions import Replace
+
+    expresion = "ci"
+    for separador in (".", "-", " ", "\t", "\r", "\n"):
+        expresion = Replace(expresion, Value(separador), Value(""))
+    pacientes = Patient.objects.annotate(ci_comparable=expresion).filter(
+        ci_comparable=_ci_sin_formato(ci)
+    )
+    if not _ci_sin_formato(ci).isascii() or not _ci_sin_formato(ci).isdigit():
+        pacientes = Patient.objects.filter(ci=ci.strip())
+    if paciente_id is not None:
+        pacientes = pacientes.exclude(pk=paciente_id)
+    return pacientes.exists()
+
+
 def patient_new(request):
 
     next_url = request.GET.get("next") or request.POST.get("next") or ""
 
     if request.method == "POST":
-        ci = request.POST.get("ci", "").strip()
+        ci = _ci_sin_formato(request.POST.get("ci", ""))
         telefono = request.POST.get("telefono", "").strip()
 
+        error = ""
         if not ci or not telefono:
-            messages.error(request, "La cédula y el teléfono son obligatorios.")
+            error = "La cédula y el teléfono son obligatorios."
+        elif _ci_duplicada(ci):
+            error = "Ya existe un paciente con esa C.I. Revisá su ficha antes de crear otro."
+        if error:
+            messages.error(request, error)
             return render(request, "core/patient_new.html", {
                 "next": next_url,
                 "form_data": request.POST,
@@ -473,14 +502,16 @@ def patient_quick_new(request):
     POST -> crea paciente y devuelve JSON con id + texto
     """
     if request.method == "POST":
-        ci = request.POST.get("ci", "").strip()
+        ci = _ci_sin_formato(request.POST.get("ci", ""))
         telefono = request.POST.get("telefono", "").strip()
 
+        error = ""
         if not ci or not telefono:
-            return JsonResponse({
-                "success": False,
-                "error": "La cédula y el teléfono son obligatorios.",
-            }, status=400)
+            error = "La cédula y el teléfono son obligatorios."
+        elif _ci_duplicada(ci):
+            error = "Ya existe un paciente con esa C.I. Revisá su ficha antes de crear otro."
+        if error:
+            return JsonResponse({"success": False, "error": error}, status=400)
 
         paciente = Patient.objects.create(
             nombre=request.POST.get("nombre", "").strip(),
@@ -510,11 +541,16 @@ def patient_edit(request, id):
     next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
-        ci = request.POST.get("ci", "").strip()
+        ci = _ci_sin_formato(request.POST.get("ci", ""))
         telefono = request.POST.get("telefono", "").strip()
 
+        error = ""
         if not ci or not telefono:
-            messages.error(request, "La cédula y el teléfono son obligatorios.")
+            error = "La cédula y el teléfono son obligatorios."
+        elif ci != _ci_sin_formato(paciente.ci) and _ci_duplicada(ci, paciente.id):
+            error = "Ya existe otro paciente con esa C.I."
+        if error:
+            messages.error(request, error)
             return render(request, "core/patient_edit.html", {
                 "paciente": paciente,
                 "next": next_url,
@@ -523,7 +559,9 @@ def patient_edit(request, id):
 
         paciente.nombre = request.POST.get("nombre", "").strip()
         paciente.apellido = request.POST.get("apellido", "").strip()
-        paciente.ci = ci
+        # Conservar el valor histórico cuando solo cambió su presentación.
+        if ci != _ci_sin_formato(paciente.ci):
+            paciente.ci = ci
         paciente.fecha_nacimiento = request.POST.get("fecha_nacimiento") or None
         paciente.telefono = telefono
         paciente.email = request.POST.get("email", "").strip()

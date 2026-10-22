@@ -26,7 +26,7 @@
 
         <div class="mb-3">
             <label class="form-label">C.I.</label>
-            <input type="text" name="ci" class="form-control"
+            <input type="text" name="ci" data-ci-format inputmode="numeric" placeholder="1.234.567-8" class="form-control"
                    value="{% if form_data %}{{ form_data.ci }}{% else %}{{ paciente.ci }}{% endif %}" required>
         </div>
 
