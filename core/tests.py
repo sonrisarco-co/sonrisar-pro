@@ -390,3 +390,23 @@ class PatientCIFormatTests(TestCase):
             self.assertEqual(patient_edit(self.request("2.345.678-9"), self.patient.id), "invalid")
         self.patient.refresh_from_db()
         self.assertEqual(self.patient.ci, "1.234.567-8")
+
+
+class PatientCIDisplayTests(SimpleTestCase):
+    def test_ci_display_preserves_digits_and_other_documents(self):
+        from .templatetags.core_extras import formato_ci
+        for value, expected in [
+            ("59908548", "5.990.854-8"), ("5.990.854-8", "5.990.854-8"),
+            ("1234567", "123.456-7"), ("00123456", "0.012.345-6"),
+            ("AB-1234", "AB-1234"), ("123456789", "123456789"),
+            (None, ""), ("", ""),
+        ]:
+            self.assertEqual(formato_ci(value), expected)
+
+    def test_patient_templates_render_formatted_ci_without_changing_patient(self):
+        from django.template.loader import render_to_string
+        patient = SimpleNamespace(id=1, ci="59908548", nombre="Prueba", apellido="Paciente")
+        for template in ("core/patient_detail.html", "core/patients_list.html"):
+            html = render_to_string(template, {"paciente": patient, "pacientes": [patient]})
+            self.assertIn("5.990.854-8", html)
+            self.assertEqual(patient.ci, "59908548")

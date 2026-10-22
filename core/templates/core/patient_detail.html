@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load core_extras %}
 
 {% block title %}Ficha del Paciente - Sonrisar Pro{% endblock %}
 
@@ -589,7 +590,7 @@
         <div class="datos-grid">
 <div class="dato-item">
                 <span class="dato-label">Cédula de identidad</span>
-                <div class="dato-valor">{{ paciente.ci|default:"—" }}</div>
+                <div class="dato-valor">{{ paciente.ci|formato_ci|default:"—" }}</div>
             </div>
 
             <div class="dato-item">

@@ -1,5 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% load core_extras %}
 
 {% block title %}Lista de Pacientes | Sonrisar{% endblock %}
 
@@ -82,7 +83,7 @@
                 <tr id="patient-{{ p.id }}">
                     <td>{{ p.nombre }}</td>
                     <td>{{ p.apellido }}</td>
-                    <td>{{ p.ci }}</td>
+                    <td>{{ p.ci|formato_ci }}</td>
                     <td>{{ p.telefono }}</td>
 
                     <td>
