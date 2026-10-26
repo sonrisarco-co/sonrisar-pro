@@ -1,6 +1,6 @@
 """Cumpleaños y confirmación manual de saludos; abrir WhatsApp no registra un envío."""
 import re
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,7 +13,12 @@ from .models import Patient, BirthdayGreeting
 MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 
 
-def birthday_rows(month, day=None):
+def use_whatsapp_web(request):
+    agent = request.META.get("HTTP_USER_AGENT", "").lower()
+    return not any(device in agent for device in ("android", "iphone", "ipad", "ipod", "mobile", "macintosh"))
+
+
+def birthday_rows(month, day=None, whatsapp_web=False):
     today = timezone.localdate()
     patients = Patient.objects.filter(fecha_nacimiento__month=month)
     if day is not None:
@@ -35,7 +40,8 @@ def birthday_rows(month, day=None):
                    "Un abrazo de todo el equipo de Sonrisar. 💙")
         rows.append({"patient": patient, "age": today.year - patient.fecha_nacimiento.year,
                      "greeting": greetings.get(patient.pk),
-                     "whatsapp_url": "https://wa.me/" + phone + "?" + urlencode({"text": message}) if valid_phone else ""})
+                     "whatsapp_url": (("https://web.whatsapp.com/send?" + urlencode({"phone": phone, "text": message}, quote_via=quote))
+                                      if whatsapp_web else ("https://wa.me/" + phone + "?" + urlencode({"text": message}, quote_via=quote))) if valid_phone else ""})
     return rows
 
 
@@ -48,7 +54,7 @@ def birthdays(request):
             raise ValueError
     except (ValueError, TypeError):
         month = today.month
-    return render(request, "core/birthdays.html", {"rows": birthday_rows(month), "month": month,
+    return render(request, "core/birthdays.html", {"rows": birthday_rows(month, whatsapp_web=use_whatsapp_web(request)), "month": month,
                   "months": list(enumerate(MONTHS, 1)), "year": today.year})
 
 

@@ -47,3 +47,18 @@ class BirthdayTests(TestCase):
     def test_authentication_required(self):
         self.client.logout()
         self.assertEqual(self.client.get(reverse('birthdays')).status_code, 302)
+
+    @patch('core.birthdays.timezone.localdate', return_value=date(2026, 10, 26))
+    def test_desktop_and_mobile_links_preserve_exact_unicode(self, _):
+        from urllib.parse import urlsplit, parse_qs
+        expected = ("¡Muy feliz cumple! Ana 🥳🎂\n\n"
+                    "Hoy queremos saludarte desde Sonrisar y desearte que pases un día espectacular, lleno de alegría y lindos momentos.\n\n"
+                    "¡Que tengas un hermoso día y lo disfrutes mucho!\n\n"
+                    "Un abrazo de todo el equipo de Sonrisar. 💙")
+        for web in (True, False):
+            url = birthday_rows(10, whatsapp_web=web)[0]['whatsapp_url']
+            self.assertEqual(parse_qs(urlsplit(url).query)['text'][0], expected)
+        desktop = self.client.get(reverse('birthdays'), HTTP_USER_AGENT='Windows Chrome')
+        self.assertContains(desktop, 'https://web.whatsapp.com/send?')
+        mobile = self.client.get(reverse('birthdays'), HTTP_USER_AGENT='iPhone Mobile')
+        self.assertContains(mobile, 'https://wa.me/59899123456?')
