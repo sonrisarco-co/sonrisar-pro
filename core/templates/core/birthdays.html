@@ -1,0 +1,6 @@
+{% extends "core/base.html" %}
+{% block title %}Cumpleaños | Sonrisar Pro{% endblock %}
+{% block content %}<div class="container-fluid">
+<div class="d-flex justify-content-between align-items-center mb-3"><h3 style="color:#26ABA5">🎂 Cumpleaños de pacientes</h3><a class="btn btn-outline-secondary btn-sm" href="{% url 'patient_list' %}">Volver a Pacientes</a></div>
+<form method="get" class="d-flex align-items-center gap-2 mb-3"><label for="birthday-month">Mes</label><select id="birthday-month" name="mes" class="form-select form-select-sm" style="max-width:180px">{% for number, label in months %}<option value="{{ number }}" {% if number == month %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="btn btn-sm btn-outline-success">Consultar</button></form>
+<div class="card border-0 shadow-sm"><div class="card-header" style="background:#26ABA5;color:white">Cumpleaños del mes · {{ year }}</div><div class="card-body"><p class="small text-muted">La fecha de nacimiento se carga al crear o editar la ficha del paciente. Abrir WhatsApp prepara el mensaje; después de enviarlo, usá «Marcar como saludado». El registro se renueva cada año. Verificá que estés usando la cuenta de WhatsApp de Sonrisar.</p>{% include "core/_birthday_rows.html" %}</div></div></div>{% endblock %}

@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from .middleware import current_request, manager
 from .models import Activity
 
-SECTIONS = {'Patient': 'Pacientes', 'Procedure': 'Procedimientos', 'Appointment': 'Agenda',
+SECTIONS = {'BirthdayGreeting': 'Cumpleaños', 'Patient': 'Pacientes', 'Procedure': 'Procedimientos', 'Appointment': 'Agenda',
     'DayBlock': 'Bloqueos de agenda', 'TimeBlock': 'Bloqueos de agenda', 'AgendaReminder': 'Recordatorios',
     'ClinicalRecord': 'Historia clínica', 'ClinicalAlert': 'Avisos clínicos', 'OdontogramTooth': 'Odontograma',
     'OdontogramaCara': 'Odontograma', 'Budget': 'Presupuestos', 'BudgetItem': 'Ítems de presupuesto',

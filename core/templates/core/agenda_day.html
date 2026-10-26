@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load core_extras static %}
+{% load core_extras static birthday_tags %}
 
 {% block title %}Agenda del día | Sonrisar Pro{% endblock %}
 
@@ -52,6 +52,8 @@
             <button data-live-refresh type="button" class="btn btn-sm btn-outline-secondary" hidden>Actualizar ahora</button>
         </div>
     </div>
+
+    {% birthdays_today %}
 
     {% if request.GET.cobro == "ok" %}
         {% if request.GET.cfe == "emitido" %}

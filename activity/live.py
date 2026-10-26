@@ -4,7 +4,7 @@ from .models import Activity
 # Includes patient names, appointments, blocks, reminders and balances displayed
 # by the day agenda. Login/logout and unrelated inventory edits do not refresh it.
 AGENDA_SECTIONS = (
-    'Pacientes', 'Procedimientos', 'Agenda', 'Bloqueos de agenda', 'Recordatorios',
+    'Cumpleaños', 'Pacientes', 'Procedimientos', 'Agenda', 'Bloqueos de agenda', 'Recordatorios',
     'Presupuestos', 'Ítems de presupuesto', 'Pagos de presupuesto',
     'Ajustes de presupuesto', 'Transferencias de saldo', 'Pagos en Pro',
     'Historia clínica', 'Avisos clínicos',

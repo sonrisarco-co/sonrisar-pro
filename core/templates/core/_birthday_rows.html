@@ -1,0 +1,10 @@
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+<thead><tr><th>Paciente</th><th>Cumpleaños</th><th>Edad que cumple</th><th>Saludo de este año</th><th>Acciones</th></tr></thead>
+<tbody>{% for row in rows %}<tr>
+<td><a href="{% url 'patient_detail' row.patient.pk %}">{{ row.patient.nombre }} {{ row.patient.apellido }}</a></td>
+<td>{{ row.patient.fecha_nacimiento|date:"d/m" }}</td><td>{{ row.age }}</td>
+<td>{% if row.greeting %}<span class="badge bg-success">Saludado</span><small class="d-block text-muted">{{ row.greeting.marcado_el|date:"d/m/Y H:i" }} · {{ row.greeting.marcado_por|default:"Usuario eliminado" }}</small>{% else %}<span class="text-muted">Sin registrar</span>{% endif %}</td>
+<td><div class="d-flex flex-wrap gap-2">{% if row.whatsapp_url %}<a href="{{ row.whatsapp_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm">{% if row.greeting %}Abrir WhatsApp nuevamente{% else %}Saludar por WhatsApp{% endif %}</a>{% else %}<span class="text-muted small">Revisar teléfono en la ficha</span>{% endif %}
+{% if not row.greeting %}<form method="post" action="{% url 'birthday_mark' row.patient.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-outline-secondary btn-sm" onclick="return confirm('¿Confirmás que ya enviaste el saludo de este año?')">Marcar como saludado</button></form>{% endif %}</div></td>
+</tr>{% empty %}<tr><td colspan="5" class="text-muted py-3">No hay cumpleaños registrados para este período.</td></tr>{% endfor %}</tbody></table></div>

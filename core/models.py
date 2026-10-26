@@ -1094,3 +1094,13 @@ class DetalleLiquidacionGeisha(models.Model):
 
     def __str__(self):
         return f"{self.paciente} · {self.nombre} · ${self.comision}"
+
+
+class BirthdayGreeting(models.Model):
+    paciente = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="birthday_greetings")
+    year = models.PositiveSmallIntegerField()
+    marcado_por = models.ForeignKey("auth.User", null=True, on_delete=models.SET_NULL)
+    marcado_el = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["paciente", "year"], name="unique_patient_birthday_year")]
