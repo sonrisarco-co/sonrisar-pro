@@ -29,9 +29,10 @@ def birthday_rows(month, day=None):
         elif len(phone) == 8 and phone.startswith("9"):
             phone = "598" + phone
         valid_phone = 8 <= len(phone) <= 15 and not phone.startswith("0")
-        message = (f"¡Feliz cumpleaños, {patient.nombre}! 🎂🥳\n"
-                   "Todo el equipo de Sonrisar te desea un hermoso día y un nuevo año lleno de alegría y muchas sonrisas. 💚\n"
-                   "¡Un abrazo de parte de todos!\nSonrisar – Centro Odontológico")
+        message = (f"¡Muy feliz cumple! {patient.nombre} 🥳🎂\n\n"
+                   "Hoy queremos saludarte desde Sonrisar y desearte que pases un día espectacular, lleno de alegría y lindos momentos.\n\n"
+                   "¡Que tengas un hermoso día y lo disfrutes mucho!\n\n"
+                   "Un abrazo de todo el equipo de Sonrisar. 💙")
         rows.append({"patient": patient, "age": today.year - patient.fecha_nacimiento.year,
                      "greeting": greetings.get(patient.pk),
                      "whatsapp_url": "https://wa.me/" + phone + "?" + urlencode({"text": message}) if valid_phone else ""})
