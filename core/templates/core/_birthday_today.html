@@ -1,3 +1,37 @@
-<section class="card mb-3 border-0 shadow-sm" aria-label="Cumpleaños de hoy">
-<div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#26ABA5;color:white"><strong>🎂 Cumpleaños de hoy · {{ today|date:"d/m" }}</strong><a href="{% url 'birthdays' %}" class="btn btn-light btn-sm">Ver cumpleaños del mes</a></div>
-<div class="card-body"><p class="small text-muted">Abrí WhatsApp de Sonrisar, enviá el mensaje y luego marcá el saludo como enviado.</p>{% include "core/_birthday_rows.html" %}</div></section>
+<style>
+.sonrisar-birthdays{margin:6px 0 12px;border:1px solid #e1eceb;border-left:3px solid #26aba5;border-radius:8px;background:#fff;color:#536568;font-size:13px}
+.sonrisar-birthdays summary{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 12px;cursor:pointer;list-style:none}
+.sonrisar-birthdays summary::-webkit-details-marker{display:none}
+.sonrisar-birthdays summary::after{content:'Ver saludos ›';margin-left:auto;font-size:12px;color:#34837f}
+.sonrisar-birthdays[open] summary::after{content:'Cerrar ⌃'}
+.sonrisar-birthdays summary:focus-visible{outline:2px solid #26aba5;outline-offset:2px}
+.sonrisar-birthdays-title{font-weight:600;color:#357d79}
+.sonrisar-birthdays-count{padding:1px 7px;border-radius:10px;background:#edf7f6;color:#357d79;font-size:12px}
+.sonrisar-birthdays-body{padding:0 12px 10px;border-top:1px solid #eef3f3}
+.sonrisar-birthday-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:9px 0;border-bottom:1px solid #eef3f3}
+.sonrisar-birthday-name{color:#384d50;text-decoration:none;font-weight:600}
+.sonrisar-birthday-age,.sonrisar-birthday-status{font-size:12px;color:#7b898b}
+.sonrisar-birthday-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}
+.sonrisar-birthday-actions form{margin:0;padding:0;border:0;box-shadow:none;background:transparent;width:auto}
+.sonrisar-birthdays .sonrisar-birthday-button{display:inline-flex;align-items:center;justify-content:center;width:auto;margin:0;padding:4px 9px;border:1px solid #d5e5e3;border-radius:6px;background:#fff;color:#397d78;text-decoration:none;font:inherit;font-size:12px;line-height:1.3;cursor:pointer;box-shadow:none}
+.sonrisar-birthdays .sonrisar-birthday-button:hover{background:#f0f8f7;border-color:#26aba5}
+.sonrisar-birthdays .sonrisar-birthday-confirm{color:#6c7b7d;border-color:#e0e6e6}
+.sonrisar-birthday-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:9px;font-size:12px;color:#7b898b}
+.sonrisar-birthday-footer a{color:#397d78;text-decoration:none}
+@media(max-width:600px){.sonrisar-birthday-actions{margin-left:0;width:100%}.sonrisar-birthdays summary{padding:7px 9px}.sonrisar-birthdays summary::after{font-size:11px}}
+</style>
+<details class="sonrisar-birthdays">
+<summary><span class="sonrisar-birthdays-title">Cumpleaños de hoy</span><span class="sonrisar-birthdays-count">{{ rows|length }}</span></summary>
+<div class="sonrisar-birthdays-body">
+{% for row in rows %}
+<div class="sonrisar-birthday-row">
+<a class="sonrisar-birthday-name" href="{% url 'patient_detail' row.patient.pk %}">{{ row.patient.nombre }} {{ row.patient.apellido }}</a>
+<span class="sonrisar-birthday-age">{{ row.age }} años</span>
+{% if row.greeting %}<span class="sonrisar-birthday-status">✓ Saludado</span>{% endif %}
+<div class="sonrisar-birthday-actions">
+{% if row.whatsapp_url %}<a class="sonrisar-birthday-button" href="{{ row.whatsapp_url }}" target="_blank" rel="noopener noreferrer">{% if row.greeting %}Abrir WhatsApp{% else %}Saludar por WhatsApp{% endif %}</a>{% else %}<span class="sonrisar-birthday-status">Revisar teléfono en la ficha</span>{% endif %}
+{% if not row.greeting %}<form method="post" action="{% url 'birthday_mark' row.patient.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="sonrisar-birthday-button sonrisar-birthday-confirm" onclick="return confirm('¿Confirmás que ya enviaste el saludo de este año?')">Marcar como saludado</button></form>{% endif %}
+</div></div>
+{% empty %}<p class="sonrisar-birthday-status" style="margin:10px 0 0">No hay cumpleaños registrados para hoy.</p>{% endfor %}
+<div class="sonrisar-birthday-footer"><span>Marcá el saludo después de enviarlo desde WhatsApp de Sonrisar.</span><a href="{% url 'birthdays' %}">Ver cumpleaños del mes →</a></div>
+</div></details>
