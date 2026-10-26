@@ -1,6 +1,41 @@
 {% extends "core/base.html" %}
 {% block title %}Cumpleaños | Sonrisar Pro{% endblock %}
-{% block content %}<div class="container-fluid">
-<div class="d-flex justify-content-between align-items-center mb-3"><h3 style="color:#26ABA5">🎂 Cumpleaños de pacientes</h3><a class="btn btn-outline-secondary btn-sm" href="{% url 'patient_list' %}">Volver a Pacientes</a></div>
-<form method="get" class="d-flex align-items-center gap-2 mb-3"><label for="birthday-month">Mes</label><select id="birthday-month" name="mes" class="form-select form-select-sm" style="max-width:180px">{% for number, label in months %}<option value="{{ number }}" {% if number == month %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="btn btn-sm btn-outline-success">Consultar</button></form>
-<div class="card border-0 shadow-sm"><div class="card-header" style="background:#26ABA5;color:white">Cumpleaños del mes · {{ year }}</div><div class="card-body"><p class="small text-muted">La fecha de nacimiento se carga al crear o editar la ficha del paciente. Abrir WhatsApp prepara el mensaje; después de enviarlo, usá «Marcar como saludado». El registro se renueva cada año. Verificá que estés usando la cuenta de WhatsApp de Sonrisar.</p>{% include "core/_birthday_rows.html" %}</div></div></div>{% endblock %}
+{% block content %}
+<style>
+.birthday-page{max-width:1200px;margin:0 auto;padding:8px 16px 24px;color:#3c5053}
+.birthday-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.birthday-heading h2{font-size:23px;font-weight:600;color:#277f7b;margin:0}
+.birthday-page .birthday-button{display:inline-flex;align-items:center;justify-content:center;width:auto;margin:0;padding:7px 11px;border:1px solid #d4e5e3;border-radius:7px;background:#fff;color:#337d78;font:inherit;font-size:12px;line-height:1.3;text-decoration:none;cursor:pointer;box-shadow:none;white-space:nowrap}
+.birthday-page .birthday-button:hover{background:#eef8f7;border-color:#26aba5}
+.birthday-page .birthday-button:focus-visible{outline:2px solid #26aba5;outline-offset:2px}
+.birthday-page .birthday-confirm{color:#6d7d7f;border-color:#dfe7e7}
+.birthday-page .birthday-filter{display:flex;align-items:center;flex-wrap:wrap;gap:10px;width:auto;margin:0 0 16px;padding:12px 14px;background:#f7faf9;border:1px solid #e2eceb;border-radius:9px;box-shadow:none}
+.birthday-filter label{margin:0;font-size:13px;font-weight:600;color:#627777}
+.birthday-page .birthday-filter select{width:170px;margin:0;padding:7px 10px;background:#fff;border:1px solid #d6e4e3;border-radius:6px;color:#3c5053;font:inherit;font-size:13px}
+.birthday-panel{border:1px solid #e1eae9;border-radius:10px;background:#fff;overflow:hidden}
+.birthday-panel-heading{padding:13px 16px;background:#f3f9f8;border-bottom:1px solid #e1eae9;color:#337d78;font-size:14px;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.birthday-count{font-weight:400;font-size:12px;color:#708987}
+.birthday-table-wrap{overflow-x:auto}
+.birthday-page .birthday-table{width:100%;margin:0;border-collapse:collapse;font-size:13px;background:#fff}
+.birthday-page .birthday-table thead{display:table-header-group!important;visibility:visible!important}
+.birthday-page .birthday-table th{padding:11px 14px;background:#fff;color:#748886!important;font-size:11px;font-weight:600;text-align:left;border-bottom:1px solid #e7eeed;white-space:nowrap}
+.birthday-page .birthday-table td{padding:11px 14px;border-bottom:1px solid #edf2f1;color:#465b5e;vertical-align:middle}
+.birthday-table tbody tr:last-child td{border-bottom:0}
+.birthday-table tbody tr:hover{background:#fafdfc}
+.birthday-page .birthday-patient{color:#357e79;text-decoration:none;font-weight:600}
+.birthday-page .birthday-patient:hover{text-decoration:underline}
+.birthday-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.birthday-page .birthday-actions form{display:inline;margin:0;padding:0;width:auto;background:transparent;border:0;box-shadow:none}
+.birthday-pending{color:#8a9899;font-size:12px}
+.birthday-done{display:inline-block;padding:3px 8px;background:#eef7f3;border-radius:12px;color:#42856d;font-size:12px}
+.birthday-audit{display:block;margin-top:4px;color:#879795;font-size:11px}
+.birthday-help{margin:14px 2px 0;color:#81918f;font-size:12px;line-height:1.6}
+.birthday-empty{text-align:center;padding:28px!important;color:#839591!important}
+@media(max-width:600px){.birthday-page{padding:4px 0 18px}.birthday-heading h2{font-size:20px}.birthday-page .birthday-table td,.birthday-page .birthday-table th{padding:10px}.birthday-actions{min-width:165px}}
+</style>
+<div class="birthday-page">
+<div class="birthday-heading"><h2>Cumpleaños de pacientes</h2><a class="birthday-button" href="{% url 'agenda' %}">← Volver a Agenda del día</a></div>
+<form method="get" class="birthday-filter"><label for="birthday-month">Mes</label><select id="birthday-month" name="mes">{% for number, label in months %}<option value="{{ number }}" {% if number == month %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="birthday-button">Consultar</button></form>
+<section class="birthday-panel" aria-label="Cumpleaños del mes"><div class="birthday-panel-heading"><span>Cumpleaños del mes · {{ year }}</span><span class="birthday-count">{{ rows|length }} paciente{{ rows|length|pluralize:"s" }}</span></div>{% include "core/_birthday_rows.html" %}</section>
+<p class="birthday-help">Enviá el saludo desde WhatsApp de Sonrisar y luego marcá al paciente como saludado. El registro se renueva cada año. Podés cargar la fecha de nacimiento desde la ficha del paciente.</p>
+</div>{% endblock %}
