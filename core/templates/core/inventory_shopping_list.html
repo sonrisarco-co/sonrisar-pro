@@ -26,7 +26,8 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                {% if productos %}<button type="submit" form="shopping-quantities-form" class="btn btn-sonrisar btn-sm">Guardar cantidades</button>{% endif %}
+                <button type="button" onclick="sonrisarPrintShopping()" class="btn btn-outline-secondary btn-sm">
                     Imprimir
                 </button>
 
@@ -40,6 +41,9 @@
         <div class="card-body">
 
             {% if productos %}
+                <form id="shopping-quantities-form" method="post">
+                    {% csrf_token %}
+                    <p class="shopping-save-status" role="status">{% if error_cantidades %}Revisá las cantidades indicadas. No se guardó ningún cambio.{% elif cantidades_guardadas %}Cantidades guardadas.{% endif %}</p>
 
                 <div class="alert alerta-compra" role="status">
                     <strong>{{ productos|length }} producto{{ productos|length|pluralize:"s" }} necesita{{ productos|length|pluralize:"n" }} reposición.</strong>
@@ -69,21 +73,17 @@
                                 </td>
                                 <td class="text-end">{{ p.stock_minimo }}</td>
                                 <td class="text-end">
-                                    <strong>
-                                        {% if p.stock_minimo > p.stock %}
-                                            {% widthratio p.stock 1 -1 as stock_negativo %}
-                                            {{ p.stock_minimo|add:stock_negativo }}
-                                        {% else %}
-                                            1
-                                        {% endif %}
-                                    </strong>
+                                    {{ p.cantidad_campo }}
+                                    <span class="shopping-print-quantity">{{ p.cantidad_campo.value }}</span>
+                                    {% if p.cantidad_campo.errors %}<div class="shopping-quantity-error">{{ p.cantidad_campo.errors|striptags }}</div>{% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <p class="shopping-note">Cantidad sugerida para alcanzar el stock mínimo. Si el producto ya está en el mínimo, se sugiere comprar 1 unidad.</p>
+                <p class="shopping-note shopping-edit-note">Podés modificar la cantidad de cada producto. Usá 0 si no querés comprarlo. Guardá las cantidades para conservarlas en esta sesión. Esto no modifica el stock del inventario.</p>
+                </form>
 
             {% else %}
 
@@ -100,7 +100,13 @@
 </div>
 
 <style>
-.shopping-print-heading {display:none}
+.shopping-print-heading,.shopping-print-quantity {display:none}
+.shopping-page .shopping-quantity-input {width:92px;max-width:100%;padding:7px 9px;border:1px solid #bddedb;border-radius:8px;text-align:right;color:#126f6b;background:#fff;font-size:.9rem;font-weight:650;font-variant-numeric:tabular-nums}
+.shopping-page .shopping-quantity-input:focus {outline:2px solid #26ABA5;outline-offset:1px}
+.shopping-page .shopping-quantity-input[aria-invalid="true"] {border-color:#b44652}
+.shopping-page .shopping-quantity-error {color:#a03040;font-size:.75rem;margin-top:5px;max-width:180px}
+.shopping-page .shopping-save-status {font-size:.85rem;color:#126f6b;margin:0 0 12px}
+.shopping-page .shopping-save-status:empty {display:none}
 .shopping-page .compras-card {border-radius:18px;border:1px solid #dce9e8!important;overflow:hidden;box-shadow:0 6px 24px rgba(21,83,80,.05)!important}
 .shopping-page .card-body {padding:20px}
 .shopping-page .shopping-header {padding:22px 20px;background:linear-gradient(120deg,#f3fbfa,#fff);border-bottom-color:#e0eceb!important}
@@ -129,6 +135,8 @@
 @media(max-width:767px) {.shopping-page .card-body{padding:14px}.shopping-page .shopping-header{padding:18px 14px}.shopping-page .shopping-header .d-flex{flex-wrap:wrap}}
 @page {size:A4 portrait;margin:12mm}
 @media print {
+    .shopping-page .shopping-quantity-input,.shopping-page .shopping-save-status,.shopping-page .shopping-quantity-error,.shopping-page .shopping-edit-note {display:none!important}
+    .shopping-page .shopping-print-quantity {display:inline!important;font-weight:700}
     /* Esta hoja imprime únicamente el contenido de la lista de compras. */
     body > :not(main), body > main > :not(.shopping-page) {display:none!important}
     html, body {background:#fff!important;margin:0!important;padding:0!important}
@@ -154,4 +162,28 @@
 }
 </style>
 
+<script>
+(function () {
+    const form = document.getElementById('shopping-quantities-form');
+    function updatePrintValues() {
+        if (!form) return;
+        form.querySelectorAll('.shopping-quantity-input').forEach(input => {
+            const printed = input.parentElement.querySelector('.shopping-print-quantity');
+            if (printed) printed.textContent = input.validity.valid && input.value !== '' ? input.value : '—';
+        });
+    }
+    if (form) form.addEventListener('input', function () {
+        updatePrintValues();
+        const status = form.querySelector('.shopping-save-status');
+        if (status) status.textContent = 'Cambios sin guardar. Pulsá Guardar cantidades para conservarlos.';
+    });
+    window.addEventListener('beforeprint', updatePrintValues);
+    window.sonrisarPrintShopping = function () {
+        if (form && !form.reportValidity()) return;
+        updatePrintValues();
+        window.print();
+    };
+    updatePrintValues();
+})();
+</script>
 {% endblock %}

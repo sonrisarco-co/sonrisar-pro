@@ -2213,13 +2213,53 @@ def inventory_history(request, pk):
     })
 
 def inventory_shopping_list(request):
-    productos = Inventory.objects.filter(
+    from django import forms
+
+    productos = list(Inventory.objects.filter(
         stock__lte=F("stock_minimo")
-    ).order_by("proveedor", "nombre")
+    ).order_by("proveedor", "nombre"))
+    guardadas = request.session.get("inventory_shopping_quantities", {})
+    if not isinstance(guardadas, dict):
+        guardadas = {}
+
+    formulario = forms.Form(request.POST if request.method == "POST" else None)
+    for producto in productos:
+        sugerida = max(1, producto.stock_minimo - producto.stock)
+        cantidad = guardadas.get(str(producto.pk), sugerida)
+        if type(cantidad) is not int or not 0 <= cantidad <= 999999:
+            cantidad = sugerida
+        nombre = f"cantidad_{producto.pk}"
+        formulario.fields[nombre] = forms.IntegerField(
+            label=f"Cantidad a comprar de {producto.nombre}",
+            min_value=0, max_value=999999, initial=cantidad,
+            widget=forms.NumberInput(attrs={
+                "class": "shopping-quantity-input", "step": "1", "inputmode": "numeric",
+                "aria-label": f"Cantidad a comprar de {producto.nombre}",
+            }),
+            error_messages={
+                "required": "Ingresá una cantidad.",
+                "invalid": "Ingresá un número entero.",
+                "min_value": "La cantidad no puede ser negativa.",
+                "max_value": "La cantidad máxima es 999999.",
+            },
+        )
+
+    if request.method == "POST" and formulario.is_valid():
+        request.session["inventory_shopping_quantities"] = {
+            str(producto.pk): formulario.cleaned_data[f"cantidad_{producto.pk}"]
+            for producto in productos
+        }
+        return redirect(f"{reverse('inventory_shopping_list')}?guardado=1")
+
+    for producto in productos:
+        producto.cantidad_campo = formulario[f"cantidad_{producto.pk}"]
 
     return render(request, "core/inventory_shopping_list.html", {
         "productos": productos,
+        "error_cantidades": formulario.is_bound and bool(formulario.errors),
+        "cantidades_guardadas": request.GET.get("guardado") == "1" and not formulario.is_bound,
     })
+
 
 def inventory_movement_new(request):
     if request.method == "POST":
