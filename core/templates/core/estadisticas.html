@@ -286,217 +286,45 @@
             font-size: 1.6rem;
         }
     }
+
+.stats-filter {display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:20px;padding:18px;background:#f5fbfb;border:1px solid #d5e9e8;border-radius:14px}
+.stats-filter label {display:flex;flex-direction:column;gap:5px;font-size:13px;color:#326261}
+.stats-filter select,.stats-filter input,.stats-filter a,.stats-filter button {padding:8px 12px;border:1px solid #bddedb;border-radius:8px;background:white;color:#126b68}
+.stats-filter button {background:#26ABA5;color:white}
+.stats-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stats-table thead th {color:#326261!important;background:#eff8f7!important;font-size:12px!important;white-space:nowrap}
+.stats-table td {white-space:nowrap}
+.stats-selected td {background:#eaf8f6}
+.stats-help {font-size:13px;color:#64748b;margin:12px 0}
+@media(max-width:760px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:450px){.stats-grid{grid-template-columns:1fr}}
 </style>
 
 <div class="stats-page">
-
-    <div class="stats-header">
-        <div class="stats-header-icon">📊</div>
-        <div>
-            <h2 class="stats-title">Panel de estadísticas</h2>
-            <p class="stats-subtitle">Resumen operativo de Sonrisar Pro</p>
-        </div>
-    </div>
-
-    <section class="stats-section">
-        <div class="stats-section-header">
-            <div class="stats-section-icon">🏥</div>
-            <div>
-                <h3 class="stats-section-title">Actividad general</h3>
-                <p class="stats-section-description">Panorama de pacientes y citas del mes actual</p>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-
-        <div class="col-md-4">
-            <div class="stats-card">
-                <div class="stats-card-inner">
-                    <div class="stats-card-icon">👥</div>
-                    <div>
-                        <p class="stats-card-label">Pacientes registrados</p>
-                        <p class="stats-card-number">{{ total_pacientes }}</p>
-                        <p class="stats-card-note">Total histórico en el sistema</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="stats-card">
-                <div class="stats-card-inner">
-                    <div class="stats-card-icon">🗓️</div>
-                    <div>
-                        <p class="stats-card-label">Citas agendadas</p>
-                        <p class="stats-card-number">{{ citas_mes }}</p>
-                        <p class="stats-card-note">Durante el mes actual</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="stats-card">
-                <div class="stats-card-inner">
-                    <div class="stats-card-icon">✨</div>
-                    <div>
-                        <p class="stats-card-label">Pacientes incorporados</p>
-                        <p class="stats-card-number">{{ pacientes_primera_vez_mes }}</p>
-                        <p class="stats-card-note">Primera cita este mes · {{ pacientes_primera_vez_anio }} en {{ anio_actual }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        </div>
-    </section>
-
-    <section class="stats-section">
-        <div class="stats-section-header">
-            <div class="stats-section-icon">🦷</div>
-            <div>
-                <h3 class="stats-section-title">Actividad de ortodoncia</h3>
-                <p class="stats-section-description">Colocaciones y controles realizados durante el mes actual</p>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-
-    <div class="col-md-6 col-xl-3">
-        <div class="stats-card">
-            <div class="stats-card-inner">
-                <div class="stats-card-icon">🌟</div>
-                <div>
-                    <p class="stats-card-label">Nuevos tratamientos</p>
-                    <p class="stats-card-number">{{ colocaciones_mes }}</p>
-                    <p class="stats-card-note">Colocaciones nuevas asistidas</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="stats-card">
-            <div class="stats-card-inner">
-                <div class="stats-card-icon">🦷</div>
-                <div>
-                    <p class="stats-card-label">Ajustes realizados</p>
-                    <p class="stats-card-number">
-                        {{ ajustes_ortodoncia_mes }}
-                    </p>
-                    <p class="stats-card-note">
-                        Citas de ajuste asistidas
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="stats-card">
-            <div class="stats-card-inner">
-                <div class="stats-card-icon">👤</div>
-                <div>
-                    <p class="stats-card-label">Pacientes atendidos</p>
-                    <p class="stats-card-number">
-                        {{ pacientes_ortodoncia_activos }}
-                    </p>
-                    <p class="stats-card-note">
-                        Con al menos un ajuste este mes
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="stats-card">
-            <div class="stats-card-inner">
-                <div class="stats-card-icon">📊</div>
-                <div>
-                    <p class="stats-card-label">Promedio de ajustes</p>
-                    <p class="stats-card-number">
-                        {{ promedio_ajustes_ortodoncia }}
-                    </p>
-                    <p class="stats-card-note">
-                        Por paciente atendido
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-        </div>
-    </section>
-
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="stats-panel">
-                <div class="stats-panel-header">
-                    <div class="stats-panel-icon">📋</div>
-                    <div>
-                        <p class="stats-panel-title">Motivos de consulta asistida</p>
-                        <p class="stats-panel-subtitle">Citas realizadas con estado “Asistió”</p>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table stats-table">
-                        <thead>
-                            <tr>
-                                <th>Motivo</th>
-                                <th class="text-end">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in motivos %}
-                                <tr>
-                                    <td>{{ item.motivo }}</td>
-                                    <td class="text-end"><span class="stats-pill">{{ item.total }}</span></td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="2" class="text-center text-muted py-4">Todavía no hay citas asistidas cargadas.</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="stats-panel">
-                <div class="stats-panel-header">
-                    <div class="stats-panel-icon">📈</div>
-                    <div>
-                        <p class="stats-panel-title">Pacientes de primera vez por mes - {{ anio_actual }}</p>
-                        <p class="stats-panel-subtitle">Pacientes únicos según la fecha de su primera cita</p>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table stats-table">
-                        <thead>
-                            <tr>
-                                <th>Mes</th>
-                                <th class="text-end">Pacientes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in primeras_veces_por_mes %}
-                                <tr>
-                                    <td>{{ item.mes }}</td>
-                                    <td class="text-end"><span class="stats-pill">{{ item.cantidad }}</span></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<div class="stats-header"><div class="stats-header-icon">📊</div><div><h2 class="stats-title">Estadísticas de {{ periodo }}</h2><p class="stats-subtitle">Actividad mensual de Sonrisar Pro</p></div></div>
+<form class="stats-filter" method="get">
+<label>Mes<select name="mes">{% for numero,nombre in meses %}<option value="{{ numero }}" {% if numero == mes %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+<label>Año<input type="number" name="anio" min="1900" max="9998" value="{{ anio }}" required style="width:110px"></label>
+<button type="submit">Ver estadísticas</button>
+{% if anio > 1900 or mes > 1 %}<a href="?mes={{ anterior.month }}&anio={{ anterior.year }}" aria-label="Mes anterior">← Anterior</a>{% endif %}
+{% if anio < 9998 or mes < 12 %}<a href="?mes={{ siguiente.month }}&anio={{ siguiente.year }}" aria-label="Mes siguiente">Siguiente →</a>{% endif %}
+<a href="?mes={{ hoy.month }}&anio={{ hoy.year }}">Mes actual</a>
+</form>
+{% if aviso %}<p role="alert">{{ aviso }}</p>{% endif %}
+<section class="stats-section"><h3 class="stats-section-title">Resumen del mes</h3><p class="stats-help">{{ periodo }} · Las citas se cuentan por la fecha de atención agendada.</p>
+<div class="stats-grid">{% for titulo,cantidad,nota in resumen %}<div class="stats-card"><p class="stats-card-label">{{ titulo }}</p><p class="stats-card-number">{{ cantidad }}</p><p class="stats-card-note">{{ nota }}</p></div>{% endfor %}</div></section>
+<section class="stats-section"><h3 class="stats-section-title">Tratamientos / motivos de consulta · {{ periodo }}</h3>
+<p class="stats-help">Una cita con estado «Asistió» cuenta una vez según su motivo. No representa la cantidad de piezas ni de procedimientos realizados dentro de la cita. Ajuste y Ajuste + limpieza se muestran por separado.</p>
+<div class="stats-grid">{% for item in motivos %}<div class="stats-card"><p class="stats-card-label">{{ item.motivo|default:"Sin motivo" }}</p><p class="stats-card-number">{{ item.total }}</p></div>{% endfor %}</div>
+<p class="stats-help">Ajustes de ortodoncia: {{ ajustes }} citas en {{ pacientes_ajustes }} pacientes distintos. Promedio: {{ promedio_ajustes }} por paciente (solo motivo «Ajuste (ortodoncia)»).</p>
+</section>
+<section class="stats-section"><h3 class="stats-section-title">Prótesis iniciadas en {{ periodo }}</h3><p class="stats-help">{{ total_protesis }} registros según su fecha de inicio en el módulo Prótesis. Se cuenta cada registro una vez, aunque incluya varios trabajos. No equivale a la cantidad de citas con motivo «Prótesis».</p>
+<div class="stats-grid">{% for estado,cantidad in estados_protesis %}<div class="stats-card"><p class="stats-card-label">{{ estado }}</p><p class="stats-card-number">{{ cantidad }}</p><p class="stats-card-note">Estado actual de las iniciadas en el mes</p></div>{% endfor %}</div>
+<p class="stats-help">El sistema no registra la fecha de entrega: «Entregada» indica su estado actual, no que se entregó durante el mes seleccionado. Los registros sin fecha de inicio quedan fuera de este resumen.</p></section>
+<section class="stats-section"><h3 class="stats-section-title">Comparación mensual · {{ anio }}</h3><p class="stats-help">Citas asistidas por motivo. Desplazá la tabla hacia los lados para ver todos los tratamientos. Pulsá un mes para consultar su resumen.</p>
+<div class="table-responsive"><table class="table stats-table"><thead><tr><th>Mes</th><th>Citas asistidas</th><th>Primera vez</th>{% for item in motivos %}<th>{{ item.motivo|default:"Sin motivo" }}</th>{% endfor %}</tr></thead><tbody>
+{% for fila in anual %}<tr {% if fila.seleccionado %}class="stats-selected"{% endif %}><td><a href="?mes={{ fila.numero }}&anio={{ anio }}">{{ fila.mes }}</a></td><td>{{ fila.total }}</td><td>{{ fila.nuevos }}</td>{% for cantidad in fila.cantidades %}<td>{{ cantidad }}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div><p class="stats-help">Primera vez: pacientes cuya primera cita marcada «Asistió» fue en ese mes. Los meses futuros pueden mostrar cero.</p></section>
+<details class="stats-section"><summary class="stats-section-title">Datos generales del sistema · total histórico</summary><p class="stats-help">Pacientes registrados: <strong>{{ total_pacientes }}</strong>. Este total incluye todo el historial y no cambia con el filtro mensual.</p></details>
 </div>
-
 {% endblock %}
