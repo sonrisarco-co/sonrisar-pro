@@ -2214,10 +2214,27 @@ def inventory_history(request, pk):
 
 def inventory_shopping_list(request):
     from django import forms
+    from django.db.models import Q
+    from urllib.parse import urlencode
 
-    productos = list(Inventory.objects.filter(
-        stock__lte=F("stock_minimo")
-    ).order_by("proveedor", "nombre"))
+    faltantes = Inventory.objects.filter(stock__lte=F("stock_minimo"))
+    nombres_proveedores = list(
+        faltantes.exclude(proveedor__isnull=True).exclude(proveedor="")
+        .order_by("proveedor").values_list("proveedor", flat=True).distinct()
+    )
+    proveedores = [("p:" + nombre, nombre) for nombre in nombres_proveedores]
+    if faltantes.filter(Q(proveedor__isnull=True) | Q(proveedor="")).exists():
+        proveedores.append(("sin_proveedor", "Sin proveedor"))
+    opciones = dict(proveedores)
+    proveedor = request.GET.get("proveedor", "")
+    if proveedor not in opciones:
+        proveedor = ""
+    proveedor_nombre = opciones.get(proveedor, "Todos los proveedores")
+    if proveedor == "sin_proveedor":
+        faltantes = faltantes.filter(Q(proveedor__isnull=True) | Q(proveedor=""))
+    elif proveedor:
+        faltantes = faltantes.filter(proveedor=proveedor[2:])
+    productos = list(faltantes.order_by("proveedor", "nombre"))
     guardadas = request.session.get("inventory_shopping_quantities", {})
     if not isinstance(guardadas, dict):
         guardadas = {}
@@ -2245,17 +2262,27 @@ def inventory_shopping_list(request):
         )
 
     if request.method == "POST" and formulario.is_valid():
-        request.session["inventory_shopping_quantities"] = {
+        guardadas.update({
             str(producto.pk): formulario.cleaned_data[f"cantidad_{producto.pk}"]
             for producto in productos
-        }
-        return redirect(f"{reverse('inventory_shopping_list')}?guardado=1")
+        })
+        request.session["inventory_shopping_quantities"] = guardadas
+        destino = request.POST.get("proveedor_destino", proveedor)
+        if destino and destino not in opciones:
+            destino = proveedor
+        parametros = {"guardado": "1"}
+        if destino:
+            parametros["proveedor"] = destino
+        return redirect(f"{reverse('inventory_shopping_list')}?{urlencode(parametros)}")
 
     for producto in productos:
         producto.cantidad_campo = formulario[f"cantidad_{producto.pk}"]
 
     return render(request, "core/inventory_shopping_list.html", {
         "productos": productos,
+        "proveedores": proveedores,
+        "proveedor_seleccionado": proveedor,
+        "proveedor_nombre": proveedor_nombre,
         "error_cantidades": formulario.is_bound and bool(formulario.errors),
         "cantidades_guardadas": request.GET.get("guardado") == "1" and not formulario.is_bound,
     })

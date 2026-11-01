@@ -12,7 +12,7 @@
             <img src="{% static 'img/logo.png' %}" alt="Sonrisar">
             <div>
                 <h1>Lista de compras</h1>
-                <p>Productos para reposición · {% now "d/m/Y" %}</p>
+                <p>{{ proveedor_nombre }} · {% now "d/m/Y" %}</p>
             </div>
         </div>
 
@@ -39,6 +39,19 @@
         </div>
 
         <div class="card-body">
+            <form method="get" class="shopping-provider-filter" id="shopping-provider-filter">
+                <div>
+                    <label for="shopping-provider">Proveedor</label>
+                    <select name="proveedor" id="shopping-provider">
+                        <option value="">Todos los proveedores</option>
+                        {% for valor,nombre in proveedores %}
+                        <option value="{{ valor }}" {% if valor == proveedor_seleccionado %}selected{% endif %}>{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline-secondary">Ver proveedor</button>
+            </form>
+            {% if proveedor_seleccionado %}<p class="shopping-provider-label">Insumos de <strong>{{ proveedor_nombre }}</strong></p>{% endif %}
 
             {% if productos %}
                 <form id="shopping-quantities-form" method="post">
@@ -101,6 +114,12 @@
 
 <style>
 .shopping-print-heading,.shopping-print-quantity {display:none}
+.shopping-page .shopping-provider-filter {display:flex;align-items:end;flex-wrap:wrap;gap:12px;background:#f4faf8;border:1px solid #dcebe7;border-radius:10px;padding:14px;margin-bottom:16px}
+.shopping-page .shopping-provider-filter label {display:block;font-size:.8rem;font-weight:650;color:#326762;margin-bottom:6px}
+.shopping-page .shopping-provider-filter select {min-width:240px;max-width:100%;padding:9px 32px 9px 12px;border:1px solid #bddedb;border-radius:8px;color:#126f6b;background:#fff;font-size:.88rem}
+.shopping-page .shopping-provider-filter select:focus {outline:2px solid #26ABA5;outline-offset:1px}
+.shopping-page .shopping-provider-label {font-size:.9rem;color:#326762;margin:0 0 12px}
+@media(max-width:575px){.shopping-page .shopping-provider-filter>div{width:100%}.shopping-page .shopping-provider-filter select{width:100%;min-width:0}}
 .shopping-page .shopping-quantity-input {width:92px;max-width:100%;padding:7px 9px;border:1px solid #bddedb;border-radius:8px;text-align:right;color:#126f6b;background:#fff;font-size:.9rem;font-weight:650;font-variant-numeric:tabular-nums}
 .shopping-page .shopping-quantity-input:focus {outline:2px solid #26ABA5;outline-offset:1px}
 .shopping-page .shopping-quantity-input[aria-invalid="true"] {border-color:#b44652}
@@ -135,6 +154,7 @@
 @media(max-width:767px) {.shopping-page .card-body{padding:14px}.shopping-page .shopping-header{padding:18px 14px}.shopping-page .shopping-header .d-flex{flex-wrap:wrap}}
 @page {size:A4 portrait;margin:12mm}
 @media print {
+    .shopping-page .shopping-provider-filter,.shopping-page .shopping-provider-label {display:none!important}
     .shopping-page .shopping-quantity-input,.shopping-page .shopping-save-status,.shopping-page .shopping-quantity-error,.shopping-page .shopping-edit-note {display:none!important}
     .shopping-page .shopping-print-quantity {display:inline!important;font-weight:700}
     /* Esta hoja imprime únicamente el contenido de la lista de compras. */
@@ -176,6 +196,23 @@
         updatePrintValues();
         const status = form.querySelector('.shopping-save-status');
         if (status) status.textContent = 'Cambios sin guardar. Pulsá Guardar cantidades para conservarlos.';
+    });
+    const filter = document.getElementById('shopping-provider-filter');
+    if (filter && form) filter.addEventListener('submit', function (event) {
+        const dirty = Array.from(form.querySelectorAll('.shopping-quantity-input'))
+            .some(input => input.value !== input.defaultValue);
+        if (!dirty) return;
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        let destination = form.querySelector('input[name="proveedor_destino"]');
+        if (!destination) {
+            destination = document.createElement('input');
+            destination.type = 'hidden';
+            destination.name = 'proveedor_destino';
+            form.appendChild(destination);
+        }
+        destination.value = document.getElementById('shopping-provider').value;
+        form.requestSubmit();
     });
     window.addEventListener('beforeprint', updatePrintValues);
     window.sonrisarPrintShopping = function () {
