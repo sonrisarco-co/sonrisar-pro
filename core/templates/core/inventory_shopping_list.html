@@ -4,14 +4,14 @@
 
 {% block content %}
 
-<div class="container mt-4 mb-5">
+<div class="container mt-4 mb-5 shopping-page">
 
     <div class="card shadow-sm border-0 compras-card">
 
-        <div class="card-body border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="card-body shopping-header border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
 
             <div>
-                <h4 class="mb-1 titulo-sonrisar">🛒 Lista de compras</h4>
+                <h4 class="mb-1 titulo-sonrisar">Lista de compras</h4>
                 <p class="text-muted mb-0">
                     Productos con stock igual o menor al mínimo.
                 </p>
@@ -19,11 +19,11 @@
 
             <div class="d-flex gap-2">
                 <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
-                    🖨 Imprimir
+                    Imprimir
                 </button>
 
                 <a href="{% url 'inventory_list' %}" class="btn btn-sonrisar btn-sm">
-                    ← Volver
+                    ← Volver a Inventario
                 </a>
             </div>
 
@@ -33,20 +33,20 @@
 
             {% if productos %}
 
-                <div class="alert alerta-compra">
-                    <strong>⚠ {{ productos|length }} productos necesitan reposición.</strong>
+                <div class="alert alerta-compra" role="status">
+                    <strong>{{ productos|length }} producto{{ productos|length|pluralize:"s" }} necesita{{ productos|length|pluralize:"n" }} reposición.</strong>
                 </div>
 
-                <div class="table-responsive">
+                <div class="table-responsive shopping-table-wrap">
                     <table class="table table-hover align-middle tabla-sonrisar">
                         <thead>
                             <tr>
-                                <th>Producto</th>
-                                <th>Categoría</th>
-                                <th>Proveedor</th>
-                                <th class="text-end">Stock</th>
-                                <th class="text-end">Mínimo</th>
-                                <th class="text-end">Sugerido comprar</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Categoría</th>
+                                <th scope="col">Proveedor</th>
+                                <th scope="col" class="text-end">Stock actual</th>
+                                <th scope="col" class="text-end">Stock mínimo</th>
+                                <th scope="col" class="text-end">Cantidad a comprar</th>
                             </tr>
                         </thead>
 
@@ -57,13 +57,14 @@
                                 <td>{{ p.categoria|default:"-" }}</td>
                                 <td>{{ p.proveedor|default:"Sin proveedor" }}</td>
                                 <td class="text-end">
-                                    <span class="badge bg-danger">{{ p.stock }}</span>
+                                    <span class="badge shopping-stock">{{ p.stock }}</span>
                                 </td>
                                 <td class="text-end">{{ p.stock_minimo }}</td>
                                 <td class="text-end">
                                     <strong>
                                         {% if p.stock_minimo > p.stock %}
-                                            {{ p.stock_minimo|add:p.stock|default:p.stock_minimo }}
+                                            {% widthratio p.stock 1 -1 as stock_negativo %}
+                                            {{ p.stock_minimo|add:stock_negativo }}
                                         {% else %}
                                             1
                                         {% endif %}
@@ -74,6 +75,7 @@
                         </tbody>
                     </table>
                 </div>
+                <p class="shopping-note">Cantidad sugerida para alcanzar el stock mínimo. Si el producto ya está en el mínimo, se sugiere comprar 1 unidad.</p>
 
             {% else %}
 
@@ -90,58 +92,47 @@
 </div>
 
 <style>
-.compras-card {
-    border-radius: 18px;
-    border: 1px solid #e7efef !important;
-}
-
-.titulo-sonrisar {
-    color: #146B6C;
-    font-weight: 700;
-}
-
-.btn-sonrisar {
-    background: #26ABA5;
-    border-color: #26ABA5;
-    color: #fff;
-    font-weight: 600;
-    border-radius: 10px;
-}
-
-.btn-sonrisar:hover {
-    background: #1f8e8a;
-    border-color: #1f8e8a;
-    color: #fff;
-}
-
-.tabla-sonrisar thead {
-    background: #f5fbfb;
-    color: #146B6C;
-    font-weight: 600;
-}
-
-.alerta-compra {
-    background: #fff5f5;
-    border: 1px solid #f1c2c7;
-    border-radius: 14px;
-}
-
+.shopping-page .compras-card {border-radius:18px;border:1px solid #dce9e8!important;overflow:hidden;box-shadow:0 6px 24px rgba(21,83,80,.05)!important}
+.shopping-page .card-body {padding:20px}
+.shopping-page .shopping-header {padding:22px 20px;background:linear-gradient(120deg,#f3fbfa,#fff);border-bottom-color:#e0eceb!important}
+.shopping-page .titulo-sonrisar {color:#126f6b;font-size:1.5rem;font-weight:750}
+.shopping-page .shopping-header p {font-size:.9rem;color:#687e7d!important}
+.shopping-page .btn {padding:8px 13px;border-radius:8px;font-weight:600;font-size:.85rem;text-decoration:none}
+.shopping-page .btn-sonrisar {background:#26ABA5;border-color:#26ABA5;color:white}
+.shopping-page .btn-sonrisar:hover {background:#168d88;border-color:#168d88;color:white}
+.shopping-page .btn-outline-secondary {color:#496d69;border-color:#cbdedb;background:white}
+.shopping-page .btn-outline-secondary:hover {background:#eaf8f6;color:#126f6b}
+.shopping-page .btn:focus-visible {outline:2px solid #26ABA5;outline-offset:2px;box-shadow:none}
+.shopping-page .alerta-compra {background:#fffbf2;border:1px solid #eeddb8;border-left:4px solid #c99b3d;color:#7d5b24;border-radius:10px;padding:13px 16px;font-size:.9rem;margin-bottom:18px}
+.shopping-page .shopping-table-wrap {border:1px solid #e0eae8;border-radius:12px}
+.shopping-page .tabla-sonrisar {margin:0;min-width:850px;font-size:.88rem;border-collapse:separate;border-spacing:0}
+.shopping-page .tabla-sonrisar thead {display:table-header-group!important}
+.shopping-page .tabla-sonrisar thead tr th {background:#eff8f6!important;color:#326762!important;font-size:.8rem;font-weight:700;padding:14px 12px;border-bottom:1px solid #d9e9e5;vertical-align:middle;white-space:nowrap}
+.shopping-page .tabla-sonrisar tbody td {padding:13px 12px;color:#465c59;border-bottom:1px solid #edf2f1;vertical-align:middle}
+.shopping-page .tabla-sonrisar tbody tr:last-child td {border-bottom:0}
+.shopping-page .tabla-sonrisar tbody tr:hover td {background:#f6fbfa}
+.shopping-page .tabla-sonrisar td:first-child {min-width:270px;color:#243f3c}
+.shopping-page .tabla-sonrisar td:first-child strong {font-weight:650}
+.shopping-page .tabla-sonrisar td:nth-child(n+4) {font-variant-numeric:tabular-nums}
+.shopping-page .shopping-stock {min-width:32px;padding:6px 8px;border-radius:7px;background:#fcebed;color:#ac3544;border:1px solid #f3d4d9;font-size:.82rem;font-weight:700}
+.shopping-page .tabla-sonrisar td:last-child {color:#126f6b;font-weight:750}
+.shopping-page .shopping-note {margin:12px 0 0;color:#687e7d;font-size:.8rem;line-height:1.5}
+@media(max-width:767px) {.shopping-page .card-body{padding:14px}.shopping-page .shopping-header{padding:18px 14px}.shopping-page .shopping-header .d-flex{flex-wrap:wrap}}
 @media print {
-    .btn,
-    #menuToggle,
-    nav,
-    header {
-        display: none !important;
-    }
-
-    body {
-        background: white !important;
-    }
-
-    .card {
-        box-shadow: none !important;
-        border: none !important;
-    }
+ .btn,#menuToggle,nav,header {display:none!important}
+ body {background:white!important}
+ .shopping-page {width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+ .shopping-page .card {box-shadow:none!important;border:none!important;overflow:visible!important}
+ .shopping-page .card-body {padding:10px 0!important}
+ .shopping-page .shopping-table-wrap {overflow:visible!important;border:1px solid #bbb;border-radius:0}
+ .shopping-page .tabla-sonrisar {min-width:0!important;width:100%!important;font-size:9pt;table-layout:auto}
+ .shopping-page .tabla-sonrisar thead {display:table-header-group!important}
+ .shopping-page .tabla-sonrisar thead tr th {background:#eee!important;color:#222!important;white-space:normal;padding:8px 6px;font-size:9pt;border-bottom:1px solid #999}
+ .shopping-page .tabla-sonrisar tbody td {padding:8px 6px;color:#222!important;overflow-wrap:anywhere}
+ .shopping-page .tabla-sonrisar td:first-child {min-width:0!important}
+ .shopping-page .tabla-sonrisar tr {break-inside:avoid}
+ .shopping-page .shopping-stock {color:#222!important;background:white!important;border-color:#aaa}
+ .shopping-page .shopping-note {color:#444}
 }
 </style>
 
