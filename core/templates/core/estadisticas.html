@@ -298,6 +298,22 @@
 .stats-help {font-size:13px;color:#64748b;margin:12px 0}
 @media(max-width:760px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:450px){.stats-grid{grid-template-columns:1fr}}
+.stats-page .stats-table a.stats-month-link,
+.stats-page .stats-table a.stats-month-link:visited {
+    display:inline-flex; align-items:center; padding:5px 10px; border-radius:7px;
+    color:#126f6b; text-decoration:none; font-weight:650;
+    transition:background-color .15s ease, color .15s ease;
+}
+.stats-page .stats-table a.stats-month-link:hover {background:#e0f3f1; color:#095652; text-decoration:none}
+.stats-page .stats-table a.stats-month-link:focus-visible {outline:2px solid #26ABA5; outline-offset:2px}
+.stats-page .stats-selected a.stats-month-link,
+.stats-page .stats-selected a.stats-month-link:visited {background:#26ABA5; color:#fff}
+.stats-page .stats-selected a.stats-month-link:hover {background:#168d88}
+.stats-filter a {text-decoration:none}
+.stats-filter a:hover {background:#eaf8f6}
+.stats-patient-total {display:flex;align-items:center;justify-content:space-between;gap:16px}
+.stats-patient-total .stats-help {margin-bottom:0}
+.stats-patient-total .stats-card-number {font-size:1.8rem;flex-shrink:0}
 </style>
 
 <div class="stats-page">
@@ -323,8 +339,12 @@
 <p class="stats-help">El sistema no registra la fecha de entrega: «Entregada» indica su estado actual, no que se entregó durante el mes seleccionado. Los registros sin fecha de inicio quedan fuera de este resumen.</p></section>
 <section class="stats-section"><h3 class="stats-section-title">Comparación mensual · {{ anio }}</h3><p class="stats-help">Citas asistidas por motivo. Desplazá la tabla hacia los lados para ver todos los tratamientos. Pulsá un mes para consultar su resumen.</p>
 <div class="table-responsive"><table class="table stats-table"><thead><tr><th>Mes</th><th>Citas asistidas</th><th>Primera vez</th>{% for item in motivos %}<th>{{ item.motivo|default:"Sin motivo" }}</th>{% endfor %}</tr></thead><tbody>
-{% for fila in anual %}<tr {% if fila.seleccionado %}class="stats-selected"{% endif %}><td><a href="?mes={{ fila.numero }}&anio={{ anio }}">{{ fila.mes }}</a></td><td>{{ fila.total }}</td><td>{{ fila.nuevos }}</td>{% for cantidad in fila.cantidades %}<td>{{ cantidad }}</td>{% endfor %}</tr>{% endfor %}
+{% for fila in anual %}<tr {% if fila.seleccionado %}class="stats-selected"{% endif %}><td><a class="stats-month-link" href="?mes={{ fila.numero }}&anio={{ anio }}" {% if fila.seleccionado %}aria-current="date"{% endif %}>{{ fila.mes }}</a></td><td>{{ fila.total }}</td><td>{{ fila.nuevos }}</td>{% for cantidad in fila.cantidades %}<td>{{ cantidad }}</td>{% endfor %}</tr>{% endfor %}
 </tbody></table></div><p class="stats-help">Primera vez: pacientes cuya primera cita marcada «Asistió» fue en ese mes. Los meses futuros pueden mostrar cero.</p></section>
-<details class="stats-section"><summary class="stats-section-title">Datos generales del sistema · total histórico</summary><p class="stats-help">Pacientes registrados: <strong>{{ total_pacientes }}</strong>. Este total incluye todo el historial y no cambia con el filtro mensual.</p></details>
+<section class="stats-section stats-patient-total" aria-label="Total de pacientes registrados">
+<div><h3 class="stats-section-title">Total de pacientes registrados</h3>
+<p class="stats-help">Todas las fichas de pacientes guardadas en Sonrisar, desde que se comenzó a usar el sistema. Este número es general y no depende del mes elegido.</p></div>
+<p class="stats-card-number">{{ total_pacientes }}</p>
+</section>
 </div>
 {% endblock %}
