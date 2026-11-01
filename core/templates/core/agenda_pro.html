@@ -670,17 +670,17 @@
 
 .agenda-pro-layout{
     display: grid;
-    grid-template-columns: 250px minmax(0, 1fr);
+    grid-template-columns: 300px minmax(0, 1fr);
     gap: 18px;
     align-items: start;
 }
 
 .agenda-pro-sidebar-col{
-    width: 250px;
+    width: 300px;
 }
 
 .agenda-pro-sidebar-wrap{
-    width: 250px;
+    width: 300px;
 }
 
 .agenda-pro-sidebar-card,
@@ -762,6 +762,7 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 3px;
+    table-layout: fixed;
 }
 
 .agenda-pro-mini-table th{
@@ -780,6 +781,8 @@
 
 .agenda-pro-mini-day{
     width: 29px;
+    max-width: 100%;
+    box-sizing: border-box;
     height: 29px;
     margin: 0 auto;
     border-radius: 8px;
@@ -832,7 +835,7 @@
 }
 
 .agenda-pro-header{
-    padding: 14px 18px 10px;
+    padding: 10px 14px 8px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -849,7 +852,7 @@
 
 .agenda-pro-title{
     margin: 0;
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     line-height: 1.05;
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -859,7 +862,7 @@
 .agenda-pro-subtitle{
     margin: 0;
     color: var(--muted);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
 }
 
@@ -1306,7 +1309,7 @@ thead th {
     background: transparent;
     color: var(--text);
     padding: 0;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
     line-height: 1.2;
     cursor: pointer;
