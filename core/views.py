@@ -2902,6 +2902,23 @@ def obtener_total_cobrable_paciente_desde_pro(paciente, fecha_hasta=None):
 
 
 def obtener_resumen_cobros_pacientes_bulk(patient_ids):
+    """Consulta pagos en lotes acotados para no exceder el límite de la URL."""
+    ids = []
+    for value in patient_ids:
+        try:
+            patient_id = int(value)
+        except (TypeError, ValueError):
+            continue
+        if patient_id not in ids:
+            ids.append(patient_id)
+
+    resumenes = {}
+    for inicio in range(0, len(ids), 100):
+        resumenes.update(_consultar_resumen_cobros_pacientes_lote(ids[inicio:inicio + 100]))
+    return resumenes
+
+
+def _consultar_resumen_cobros_pacientes_lote(patient_ids):
     """
     Consulta Sonrisar Cobros en bloque para varios pacientes.
 
@@ -2915,8 +2932,8 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
       No suma los importes, evitando duplicar pagos presentes en las dos bases.
 
     Rendimiento:
-    - Máximo 2 consultas HTTP por pantalla en desarrollo.
-    - 1 sola consulta HTTP en producción.
+    - Máximo 2 consultas HTTP por lote en desarrollo.
+    - 1 sola consulta HTTP por lote en producción.
     - Nunca hace una consulta por paciente/cita.
     """
     patient_ids_limpios = []
@@ -2958,14 +2975,17 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
             response.raise_for_status()
             data = response.json()
 
-            if not data.get("ok"):
+            if not isinstance(data, dict) or data.get("ok") is not True:
                 raise ValueError(
-                    data.get("error", "Respuesta inválida de Cobros")
+                    "Respuesta inválida de Cobros"
                 )
 
             resumenes = {}
 
-            for item in data.get("pacientes", []):
+            if not isinstance(data.get("pacientes"), list):
+                raise ValueError("Respuesta de Cobros sin lista de pacientes.")
+
+            for item in data["pacientes"]:
                 patient_id = item.get("patient_id")
 
                 if patient_id is None:
@@ -2976,11 +2996,13 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
                 except (TypeError, ValueError):
                     continue
 
+                total_pagado = Decimal(str(item["total_pagado"]))
+                if not total_pagado.is_finite():
+                    raise ValueError("Total pagado inválido en Sonrisar Cobros.")
+
                 resumenes[patient_id] = {
                     "ok": True,
-                    "total_pagado": _decimal_seguro(
-                        item.get("total_pagado", 0)
-                    ),
+                    "total_pagado": total_pagado,
                     "tipo_pago": item.get("tipo_pago", "pagado"),
                     "cantidad_pagos": int(
                         item.get("cantidad_pagos", 0) or 0
@@ -2988,17 +3010,10 @@ def obtener_resumen_cobros_pacientes_bulk(patient_ids):
                     "error": None,
                 }
 
-            for patient_id in patient_ids_limpios:
-                resumenes.setdefault(
-                    patient_id,
-                    {
-                        "ok": True,
-                        "total_pagado": Decimal("0"),
-                        "tipo_pago": "pagado",
-                        "cantidad_pagos": 0,
-                        "error": None,
-                    }
-                )
+            # La API incluye también a pacientes sin pagos con total explícito 0.
+            # Un paciente omitido no equivale a un paciente que no pagó.
+            if any(patient_id not in resumenes for patient_id in patient_ids_limpios):
+                raise ValueError("Respuesta incompleta de Sonrisar Cobros.")
 
             return resumenes, None
 
@@ -5888,6 +5903,21 @@ def deudores_general(request):
 
     patient_ids = list(pacientes_por_id.keys())
     resumenes_cobros = obtener_resumen_cobros_pacientes_bulk(patient_ids)
+
+    # Nunca convertir un fallo de conexión en pagos cero ni publicar un total parcial.
+    if any(
+        patient_id not in resumenes_cobros
+        or resumenes_cobros[patient_id].get("ok") is False
+        or "total_pagado" not in resumenes_cobros[patient_id]
+        for patient_id in patient_ids
+    ):
+        return render(request, "core/deudores_general.html", {
+            "deudores": [],
+            "total_general": None,
+            "query": query,
+            "mostrar_archivados": mostrar_archivados,
+            "pagos_no_disponibles": True,
+        })
 
     # Calcula los cargos de todos los pacientes en bloques. Evita hacer una
     # consulta SQL por paciente al entrar a Deudores.

@@ -193,6 +193,71 @@ class DeudoresArchivadosTests(TestCase):
         self.assertContains(respuesta, "Deudora, Activa")
         self.assertNotContains(respuesta, "Deudora, Archivada")
 
+    def test_fallo_cobros_no_publica_deudas_ni_total_cero(self):
+        for resumen in ({}, {self.activo.id: {"ok": False, "total_pagado": 0}}):
+            with self.subTest(resumen=resumen), patch(
+                "core.views.obtener_resumen_cobros_pacientes_bulk", return_value=resumen,
+            ):
+                respuesta = self.client.get(reverse("deudores_general"))
+            self.assertContains(respuesta, "No pudimos verificar los pagos")
+            self.assertNotContains(respuesta, "Deuda total activa")
+            self.assertNotContains(respuesta, "No hay pacientes con deuda")
+            self.assertEqual(respuesta.context["deudores"], [])
+            self.assertIsNone(respuesta.context["total_general"])
+
+    def test_pago_completo_y_saldo_a_favor_no_aparecen_como_deuda(self):
+        for pagado in (900, 1200):
+            with self.subTest(pagado=pagado), patch(
+                "core.views.obtener_resumen_cobros_pacientes_bulk",
+                return_value={self.activo.id: {"ok": True, "total_pagado": pagado}},
+            ):
+                respuesta = self.client.get(reverse("deudores_general"))
+            self.assertEqual(respuesta.context["deudores"], [])
+            self.assertEqual(respuesta.context["total_general"], 0)
+
+    def test_pago_parcial_muestra_solo_saldo_real(self):
+        with patch(
+            "core.views.obtener_resumen_cobros_pacientes_bulk",
+            return_value={self.activo.id: {"ok": True, "total_pagado": 600}},
+        ):
+            respuesta = self.client.get(reverse("deudores_general"))
+        self.assertEqual(respuesta.context["total_general"], 300)
+        self.assertEqual(respuesta.context["deudores"][0]["deuda_total"], 300)
+
+
+class ResumenCobrosLotesTests(SimpleTestCase):
+    @override_settings(DEBUG=False, SONRISAR_COBROS_BASE_URL="https://cobros.test")
+    def test_consulta_acotada_y_todos_los_pagos(self):
+        from urllib.parse import parse_qs, urlsplit
+        from .views import obtener_resumen_cobros_pacientes_bulk
+        from unittest.mock import Mock
+
+        def responder(url, **kwargs):
+            ids = parse_qs(urlsplit(url).query)["patient_ids"][0].split(",")
+            self.assertLessEqual(len(ids), 100)
+            return Mock(json=lambda: {"ok": True, "pacientes": [
+                {"patient_id": int(pid), "total_pagado": "900"} for pid in ids
+            ]})
+
+        with patch("core.views.requests.get", side_effect=responder) as get:
+            resumen = obtener_resumen_cobros_pacientes_bulk(list(range(1, 252)) + [1, "x"])
+        self.assertEqual(get.call_count, 3)
+        self.assertEqual(len(resumen), 251)
+        self.assertTrue(all(d["total_pagado"] == 900 for d in resumen.values()))
+
+    @override_settings(DEBUG=False, SONRISAR_COBROS_BASE_URL="https://cobros.test")
+    def test_respuesta_incompleta_o_total_invalido_no_equivalen_a_pago_cero(self):
+        from .views import obtener_resumen_cobros_pacientes_bulk
+        from unittest.mock import Mock
+        for data in (
+            {"ok": True, "pacientes": []},
+            {"ok": True, "pacientes": [{"patient_id": 1}]},
+            {"ok": True, "pacientes": [{"patient_id": 1, "total_pagado": "NaN"}]},
+        ):
+            with self.subTest(data=data), patch("core.views.requests.get", return_value=Mock(json=lambda: data)):
+                resumen = obtener_resumen_cobros_pacientes_bulk([1])
+            self.assertFalse(resumen[1]["ok"])
+
 
 class AgendaAsistioTests(AgendaNoAsistioTests):
     def setUp(self):

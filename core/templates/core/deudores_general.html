@@ -32,7 +32,13 @@
                class="form-control buscador">
     </form>
 
-    {% if mostrar_archivados %}
+    {% if pagos_no_disponibles %}
+        <div class="alert alert-warning" role="alert">
+            No pudimos verificar los pagos con Sonrisar Cobros. El listado y el total
+            se mostrarán cuando se restablezca la conexión, para evitar deudas incorrectas.
+            <a href="{{ request.get_full_path }}" class="btn btn-outline-primary btn-sm ms-2">Reintentar</a>
+        </div>
+    {% elif mostrar_archivados %}
         <div class="alert alert-info py-2 mb-3">
             Estos saldos se conservan, pero no se incluyen en el total de Deudores activos.
         </div>
@@ -113,7 +119,7 @@
 
         </div>
 
-    {% else %}
+    {% elif not pagos_no_disponibles %}
         {% if mostrar_archivados %}
             <div class="alert alert-light border">No hay pacientes archivados.</div>
         {% else %}
