@@ -5805,6 +5805,11 @@ def deudores_general(request):
     """
     query = request.GET.get("q", "").strip().lower()
     mostrar_archivados = request.GET.get("estado") == "archivados"
+    from .debt_categories import CATEGORIAS, ETIQUETAS
+    from .debt_views import desglosar_deudores
+    categoria = request.GET.get("categoria", "todos")
+    if categoria not in {"todos", "revisar", *dict(CATEGORIAS)}:
+        categoria = "todos"
 
     citas = (
         Appointment.objects
@@ -5992,6 +5997,12 @@ def deudores_general(request):
         else Decimal("0")
     )
 
+    deudores, totales_categoria = desglosar_deudores(deudores, resumenes_cobros, categoria)
+    categorias = [
+        {"clave": clave, "nombre": nombre, "total": totales_categoria[clave]}
+        for clave, nombre in [*CATEGORIAS, ("revisar", "Por clasificar")]
+    ]
+    total_seccion = sum((d["deuda_mostrada"] for d in deudores), Decimal("0"))
     return render(
         request,
         "core/deudores_general.html",
@@ -6000,6 +6011,10 @@ def deudores_general(request):
             "total_general": total_general,
             "query": query,
             "mostrar_archivados": mostrar_archivados,
+            "categoria": categoria,
+            "categorias": categorias,
+            "nombre_categoria": ETIQUETAS.get(categoria, "Todos"),
+            "total_seccion": total_seccion,
         }
     )
 

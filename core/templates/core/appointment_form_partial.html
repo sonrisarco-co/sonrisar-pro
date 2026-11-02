@@ -129,6 +129,14 @@
             </div>
 
             <div class="col-md-12 mb-3">
+                <label for="id_deuda_categoria">Categoría de deuda / pago</label>
+                {{ form.deuda_categoria }}
+                <div class="text-danger small">{{ form.deuda_categoria.errors }}</div>
+                <small class="text-muted">En sesiones de continuación, elegí el tratamiento al que corresponde el pago.
+                    El monto total del tratamiento se carga solo en la primera sesión.</small>
+            </div>
+
+            <div class="col-md-12 mb-3">
                 <label for="id_observaciones">Observaciones</label>
                 {{ form.observaciones }}
                 {% if form.observaciones.errors %}

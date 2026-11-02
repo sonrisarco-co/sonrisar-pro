@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% block title %}Sesiones y pagos | Sonrisar Pro{% endblock %}
+{% block content %}
+<div class="sesiones-page">
+    <a class="sesiones-volver" href="{{ volver }}">← Volver a Deudores</a>
+    <h3>{{ paciente.apellido }}, {{ paciente.nombre }}</h3>
+    <p class="sesiones-subtitulo">Sesiones y pagos por tratamiento</p>
+    <div class="sesiones-nota">El importe completo se registra solo en la primera sesión. Los pagos se siguen registrando desde la cita del día. Si la sesión dice “Control” o incluye varios tratamientos, elegí la categoría a la que corresponde su importe y su pago.</div>
+    {% if pagos_error %}<div class="sesiones-error" role="alert">No se pudieron verificar los pagos con Cobros. Los importes abonados se ocultan hasta recuperar la conexión. <a href="{{ request.get_full_path }}">Reintentar</a></div>{% endif %}
+    <div class="sesiones-lista">
+    {% for fila in filas %}
+    <article class="sesion">
+        <div class="sesion-info"><strong>{{ fila.cita.fecha|date:"d/m/Y" }} · {{ fila.cita.hora|time:"H:i" }}</strong><span>{{ fila.cita.motivo }}</span><small>{{ fila.cita.get_estado_display }} · Categoría: {{ fila.categoria }}</small></div>
+        <div class="sesion-importes"><span><small>Cargo de la sesión</small>$ {{ fila.cita.monto_total|default_if_none:0|floatformat:0 }}</span><span><small>Pago en esta cita</small>{% if pagos_error %}Sin verificar{% else %}$ {{ fila.pagado|floatformat:0 }}{% endif %}</span></div>
+        <form method="post" class="sesion-form">{% csrf_token %}
+            <input type="hidden" name="cita_id" value="{{ fila.cita.pk }}"><input type="hidden" name="next" value="{{ volver }}">
+            <label for="categoria-{{ fila.cita.pk }}">Asignar al tratamiento</label>
+            <div><select id="categoria-{{ fila.cita.pk }}" name="categoria">{% for clave, nombre in opciones %}<option value="{{ clave }}" {% if fila.cita.deuda_categoria == clave %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select><button type="submit">Guardar</button></div>
+        </form>
+        {% if fila.cita.estado != 'cancelado' %}<a class="sesion-cobrar" href="{% url 'cobros_nuevo_desde_cita' fila.cita.pk %}?next={{ request.get_full_path|urlencode }}">Registrar pago en esta cita</a>{% endif %}
+    </article>
+    {% empty %}<p>No hay sesiones registradas.</p>{% endfor %}
+    </div>
+</div>
+<style>
+.sesiones-page{max-width:1180px;margin:24px auto 48px;padding:0 20px;color:#244747}.sesiones-volver{color:#38817e;font-size:13px;text-decoration:none;display:inline-block;margin-bottom:20px}.sesiones-page h3{font-size:26px;margin:0 0 5px}.sesiones-subtitulo{color:#81958e;font-size:14px;margin:0 0 20px}.sesiones-nota{background:#edf8f5;border:1px solid #d6ece5;padding:15px 18px;border-radius:12px;font-size:13px;line-height:1.7;margin-bottom:20px;color:#50766d}.sesiones-error{background:#fff7e6;border:1px solid #ead9b2;color:#7d6939;padding:15px;border-radius:10px;margin-bottom:18px}.sesion{border:1px solid #dfe9e5;border-radius:13px;padding:18px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:12px}.sesion-info{flex:1;min-width:160px}.sesion-info strong,.sesion-info span,.sesion-info small{display:block}.sesion-info strong{font-size:14px}.sesion-info span{font-size:13px;margin:6px 0}.sesion-info small,.sesion-importes small{font-size:11px;color:#85968f}.sesion-importes{display:flex;gap:22px;font-size:14px}.sesion-importes small{display:block;margin-bottom:4px}.sesion-form{margin:0}.sesion-form label{font-size:11px;color:#7b948a;display:block;margin-bottom:5px}.sesion-form>div{display:flex;gap:7px}.sesion-form select{max-width:205px;padding:8px;border:1px solid #d4e4dd;border-radius:8px;font-size:12px;background:#fff;color:#426c60}.sesion-form button{background:#26aba5;color:white;border:0;border-radius:8px;font-size:12px;padding:8px 11px;cursor:pointer}.sesion-cobrar{font-size:12px;color:#238c83;text-decoration:none;border:1px solid #c9e5dc;padding:9px 12px;border-radius:8px}@media(max-width:700px){.sesiones-page{padding:0 12px}.sesion{gap:16px}.sesion-info{flex-basis:100%}.sesion-form{width:100%}.sesion-form select{max-width:none;flex:1;min-width:0}.sesion-cobrar{display:block}}
+</style>
+{% endblock %}

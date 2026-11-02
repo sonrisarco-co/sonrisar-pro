@@ -1,206 +1,85 @@
 {% extends "core/base.html" %}
-
 {% block title %}Pacientes deudores | Sonrisar Pro{% endblock %}
-
 {% block content %}
-
-<div class="container mt-4">
-
-    <a href="{% url 'agenda_pro' %}" class="btn btn-light mb-3">
-        ← Volver
-    </a>
-
-    <h3 class="mb-3">Pacientes deudores</h3>
-
-    <div class="btn-group mb-3" role="group" aria-label="Sección de deudores">
-        <a href="{% url 'deudores_general' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
-           class="btn {% if not mostrar_archivados %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            Activos
-        </a>
-        <a href="{% url 'deudores_general' %}?estado=archivados{% if query %}&q={{ query|urlencode }}{% endif %}"
-           class="btn {% if mostrar_archivados %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            Archivados
-        </a>
+<div class="deudas-page">
+    <a href="{% url 'agenda_pro' %}" class="deudas-volver">← Volver a la agenda</a>
+    <div class="deudas-heading">
+        <div><h3>Pacientes deudores</h3><p>Saldos separados por tratamiento, con sus pagos entre sesiones.</p></div>
+        <div class="deudas-estado">
+            <a href="{% url 'deudores_general' %}?categoria={{ categoria|default:'todos' }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if not mostrar_archivados %}seleccionado{% endif %}">Activos</a>
+            <a href="{% url 'deudores_general' %}?estado=archivados&categoria={{ categoria|default:'todos' }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if mostrar_archivados %}seleccionado{% endif %}">Archivados</a>
+        </div>
     </div>
-
-    <form method="get" class="mb-3">
+    <form method="get" class="deudas-busqueda">
         {% if mostrar_archivados %}<input type="hidden" name="estado" value="archivados">{% endif %}
-        <input type="text"
-               name="q"
-               value="{{ query }}"
-               placeholder="Buscar paciente..."
-               class="form-control buscador">
+        <input type="hidden" name="categoria" value="{{ categoria|default:'todos' }}">
+        <input type="search" name="q" value="{{ query }}" placeholder="Buscar paciente…" aria-label="Buscar paciente">
+        <button type="submit">Buscar</button>
     </form>
-
     {% if pagos_no_disponibles %}
-        <div class="alert alert-warning" role="alert">
+        <div class="deudas-aviso" role="alert">
             No pudimos verificar los pagos con Sonrisar Cobros. El listado y el total
             se mostrarán cuando se restablezca la conexión, para evitar deudas incorrectas.
-            <a href="{{ request.get_full_path }}" class="btn btn-outline-primary btn-sm ms-2">Reintentar</a>
-        </div>
-    {% elif mostrar_archivados %}
-        <div class="alert alert-info py-2 mb-3">
-            Estos saldos se conservan, pero no se incluyen en el total de Deudores activos.
+            <a href="{{ request.get_full_path }}">Reintentar</a>
         </div>
     {% else %}
-        <div class="mb-3">
-            <span class="badge total-general">
-                Deuda total activa: $ {{ total_general|floatformat:0 }}
-            </span>
-            <small class="text-muted ms-2">Los archivados no se incluyen en este total.</small>
-        </div>
-    {% endif %}
-
-    {% if deudores %}
-
-        <div class="list-group">
-
-            {% for d in deudores %}
-                <div class="list-group-item deudor-row">
-
-                    <div class="info">
-                        <div class="nombre">
-                            {{ d.paciente }}
-                        </div>
-
-                        <div class="fecha">
-                            Última atención: {{ d.ultima_fecha|date:"d/m/Y" }}
-                        </div>
-
-                        {% if d.deuda_citas > 0 %}
-                            <div class="detalle-deuda">
-                                Citas: $ {{ d.deuda_citas|floatformat:0 }}
-                            </div>
-                        {% endif %}
-
-                        {% if d.deuda_presupuestos > 0 %}
-                            <div class="detalle-deuda">
-                                Presupuestos: $ {{ d.deuda_presupuestos|floatformat:0 }}
-                            </div>
-                        {% endif %}
-
-                        <div class="deuda-total">
-                            Total: $ {{ d.deuda_total|floatformat:0 }}
-                        </div>
-                    </div>
-
-                    <div class="acciones">
-                        {% if mostrar_archivados %}
-                            <form method="post" action="{% url 'deudor_restaurar' d.patient_id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <button type="submit" class="btn btn-sm btn-outline-success">
-                                    Restaurar
-                                </button>
-                            </form>
-                        {% else %}
-                            {% if d.cita_pendiente_id %}
-                            <a href="{% url 'cobros_nuevo_desde_cita' d.cita_pendiente_id %}?next={{ request.get_full_path|urlencode }}"
-                            class="btn btn-sm btn-outline-primary">
-                                Cobrar
-                            </a>
-                            {% else %}
-                                <span class="btn btn-sm btn-secondary disabled">
-                                    Sin cita pendiente
-                                </span>
-                            {% endif %}
-                            <form method="post" action="{% url 'deudor_archivar' d.patient_id %}" class="mt-2">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{% url 'deudores_general' %}?estado=archivados{% if query %}&q={{ query|urlencode }}{% endif %}">
-                                <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                    Archivar
-                                </button>
-                            </form>
-                        {% endif %}
-                    </div>
-
-                </div>
+        <nav class="deudas-categorias" aria-label="Deudas por tratamiento">
+            <a href="?categoria=todos{% if mostrar_archivados %}&estado=archivados{% endif %}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if categoria == 'todos' %}seleccionado{% endif %}">Todos</a>
+            {% for item in categorias %}
+                {% if item.clave != 'revisar' or item.total > 0 %}
+                <a href="?categoria={{ item.clave }}{% if mostrar_archivados %}&estado=archivados{% endif %}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if categoria == item.clave %}seleccionado{% endif %} {% if item.clave == 'revisar' %}por-clasificar{% endif %}">
+                    <span>{{ item.nombre }}</span><strong>$ {{ item.total|floatformat:0 }}</strong>
+                </a>
+                {% endif %}
             {% endfor %}
-
+        </nav>
+        <div class="deudas-resumen">
+            {% if mostrar_archivados %}
+                <span>Los pacientes archivados no se incluyen en el total activo.</span>
+            {% else %}
+                <strong>Deuda total activa: $ {{ total_general|floatformat:0 }}</strong>
+                <span>Los archivados no se incluyen en este total.</span>
+            {% endif %}
+            {% if categoria != 'todos' %}<span class="deudas-seccion">{{ nombre_categoria }}: $ {{ total_seccion|floatformat:0 }}</span>{% endif %}
         </div>
-
-    {% elif not pagos_no_disponibles %}
-        {% if mostrar_archivados %}
-            <div class="alert alert-light border">No hay pacientes archivados.</div>
-        {% else %}
-            <div class="alert alert-success">No hay pacientes con deuda 🎉</div>
+        {% if categoria == 'revisar' %}
+            <div class="deudas-aviso">Estos saldos ya están incluidos en el total. Para separarlos por tratamiento, revisá la categoría de las sesiones. Los pagos no se reparten entre tratamientos por suposición.</div>
         {% endif %}
+        {% for d in deudores %}
+        <article class="deudor-card">
+            <div class="deudor-cabecera">
+                <div><strong>{{ d.paciente }}</strong><small>Última atención: {{ d.ultima_fecha|date:"d/m/Y" }}</small></div>
+                <div class="deudor-total">Total: $ {{ d.deuda_mostrada|floatformat:0 }}</div>
+            </div>
+            <div class="deudor-componentes">
+                {% for c in d.componentes %}
+                <div class="deudor-componente {% if c.categoria == 'revisar' %}requiere-clasificar{% endif %}">
+                    <div><strong>{{ c.nombre }}</strong>{% if c.nota %}<small>{{ c.nota }}</small>{% endif %}</div>
+                    {% if c.total != None %}
+                    <span><small>Importe total</small>$ {{ c.total|floatformat:0 }}</span>
+                    <span><small>Abonado / saldo aplicado</small>$ {{ c.abonado|floatformat:0 }}</span>
+                    {% endif %}
+                    <span class="deudor-saldo"><small>Pendiente</small>$ {{ c.saldo|floatformat:0 }}</span>
+                </div>
+                {% empty %}<span class="deudor-sin-saldo">Sin saldo pendiente.</span>{% endfor %}
+            </div>
+            <div class="deudor-acciones">
+                <a class="deudas-boton" href="{% url 'deudor_sesiones' d.patient_id %}?next={{ request.get_full_path|urlencode }}">Ver sesiones y pagos</a>
+                <a class="deudas-link" href="{% url 'patient_finances' d.patient_id %}">Finanzas del paciente</a>
+                {% if mostrar_archivados %}
+                <form method="post" action="{% url 'deudor_restaurar' d.patient_id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="deudas-link">Restaurar paciente</button></form>
+                {% else %}
+                <form method="post" action="{% url 'deudor_archivar' d.patient_id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="deudas-link" title="Archiva al paciente y todos sus saldos de este listado">Archivar paciente</button></form>
+                {% endif %}
+            </div>
+        </article>
+        {% empty %}
+            {% if mostrar_archivados %}<div class="deudas-vacio">No hay pacientes archivados en esta sección.</div>
+            {% else %}<div class="deudas-vacio">No hay pacientes con deuda en esta sección.</div>{% endif %}
+        {% endfor %}
     {% endif %}
-
 </div>
-
 <style>
-.buscador {
-    border-radius: 10px;
-    border: 1px solid #dfe7ea;
-    padding: 10px;
-}
-
-.total-general {
-    background: #26ABA5 !important;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-    padding: 8px 16px;
-    border-radius: 999px;
-}
-
-.deudor-row {
-    border-radius: 12px;
-    margin-bottom: 10px;
-    border: 1px solid #e6ecec;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
-}
-
-.nombre {
-    font-weight: 700;
-    font-size: 15px;
-    color: #212529;
-}
-
-.fecha {
-    font-size: 12px;
-    color: #6c757d;
-    margin-top: 2px;
-    margin-bottom: 4px;
-}
-
-.detalle-deuda {
-    font-size: 13px;
-    color: #495057;
-    margin-top: 2px;
-}
-
-.deuda-total {
-    color: #dc3545;
-    font-weight: 800;
-    font-size: 16px;
-    margin-top: 4px;
-}
-
-.acciones {
-    flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-    .deudor-row {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .acciones {
-        width: 100%;
-    }
-
-    .acciones .btn {
-        width: 100%;
-    }
-
-.acciones form { width: 100%; }
-}
+.deudas-page{max-width:1180px;margin:24px auto 48px;padding:0 20px;color:#244747}.deudas-volver{display:inline-block;color:#38817e;text-decoration:none;font-size:13px;margin-bottom:18px}.deudas-heading{display:flex;justify-content:space-between;align-items:center;gap:20px}.deudas-heading h3{font-size:27px;margin:0 0 6px;color:#244747}.deudas-heading p{font-size:14px;color:#738585;margin:0}.deudas-estado{display:flex;border:1px solid #d4e7e5;border-radius:10px;overflow:hidden;flex-shrink:0}.deudas-estado a{padding:9px 16px;color:#4d7673;text-decoration:none;font-size:13px}.deudas-estado .seleccionado{background:#26aba5;color:white}.deudas-busqueda{display:flex;gap:10px;margin:22px 0 16px}.deudas-busqueda input[type=search]{width:100%;border:1px solid #d7e5e4;border-radius:10px;padding:12px 14px;background:#fff;font:inherit}.deudas-busqueda button,.deudas-boton{border:1px solid #26aba5;border-radius:9px;background:#fff;color:#218b86;padding:9px 14px;text-decoration:none;font-size:13px;cursor:pointer}.deudas-categorias{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 18px}.deudas-categorias a{border:1px solid #d9e8e6;background:#f8fbfb;border-radius:11px;padding:10px 16px;display:flex;gap:14px;align-items:center;color:#4a716d;text-decoration:none;font-size:13px}.deudas-categorias a.seleccionado{background:#e3f6f3;border-color:#26aba5;color:#167e77}.deudas-categorias a.por-clasificar{background:#fffbef;color:#846c30}.deudas-resumen{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:#788784;margin-bottom:18px}.deudas-resumen>strong{background:#26aba5;color:#fff;border-radius:99px;padding:9px 15px;font-size:14px}.deudas-seccion{font-weight:700;color:#286e68}.deudor-card{border:1px solid #dfe9e7;border-radius:14px;background:#fff;margin-bottom:14px;overflow:hidden}.deudor-cabecera{display:flex;justify-content:space-between;align-items:center;padding:17px 20px;gap:16px}.deudor-cabecera strong{font-size:16px}.deudor-cabecera small{display:block;margin-top:4px;color:#899894;font-size:12px}.deudor-total{font-weight:700;color:#bc5b58;white-space:nowrap}.deudor-componentes{padding:0 20px}.deudor-componente{display:flex;align-items:center;gap:24px;padding:13px 0;border-top:1px solid #eef2f0;font-size:14px}.deudor-componente>div{flex:1;min-width:100px}.deudor-componente>span{min-width:95px}.deudor-componente small{display:block;font-size:11px;color:#889792;margin-bottom:4px;font-weight:400}.deudor-componente>div small{max-width:500px;line-height:1.5;margin:5px 0 0}.deudor-saldo{color:#a94c49;font-weight:700}.requiere-clasificar>div>strong{color:#8e7536}.deudor-acciones{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#fbfdfc;padding:12px 20px;border-top:1px solid #eef3f1}.deudor-acciones form{margin:0 0 0 auto}.deudas-link{border:0;background:transparent;color:#668680;text-decoration:none;font:inherit;font-size:12px;cursor:pointer;padding:0}.deudas-aviso{background:#fffbef;border:1px solid #eee2be;color:#7f6c40;padding:14px 17px;border-radius:11px;font-size:13px;line-height:1.6;margin-bottom:18px}.deudas-aviso a{color:#267e77;margin-left:10px}.deudas-vacio{padding:30px;border:1px dashed #d6e7e2;border-radius:12px;color:#62847b;text-align:center}.deudor-sin-saldo{display:block;padding:0 0 15px;color:#7b8d88;font-size:13px}@media(max-width:700px){.deudas-heading{align-items:flex-start;flex-direction:column}.deudor-componente{flex-wrap:wrap;gap:14px}.deudor-componente>div{flex-basis:100%}.deudor-cabecera{align-items:flex-start;flex-direction:column;gap:10px}.deudas-categorias a{padding:9px 11px;gap:8px}.deudas-page{padding:0 12px}.deudor-acciones form{margin:0}.deudas-heading h3{font-size:24px}}
 </style>
-
 {% endblock %}

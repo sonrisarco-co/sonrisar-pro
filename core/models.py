@@ -92,6 +92,13 @@ class Appointment(models.Model):
     # Es independiente del estado de asistencia de la cita.
     historia_actualizada = models.BooleanField(default=False)
 
+    deuda_categoria = models.CharField(
+        "Categoría de deuda / pago", max_length=20, default="auto",
+        choices=[("auto", "Automático según el tratamiento"),
+                 ("general", "General"), ("protesis", "Prótesis"),
+                 ("endodoncia", "Endodoncias"), ("corona", "Coronas")],
+    )
+
     monto_total = models.DecimalField(
         "Monto total",
         max_digits=10,

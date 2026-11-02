@@ -9,7 +9,7 @@ from . import views
 
 
 
-from . import views_tratamientos, comisiones_geisha, birthdays
+from . import views_tratamientos, comisiones_geisha, birthdays, debt_views
 
 urlpatterns = [
     path("pacientes/cumpleanos/", birthdays.birthdays, name="birthdays"),
@@ -111,6 +111,7 @@ urlpatterns = [
 
     # NUEVO: pacientes deudores
     path("deudores/", views.deudores_general, name="deudores_general"),
+    path("deudores/<int:patient_id>/sesiones/", debt_views.sesiones_deudor, name="deudor_sesiones"),
     path("deudores/<int:patient_id>/archivar/", views.deudor_archivar, name="deudor_archivar"),
     path("deudores/<int:patient_id>/restaurar/", views.deudor_restaurar, name="deudor_restaurar"),
 

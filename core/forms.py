@@ -131,6 +131,7 @@ class AppointmentForm(forms.ModelForm):
             "estado",
             "observaciones",
             "monto_total",
+            "deuda_categoria",
         ]
         widgets = {
             "fecha": forms.DateInput(
@@ -147,6 +148,7 @@ class AppointmentForm(forms.ModelForm):
                     "class": "form-control",
                 }
             ),
+            "deuda_categoria": forms.Select(attrs={"class": "form-select"}),
             "estado": forms.Select(attrs={"class": "form-select"}),
             "observaciones": forms.Textarea(attrs={
                 "class": "form-control",
@@ -161,6 +163,7 @@ class AppointmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["deuda_categoria"].required = False
         self.fields["duracion"].widget.attrs["class"] = "form-select"
         from .models import Odontologo
         disponibles = Odontologo.objects.filter(activo=True)
@@ -210,6 +213,9 @@ class AppointmentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        cleaned_data["deuda_categoria"] = (
+            cleaned_data.get("deuda_categoria") or self.instance.deuda_categoria or "auto"
+        )
         motivos_seleccionados = cleaned_data.get("procedimientos")
 
         # Conserva un motivo de referencia para colores y pantallas antiguas;
