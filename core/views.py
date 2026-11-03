@@ -843,6 +843,14 @@ def appointment_confirm(request, id):
 
 
 @require_POST
+def appointment_cancel(request, id):
+    cita = get_object_or_404(Appointment, id=id)
+    cita.estado = "cancelado"
+    cita.save(update_fields=["estado"])
+    return JsonResponse({"success": True, "estado": cita.get_estado_display()})
+
+
+@require_POST
 def appointment_attended(request, id):
     cita = get_object_or_404(Appointment, id=id)
     if cita.estado == "cancelado":
@@ -3618,6 +3626,10 @@ def agenda_day(request, day, month, year):
         .order_by("hora", "id")
     )
 
+    citas_canceladas = [c for c in citas if c.estado == "cancelado"
+                        and (not profesional or str(c.odontologo_id) == profesional)]
+    citas = [c for c in citas if c.estado != "cancelado"]
+
     HORARIOS_BLOQUEADOS = {"14:00", "14:15", "14:30", "14:45"}
 
     contextos_financieros = _obtener_contexto_financiero_citas(
@@ -3955,6 +3967,7 @@ def agenda_day(request, day, month, year):
             "mes_anterior": mes_anterior,
             "mes_siguiente": mes_siguiente,
             "horarios": horarios,
+            "citas_canceladas": citas_canceladas,
             "deudores": deudores,
             "total_deuda_dia": total_deuda_dia,
             "dia_bloqueado": dia_bloqueado,

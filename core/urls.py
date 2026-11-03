@@ -87,6 +87,7 @@ urlpatterns = [
     path("agenda/editar/<int:id>/", views.appointment_edit, name="appointment_edit"),
     path("agenda/confirmar/<int:id>/", views.appointment_confirm, name="appointment_confirm"),
     path("agenda/no-asistio/<int:id>/", views.appointment_no_show, name="appointment_no_show"),
+    path("agenda/cancelar/<int:id>/", views.appointment_cancel, name="appointment_cancel"),
     path("agenda/asistio/<int:id>/", views.appointment_attended, name="appointment_attended"),
     path("agenda/monto/<int:id>/", views.appointment_update_amount, name="appointment_update_amount"),
     path("agenda/eliminar/<int:id>/", views.appointment_delete, name="appointment_delete"),

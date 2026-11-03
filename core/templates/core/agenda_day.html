@@ -361,6 +361,9 @@
                                                 </button>
                                             {% endif %}
 
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-asistencia-cita"
+                                                    data-url="{% url 'appointment_cancel' cita.id %}">Cancelado</button>
+
                                             {% if cita.estado_slug != "no_asistio" and cita.estado_slug != "cancelado" %}
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-danger js-asistencia-cita"
@@ -691,6 +694,9 @@
                                                 </button>
                                             {% endif %}
 
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-asistencia-cita"
+                                                    data-url="{% url 'appointment_cancel' cita.id %}">Cancelado</button>
+
                                             {% if cita.estado_slug != "no_asistio" and cita.estado_slug != "cancelado" %}
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-danger js-asistencia-cita"
@@ -824,6 +830,24 @@
 
             </div>
 
+            {% if citas_canceladas %}
+            <details class="card shadow-sm mt-3" style="border-color:#d4e9e7;">
+                <summary class="p-3" style="color:#257d79; cursor:pointer; font-weight:600;">
+                    Turnos cancelados ({{ citas_canceladas|length }})
+                </summary>
+                <div class="px-3 pb-3">
+                    <p class="small text-muted">Estos turnos conservan su registro y dejan el horario disponible, sujeto a los bloqueos de la agenda.</p>
+                    {% for cita in citas_canceladas %}
+                    <div class="border-top py-2">
+                        <strong>{{ cita.hora|time:"H:i" }} · {{ cita.paciente }}</strong>
+                        <span class="badge bg-secondary">Cancelado</span>
+                        <div class="small text-muted">{{ cita.motivo }} · {{ cita.duracion }} min · {{ cita.odontologo }}</div>
+                        <a class="btn btn-sm btn-outline-secondary mt-1" href="{% url 'patient_detail' cita.paciente_id %}?next={{ request.get_full_path|urlencode }}">Ficha paciente</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </details>
+            {% endif %}
         </main>
 
         <aside class="agenda-day-debt-column">
