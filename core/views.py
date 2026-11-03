@@ -5372,6 +5372,7 @@ def agenda_pro(request):
     citas_semana = (
         Appointment.objects
         .filter(fecha__range=[inicio_semana, fin_semana])
+        .exclude(estado="cancelado")
         .annotate(primera_cita_id=Subquery(primera_cita_paciente))
         .select_related("paciente", "odontologo")
         .prefetch_related("procedimientos")

@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase, RequestFactory
 from .models import Appointment, Patient, Procedure, TimeBlock
 from .forms import AppointmentForm
-from .views import agenda_day, appointment_cancel
+from .views import agenda_day, agenda_pro, appointment_cancel
 
 
 class CancelacionAgendaTests(TestCase):
@@ -52,3 +52,40 @@ class CancelacionAgendaTests(TestCase):
         slot = next(h for h in self.agenda()['horarios'] if h['hora'] == time(10))
         self.assertTrue(slot['bloqueado'])
         self.assertEqual(slot['motivo'], 'Bloqueo manual')
+
+    def calendario(self, params=None):
+        query = {'fecha': str(self.fecha), **(params or {})}
+        with patch('core.views.render', side_effect=lambda req, template, ctx: ctx):
+            return agenda_pro(self.factory.get('/', query))
+
+    def test_cancelar_desde_agenda_libera_calendario_y_conserva_historial(self):
+        for duracion in (15, 30, 45, 60):
+            with self.subTest(duracion=duracion):
+                self.cita.duracion = duracion
+                self.cita.estado = 'pendiente'
+                self.cita.save()
+                appointment_cancel(self.factory.post('/'), self.cita.pk)
+                for query in ({}, {'q': 'Prueba'}, {'odontologo': str(self.cita.odontologo_id)}):
+                    filas = self.calendario(query)['filas']
+                    for fila in filas:
+                        if time(10) <= fila['hora'] < self.cita.hora_fin:
+                            celda = fila['celdas'][1]
+                            self.assertFalse(celda['ocupado'])
+                            self.assertFalse(celda['bloqueado'])
+                            self.assertFalse(celda.get('ocultar', False))
+                            self.assertEqual(celda['citas'], [])
+                self.assertEqual(self.agenda()['citas_canceladas'][0].pk, self.cita.pk)
+
+    def test_calendario_respeta_nueva_cita_y_bloqueo_manual(self):
+        appointment_cancel(self.factory.post('/'), self.cita.pk)
+        nueva = Appointment.objects.create(paciente=self.patient, fecha=self.fecha,
+            hora=time(10), duracion=60, motivo='Nuevo turno')
+        celda = next(f for f in self.calendario()['filas'] if f['hora'] == time(10))['celdas'][1]
+        self.assertEqual([c['id'] for c in celda['citas']], [nueva.pk])
+        self.assertTrue(celda['ocupado'])
+        self.assertEqual(celda['rowspan'], 4)
+        nueva.delete()
+        TimeBlock.objects.create(fecha=self.fecha, hora=time(10), motivo='Bloqueo manual')
+        celda = next(f for f in self.calendario()['filas'] if f['hora'] == time(10))['celdas'][1]
+        self.assertTrue(celda['bloqueado'])
+        self.assertEqual(celda['tipo_bloqueo'], 'horario')
