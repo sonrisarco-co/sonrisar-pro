@@ -51,8 +51,8 @@ class BirthdayTests(TestCase):
     @patch('core.birthdays.timezone.localdate', return_value=date(2026, 10, 26))
     def test_desktop_and_mobile_links_preserve_exact_unicode(self, _):
         from urllib.parse import urlsplit, parse_qs
-        expected = ("¡Muy feliz cumple! 🥳🎉\n\n"
-                    "Desde SonrisAR te mandamos nuestros mejores deseos para esta fecha tan especial. Que no falten las alegrías, los lindos momentos y muchos motivos para sonreír. 😁\n\n"
+        expected = ("¡Muy feliz cumple! Ana 🥳🎉\n\n"
+                    "Desde Sonrisar te mandamos nuestros mejores deseos para esta fecha tan especial. Que no falten las alegrías, los lindos momentos y muchos motivos para sonreír. 😁\n\n"
                     "¡Disfrutá mucho!\n\n"
                     "Un abrazo grande de todo el equipo. 🥂")
         for web in (True, False):
