@@ -34,8 +34,8 @@ def birthday_rows(month, day=None, whatsapp_web=False):
         elif len(phone) == 8 and phone.startswith("9"):
             phone = "598" + phone
         valid_phone = 8 <= len(phone) <= 15 and not phone.startswith("0")
-        message = ("¡Muy feliz cumple! 🥳🎉\n\n"
-                   "Desde SonrisAR te mandamos nuestros mejores deseos para esta fecha tan especial. Que no falten las alegrías, los lindos momentos y muchos motivos para sonreír. 😁\n\n"
+        message = (f"¡Muy feliz cumple! {patient.nombre} 🥳🎉\n\n"
+                   "Desde Sonrisar te mandamos nuestros mejores deseos para esta fecha tan especial. Que no falten las alegrías, los lindos momentos y muchos motivos para sonreír. 😁\n\n"
                    "¡Disfrutá mucho!\n\n"
                    "Un abrazo grande de todo el equipo. 🥂")
         rows.append({"patient": patient, "age": today.year - patient.fecha_nacimiento.year,
