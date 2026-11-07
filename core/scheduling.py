@@ -23,14 +23,14 @@ def validar_reserva(cita):
     from .models import Appointment, DayBlock, TimeBlock
     if not cita.fecha or not cita.hora or cita.duracion not in {15, 30, 45, 60}:
         return
-    if cita.estado == "cancelado":
+    if cita.estado in {"cancelado", "sin_respuesta"}:
         return
     bloquear_agenda_fecha(cita.fecha)
     # Permitir corregir datos clínicos/administrativos de turnos históricos,
     # aunque existan superposiciones anteriores a esta funcionalidad.
     if cita.pk:
         anterior = Appointment.objects.filter(pk=cita.pk).first()
-        if anterior and anterior.estado != "cancelado" and (
+        if anterior and anterior.estado not in {"cancelado", "sin_respuesta"} and (
             anterior.fecha, anterior.hora, anterior.duracion
         ) == (cita.fecha, cita.hora, cita.duracion):
             return
@@ -49,7 +49,7 @@ def validar_reserva(cita):
         siguiente = next((h for h in horarios if h > bloqueo.hora), time(20))
         if se_cruzan(inicio, fin, minutos(bloqueo.hora), minutos(siguiente)):
             raise ValidationError({"duracion": "La cita se superpone con un horario bloqueado."})
-    for otra in Appointment.objects.filter(fecha=cita.fecha).exclude(pk=cita.pk).exclude(estado="cancelado"):
+    for otra in Appointment.objects.filter(fecha=cita.fecha).exclude(pk=cita.pk).exclude(estado__in=["cancelado", "sin_respuesta"]):
         otro_inicio = minutos(otra.hora)
         if se_cruzan(inicio, fin, otro_inicio, otro_inicio + otra.duracion):
             raise ValidationError({"hora": (
@@ -60,7 +60,7 @@ def validar_reserva(cita):
 
 def reservar_grilla(filas, citas, dias):
     """Extender una única tarjeta con rowspan sin esconder conflictos antiguos."""
-    citas = [c for c in citas if c.estado != "cancelado"]
+    citas = [c for c in citas if c.estado not in {"cancelado", "sin_respuesta"}]
     for columna, dia in enumerate(dias):
         del_dia = [c for c in citas if c.fecha == dia]
         for indice, fila in enumerate(filas):

@@ -837,8 +837,16 @@ def appointment_confirm(request, id):
             "success": False,
             "error": "Esta cita ya no está pendiente de confirmación.",
         }, status=409)
-    cita.estado = nuevo_estado
-    cita.save(update_fields=["estado"])
+    with transaction.atomic():
+        cita = Appointment.objects.select_for_update().get(pk=cita.pk)
+        if cita.estado not in permitidos:
+            return JsonResponse({"success": False, "error": "El estado de la cita cambió. Actualizá la agenda."}, status=409)
+        cita.estado = nuevo_estado
+        try:
+            validar_reserva(cita)
+        except ValidationError as error:
+            return JsonResponse({"success": False, "error": " ".join(error.messages)}, status=409)
+        cita.save(update_fields=["estado"])
     return JsonResponse({"success": True, "estado": cita.get_estado_display()})
 
 
@@ -3628,7 +3636,9 @@ def agenda_day(request, day, month, year):
 
     citas_canceladas = [c for c in citas if c.estado == "cancelado"
                         and (not profesional or str(c.odontologo_id) == profesional)]
-    citas = [c for c in citas if c.estado != "cancelado"]
+    citas_sin_respuesta = [c for c in citas if c.estado == "sin_respuesta"
+                           and (not profesional or str(c.odontologo_id) == profesional)]
+    citas = [c for c in citas if c.estado not in {"cancelado", "sin_respuesta"}]
 
     HORARIOS_BLOQUEADOS = {"14:00", "14:15", "14:30", "14:45"}
 
@@ -3968,6 +3978,7 @@ def agenda_day(request, day, month, year):
             "mes_siguiente": mes_siguiente,
             "horarios": horarios,
             "citas_canceladas": citas_canceladas,
+            "citas_sin_respuesta": citas_sin_respuesta,
             "deudores": deudores,
             "total_deuda_dia": total_deuda_dia,
             "dia_bloqueado": dia_bloqueado,
@@ -5372,7 +5383,7 @@ def agenda_pro(request):
     citas_semana = (
         Appointment.objects
         .filter(fecha__range=[inicio_semana, fin_semana])
-        .exclude(estado="cancelado")
+        .exclude(estado__in=["cancelado", "sin_respuesta"])
         .annotate(primera_cita_id=Subquery(primera_cita_paciente))
         .select_related("paciente", "odontologo")
         .prefetch_related("procedimientos")
@@ -6527,7 +6538,7 @@ def bloquear_horario(request):
     siguiente = next((h for h in horarios_para_fecha(fecha_obj) if h > hora_obj), time(20))
     if any(se_cruzan(minutos(c.hora), minutos(c.hora) + c.duracion,
                       minutos(hora_obj), minutos(siguiente))
-           for c in Appointment.objects.filter(fecha=fecha_obj).exclude(estado="cancelado")):
+           for c in Appointment.objects.filter(fecha=fecha_obj).exclude(estado__in=["cancelado", "sin_respuesta"])):
         messages.error(request, "No se puede bloquear: ya existe una cita en ese horario.")
         return redirect(f"{reverse('agenda_pro')}?fecha={fecha_obj.strftime('%Y-%m-%d')}")
 

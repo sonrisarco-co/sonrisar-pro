@@ -848,6 +848,27 @@
                 </div>
             </details>
             {% endif %}
+            {% if citas_sin_respuesta %}
+            <details class="card shadow-sm mt-3" style="border-color:#d4e9e7;">
+                <summary class="p-3" style="color:#257d79; cursor:pointer; font-weight:600;">
+                    Turnos sin respuesta ({{ citas_sin_respuesta|length }})
+                </summary>
+                <div class="px-3 pb-3">
+                    <p class="small text-muted">Estos turnos conservan su registro y dejan el horario disponible, sujeto a los bloqueos de la agenda.</p>
+                    {% for cita in citas_sin_respuesta %}
+                    <div class="border-top py-2">
+                        <strong>{{ cita.hora|time:"H:i" }} · {{ cita.paciente }}</strong>
+                        <span class="badge" style="background:#fd7e14; color:#fff;">Sin respuesta</span>
+                        <div class="small text-muted">{{ cita.motivo }} · {{ cita.duracion }} min · {{ cita.odontologo }}</div>
+                        <a class="btn btn-sm btn-outline-secondary mt-1" href="{% url 'patient_detail' cita.paciente_id %}?next={{ request.get_full_path|urlencode }}">Ficha paciente</a>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-1 js-confirmar-cita"
+                                data-url="{% url 'appointment_confirm' cita.id %}">Confirmar</button>
+                        <a class="btn btn-sm btn-outline-secondary mt-1" href="{% url 'appointment_edit' cita.id %}?next={{ request.get_full_path|urlencode }}">Editar / Reagendar</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </details>
+            {% endif %}
         </main>
 
         <aside class="agenda-day-debt-column">
