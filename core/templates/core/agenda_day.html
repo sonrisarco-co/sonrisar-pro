@@ -356,8 +356,9 @@
                                             {% if cita.estado_slug != "asistio" and cita.estado_slug != "cancelado" %}
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-success js-asistencia-cita"
+                                                        data-usar-saldo="{% if cita.usa_saldo_a_favor %}1{% else %}0{% endif %}"
                                                         data-url="{% url 'appointment_attended' cita.id %}">
-                                                    Asistió
+                                                    {% if cita.usa_saldo_a_favor %}Asistió y usar saldo{% else %}Asistió{% endif %}
                                                 </button>
                                             {% endif %}
 
@@ -372,71 +373,7 @@
                                                 </button>
                                             {% endif %}
 
-                                            {% if cita.tiene_pago_cobros %}
-
-                                                {% if cita.es_pago_mixto %}
-
-                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
-
-                                                    <span class="badge badge-saldo-favor">
-                                                        💰 Usó saldo a favor $ {{ cita.saldo_usado|floatformat:0 }}
-                                                    </span>
-
-                                                    {% if cita.saldo_a_favor_restante > 0 %}
-                                                        <span class="badge badge-saldo-favor">
-                                                            Restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}
-                                                        </span>
-                                                    {% endif %}
-
-                                                {% elif cita.tiene_saldo_a_favor %}
-
-                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
-
-                                                    <span class="badge badge-saldo-favor">
-                                                        💰 Saldo a favor $ {{ cita.saldo_a_favor|floatformat:0 }}
-                                                    </span>
-
-                                                {% elif cita.debe > 0 %}
-
-                                                    {% if cita.tipo_pago == "sena" %}
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-sena badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Seña $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-sena">Seña $ {{ cita.total_pagado }}</span>{% endif %}
-                                                    {% else %}
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pago $ {{ cita.total_pagado }}</span>{% endif %}
-                                                    {% endif %}
-
-                                                    <span class="badge badge-debe">
-                                                        Debe $ {{ cita.debe|floatformat:0 }}
-                                                    </span>
-
-                                                {% else %}
-
-                                                    {% if cita.usa_saldo_a_favor %}
-
-                                                        <span class="badge badge-saldo-favor">
-                                                            💰 Usó saldo a favor $ {{ cita.saldo_usado|floatformat:0 }}
-                                                        </span>
-
-                                                        {% if cita.saldo_a_favor_restante > 0 %}
-                                                            <span class="badge badge-saldo-favor">
-                                                                Restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}
-                                                            </span>
-                                                        {% endif %}
-
-                                                    {% else %}
-
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago 🧾</a>{% else %}<span class="badge badge-pagado">Pago</span>{% endif %}
-
-                                                    {% endif %}
-
-                                                {% endif %}
-
-                                            {% else %}
-
-                                                <span class="badge badge-pendiente-cobro">
-                                                    Pendiente de cobro
-                                                </span>
-
-                                            {% endif %}
+                                            {% include "core/agenda_payment_badges.html" %}
 
                                             {% if cita.saldo_a_favor_paciente > 0 %}
                                                 <span class="badge badge-saldo-favor" title="Saldo general del paciente, igual al de Finanzas">
@@ -460,7 +397,7 @@
 
                                             {% if cita.tiene_pago_cobros and cita.debe <= 0 %}
                                                 <span class="btn btn-sm btn-success disabled">
-                                                    Ya cobrado
+                                                    {% if cita.usa_saldo_a_favor %}{% if cita.estado_slug == "asistio" %}Cubierto con saldo{% else %}Cobertura con saldo{% endif %}{% else %}Ya cobrado{% endif %}
                                                 </span>
                                             {% else %}
                                                 <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}%23cita-{{ cita.id }}"
@@ -689,8 +626,9 @@
                                             {% if cita.estado_slug != "asistio" and cita.estado_slug != "cancelado" %}
                                                 <button type="button"
                                                         class="btn btn-sm btn-outline-success js-asistencia-cita"
+                                                        data-usar-saldo="{% if cita.usa_saldo_a_favor %}1{% else %}0{% endif %}"
                                                         data-url="{% url 'appointment_attended' cita.id %}">
-                                                    Asistió
+                                                    {% if cita.usa_saldo_a_favor %}Asistió y usar saldo{% else %}Asistió{% endif %}
                                                 </button>
                                             {% endif %}
 
@@ -705,55 +643,7 @@
                                                 </button>
                                             {% endif %}
 
-                                            {% if cita.tiene_pago_cobros %}
-
-                                                {% if cita.es_pago_mixto %}
-
-                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
-
-                                                    <span class="badge badge-saldo-favor">
-                                                        💰 Usó saldo a favor $ {{ cita.saldo_usado|floatformat:0 }}
-                                                    </span>
-
-                                                    {% if cita.saldo_a_favor_restante > 0 %}
-                                                        <span class="badge badge-saldo-favor">
-                                                            Restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}
-                                                        </span>
-                                                    {% endif %}
-
-                                                {% elif cita.tiene_saldo_a_favor %}
-
-                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pagó $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pagó $ {{ cita.total_pagado }}</span>{% endif %}
-
-                                                    <span class="badge badge-saldo-favor">
-                                                        💰 Saldo a favor $ {{ cita.saldo_a_favor|floatformat:0 }}
-                                                    </span>
-
-                                                {% elif cita.debe > 0 %}
-
-                                                    {% if cita.tipo_pago == "sena" %}
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-sena badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Seña $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-sena">Seña $ {{ cita.total_pagado }}</span>{% endif %}
-                                                    {% else %}
-                                                        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">Pago $ {{ cita.total_pagado }}</span>{% endif %}
-                                                    {% endif %}
-
-                                                    <span class="badge badge-debe">
-                                                        Debe $ {{ cita.debe|floatformat:0 }}
-                                                    </span>
-
-                                                {% else %}
-
-                                                    {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">Pago 🧾</a>{% else %}<span class="badge badge-pagado">Pago</span>{% endif %}
-
-                                                {% endif %}
-
-                                            {% else %}
-
-                                                <span class="badge badge-pendiente-cobro">
-                                                    Pendiente de cobro
-                                                </span>
-
-                                            {% endif %}
+                                            {% include "core/agenda_payment_badges.html" %}
 
                                             {% if cita.saldo_a_favor_paciente > 0 %}
                                                 <span class="badge badge-saldo-favor" title="Saldo general del paciente, igual al de Finanzas">
@@ -777,7 +667,7 @@
 
                                             {% if cita.tiene_pago_cobros and cita.debe <= 0 %}
                                                 <span class="btn btn-sm btn-success disabled">
-                                                    Ya cobrado
+                                                    {% if cita.usa_saldo_a_favor %}{% if cita.estado_slug == "asistio" %}Cubierto con saldo{% else %}Cobertura con saldo{% endif %}{% else %}Ya cobrado{% endif %}
                                                 </span>
                                             {% else %}
                                                 <a href="{% url 'cobros_nuevo_desde_cita' cita.id %}?next={{ request.get_full_path|urlencode }}%23cita-{{ cita.id }}"
@@ -1403,6 +1293,7 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 const response = await fetch(button.dataset.url, {
                     method: "POST",
+                    body: new URLSearchParams({usar_saldo: button.dataset.usarSaldo || "0"}),
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                         "X-Requested-With": "XMLHttpRequest",

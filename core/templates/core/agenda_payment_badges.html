@@ -1,0 +1,11 @@
+{% if cita.tiene_pago_cobros %}
+    {% if cita.tiene_pago_directo %}
+        {% if cita.recibo_url %}<a href="{{ cita.recibo_url }}" class="badge badge-pagado badge-recibo-link" target="_blank" rel="noopener" title="Imprimir recibo">{% if cita.tipo_pago == "sena" %}Seña{% else %}Pagó{% endif %} $ {{ cita.total_pagado }} 🧾</a>{% else %}<span class="badge badge-pagado">{% if cita.tipo_pago == "sena" %}Seña{% else %}Pagó{% endif %} $ {{ cita.total_pagado }}</span>{% endif %}
+    {% endif %}
+    {% if cita.usa_saldo_a_favor %}
+        <span class="badge badge-saldo-favor">{% if cita.estado_slug != "asistio" %}Se cubrirá con saldo a favor:{% elif cita.debe > 0 or cita.es_pago_mixto %}Saldo a favor aplicado:{% else %}Cubierto con saldo a favor:{% endif %} $ {{ cita.saldo_usado|floatformat:0 }}</span>
+    {% endif %}
+    {% if cita.saldo_a_favor_restante > 0 %}<span class="badge badge-saldo-favor">Saldo a favor restante $ {{ cita.saldo_a_favor_restante|floatformat:0 }}</span>{% endif %}
+    {% if cita.debe > 0 %}<span class="badge badge-debe">Debe $ {{ cita.debe|floatformat:0 }}</span>{% endif %}
+    {% if not cita.usa_saldo_a_favor and not cita.tiene_pago_directo %}<span class="badge badge-pagado">Sin importe pendiente</span>{% endif %}
+{% else %}<span class="badge badge-pendiente-cobro">Pendiente de cobro</span>{% endif %}

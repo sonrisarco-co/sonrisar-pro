@@ -860,12 +860,23 @@ def appointment_cancel(request, id):
 
 @require_POST
 def appointment_attended(request, id):
-    cita = get_object_or_404(Appointment, id=id)
-    if cita.estado == "cancelado":
-        return JsonResponse({"success": False, "error": "La cita está cancelada."}, status=409)
-    cita.estado = "asistio"
-    cita.save(update_fields=["estado"])
-    return JsonResponse({"success": True, "estado": cita.get_estado_display()})
+    with transaction.atomic():
+        cita = get_object_or_404(Appointment.objects.select_for_update(), id=id)
+        if cita.estado == "cancelado":
+            return JsonResponse({"success": False, "error": "La cita está cancelada."}, status=409)
+        cobertura = {}
+        if request.POST.get("usar_saldo") == "1":
+            # La cobertura ya se calcula desde cargos y crédito. Confirmar
+            # asistencia no debe crear otro pago ni descontar crédito otra vez.
+            Patient.objects.select_for_update().get(pk=cita.paciente_id)
+            contexto = _obtener_contexto_financiero_citas([cita], cita.fecha).get(cita.id, {})
+            saldo = _decimal_seguro(contexto.get("saldo_usado", 0))
+            if not contexto or contexto.get("cobros_error") or saldo <= 0:
+                return JsonResponse({"success": False, "error": "No se pudo confirmar saldo para esta cita. Actualizá la agenda y revisá el saldo disponible."}, status=409)
+            cobertura = {"saldo_usado": str(saldo), "pendiente": str(contexto.get("deuda_cita", 0))}
+        cita.estado = "asistio"
+        cita.save(update_fields=["estado"])
+    return JsonResponse({"success": True, "estado": cita.get_estado_display(), **cobertura})
 
 
 @require_POST
@@ -3557,6 +3568,7 @@ def _armar_cita_agenda_rapida(cita, contextos_financieros):
         "historia_actualizada": cita.historia_actualizada,
         "pagado": cita_pagada_visual,
         "tiene_pago_cobros": mostrar_pago_cobros,
+        "tiene_pago_directo": tiene_pago_cita,
         "total_pagado": str(pago_cita),
         "total_pagado_paciente": str(pago_cita),
         "tipo_pago": tipo_pago_visual,

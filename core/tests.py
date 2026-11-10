@@ -614,3 +614,73 @@ class TransferenciaEntrePacientesTests(TestCase):
         self.assertEqual(self.client.post(self.url, dict(self.datos, monto="7500")).status_code, 302)
         self.assertEqual(obtener_detalle_cobros_paciente(self.origen)["total_pagado"], 2500)
         self.assertEqual(obtener_detalle_cobros_paciente(self.destino)["total_pagado"], 7500)
+
+
+@override_settings(DEBUG=False)
+class AgendaAsistenciaConSaldoTests(TestCase):
+    def setUp(self):
+        import uuid
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from .models import PatientCreditTransfer
+        self.client.force_login(get_user_model().objects.create_user("operador_saldo"))
+        origen = Patient.objects.create(nombre="Origen", apellido="Prueba")
+        paciente = Patient.objects.create(nombre="Destino", apellido="Prueba")
+        self.cita = Appointment.objects.create(paciente=paciente, fecha=timezone.localdate(), hora=time(10), monto_total=1500, estado="confirmado")
+        self.movimiento = PatientCreditTransfer.objects.create(origen=origen, destino=paciente, monto=4000, motivo="Prueba", usuario="operador_saldo", solicitud=uuid.uuid4())
+        self.url = reverse("appointment_attended", args=[self.cita.pk])
+        mock = patch("core.views._obtener_pagos_cobros_citas_bulk", return_value={})
+        mock.start()
+        self.addCleanup(mock.stop)
+
+    def test_confirma_asistencia_sin_duplicar_credito_o_pagos(self):
+        from .models import PatientCreditTransfer, Payment
+        for _ in range(2):
+            respuesta = self.client.post(self.url, {"usar_saldo": "1"})
+            self.assertEqual(respuesta.status_code, 200)
+            self.assertEqual(Decimal(respuesta.json()["saldo_usado"]), 1500)
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "asistio")
+        self.assertEqual(PatientCreditTransfer.objects.count(), 1)
+        self.assertEqual(Payment.objects.count(), 0)
+        contexto = _obtener_contexto_financiero_citas([self.cita], self.cita.fecha)[self.cita.pk]
+        self.assertEqual(contexto["saldo_a_favor_restante"], 2500)
+
+    def test_saldo_parcial_conserva_pendiente(self):
+        self.movimiento.monto = 500
+        self.movimiento.save()
+        respuesta = self.client.post(self.url, {"usar_saldo": "1"})
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(Decimal(respuesta.json()["saldo_usado"]), 500)
+        self.assertEqual(Decimal(respuesta.json()["pendiente"]), 1000)
+        self.cita.refresh_from_db()
+        self.assertEqual(self.cita.estado, "asistio")
+
+    def test_saldo_cambiado_o_error_no_confirman(self):
+        for datos in [{"saldo_usado": 0}, {"saldo_usado": 500, "cobros_error": "No disponible"}]:
+            with self.subTest(datos=datos), patch("core.views._obtener_contexto_financiero_citas", return_value={self.cita.pk: datos}):
+                self.assertEqual(self.client.post(self.url, {"usar_saldo": "1"}).status_code, 409)
+                self.cita.refresh_from_db()
+                self.assertEqual(self.cita.estado, "confirmado")
+
+    def test_distintivo_cobertura_sin_pago_cero_y_con_saldo_restante(self):
+        from django.template.loader import render_to_string
+        contexto = _obtener_contexto_financiero_citas([self.cita], self.cita.fecha)
+        datos = _armar_cita_agenda_rapida(self.cita, contexto)
+        html = render_to_string("core/agenda_payment_badges.html", {"cita": datos})
+        self.assertIn("Se cubrirá con saldo a favor:", html)
+        self.assertNotIn("Pagó", html)
+        self.client.post(self.url, {"usar_saldo": "1"})
+        self.cita.refresh_from_db()
+        datos = _armar_cita_agenda_rapida(self.cita, contexto)
+        html = render_to_string("core/agenda_payment_badges.html", {"cita": datos})
+        self.assertIn("Cubierto con saldo a favor:", html)
+        self.assertIn("2500", html)
+        self.assertNotIn("Pagó", html)
+
+    def test_pago_mixto_muestra_ambas_partes(self):
+        from django.template.loader import render_to_string
+        datos = {"tiene_pago_cobros": True, "tiene_pago_directo": True, "total_pagado": "500", "usa_saldo_a_favor": True, "saldo_usado": 1000, "es_pago_mixto": True, "estado_slug": "asistio", "debe": 0}
+        html = render_to_string("core/agenda_payment_badges.html", {"cita": datos})
+        self.assertIn("Pagó $ 500", html)
+        self.assertIn("Saldo a favor aplicado:", html)
