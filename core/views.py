@@ -6667,7 +6667,7 @@ def patient_credit_transfer(request, id):
             return f"{paciente} · C.I. {paciente.ci or 'sin documento'} · Ficha {paciente.pk}"
 
     class TransferForm(forms.Form):
-        destino = PatientChoiceField(queryset=Patient.objects.exclude(pk=id).order_by("apellido", "nombre"), label="Paciente que recibe el saldo")
+        destino = PatientChoiceField(queryset=Patient.objects.exclude(pk=id), widget=forms.HiddenInput, label="Paciente que recibe el saldo")
         monto = forms.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"), label="Importe a transferir ($)")
         motivo = forms.CharField(max_length=250, label="Tratamiento o motivo")
         autorizado = forms.BooleanField(label="Confirmo que el titular del saldo autorizó este traspaso")
@@ -6703,4 +6703,11 @@ def patient_credit_transfer(request, id):
     disponible = None
     if resumen.get("ok"):
         disponible = max(_decimal_seguro(resumen.get("total_pagado", 0)) - obtener_total_cobrable_paciente_desde_pro(origen), Decimal("0"))
-    return render(request, "core/patient_credit_transfer.html", {"paciente": origen, "form": form, "disponible": disponible})
+    seleccionado = None
+    destino_id = str(form["destino"].value() or "")
+    if destino_id.isdigit():
+        seleccionado = form.fields["destino"].queryset.filter(pk=destino_id).first()
+    return render(request, "core/patient_credit_transfer.html", {
+        "paciente": origen, "form": form, "disponible": disponible,
+        "destinatario_seleccionado": seleccionado,
+    })
