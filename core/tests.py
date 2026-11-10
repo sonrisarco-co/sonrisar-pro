@@ -225,7 +225,7 @@ class DeudoresArchivadosTests(TestCase):
         self.assertEqual(respuesta.context["deudores"][0]["deuda_total"], 300)
 
 
-class ResumenCobrosLotesTests(SimpleTestCase):
+class ResumenCobrosLotesTests(TestCase):
     @override_settings(DEBUG=False, SONRISAR_COBROS_BASE_URL="https://cobros.test")
     def test_consulta_acotada_y_todos_los_pagos(self):
         from urllib.parse import parse_qs, urlsplit
@@ -475,3 +475,142 @@ class PatientCIDisplayTests(SimpleTestCase):
             html = render_to_string(template, {"paciente": patient, "pacientes": [patient]})
             self.assertIn("5.990.854-8", html)
             self.assertEqual(patient.ci, "59908548")
+
+
+class TransferenciaEntrePacientesTests(TestCase):
+    def setUp(self):
+        import uuid
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        self.origen = Patient.objects.create(nombre="Origen", apellido="Prueba")
+        self.destino = Patient.objects.create(nombre="Destino", apellido="Prueba")
+        self.user = get_user_model().objects.create_superuser(username="responsable", password="test-only")
+        self.client.force_login(self.user)
+        self.hoy = timezone.localdate()
+        self.cita_a = Appointment.objects.create(paciente=self.origen, fecha=self.hoy, hora=time(10), monto_total=2500, estado="asistio")
+        self.url = reverse("patient_credit_transfer", args=[self.origen.id])
+        self.datos = {"destino": self.destino.id, "monto": "2000.00", "motivo": "Tratamiento de prueba", "autorizado": "on", "solicitud": str(uuid.uuid4())}
+        self.raw = patch("core.views._detalle_cobros_paciente_sin_transferencias", side_effect=lambda paciente: {"ok": True, "total_pagado": Decimal("10000") if paciente.pk == self.origen.pk else Decimal("0"), "total_pagado_bruto": Decimal("10000") if paciente.pk == self.origen.pk else Decimal("0"), "total_devuelto": Decimal("0")})
+        self.raw.start()
+        self.addCleanup(self.raw.stop)
+
+    def transferir(self):
+        return self.client.post(self.url, self.datos)
+
+    def test_traspaso_parcial_conserva_total_y_registra_usuario(self):
+        from .models import PatientCreditTransfer
+        from .views import obtener_detalle_cobros_paciente
+        self.assertEqual(self.transferir().status_code, 302)
+        self.assertEqual(PatientCreditTransfer.objects.get().usuario, self.user.username)
+        a = obtener_detalle_cobros_paciente(self.origen)
+        b = obtener_detalle_cobros_paciente(self.destino)
+        self.assertEqual(a["total_pagado"] - Decimal("2500"), Decimal("5500"))
+        self.assertEqual(b["total_pagado"], Decimal("2000"))
+        self.assertEqual(a["total_pagado"] + b["total_pagado"], Decimal("10000"))
+        self.assertEqual(a["total_pagado_sin_transferencias"], Decimal("10000"))
+        self.assertEqual(b["total_pagado_sin_transferencias"], 0)
+
+    def test_reintento_no_duplica_movimiento(self):
+        from .models import PatientCreditTransfer
+        self.transferir()
+        self.transferir()
+        self.assertEqual(PatientCreditTransfer.objects.count(), 1)
+
+    def test_validaciones_importe_destino_y_autorizacion(self):
+        from .models import PatientCreditTransfer
+        for cambios in [{"monto": "7500.01"}, {"monto": "0"}, {"monto": "-1"}, {"monto": "NaN"}, {"destino": self.origen.pk}, {"autorizado": ""}]:
+            with self.subTest(cambios=cambios):
+                self.assertEqual(self.client.post(self.url, dict(self.datos, **cambios)).status_code, 200)
+                self.assertEqual(PatientCreditTransfer.objects.count(), 0)
+
+    def test_cobros_no_disponible_impide_transferir(self):
+        from .models import PatientCreditTransfer
+        with patch("core.views._detalle_cobros_paciente_sin_transferencias", return_value={"ok": False, "total_pagado": 10000}):
+            self.assertEqual(self.transferir().status_code, 200)
+        self.assertEqual(PatientCreditTransfer.objects.count(), 0)
+
+    def test_segundo_traspaso_revalida_saldo_actual(self):
+        from .models import PatientCreditTransfer
+        import uuid
+        self.transferir()
+        self.assertEqual(self.client.post(self.url, dict(self.datos, monto="6000", solicitud=str(uuid.uuid4()))).status_code, 200)
+        self.assertEqual(PatientCreditTransfer.objects.count(), 1)
+
+    def test_permisos_y_csrf(self):
+        from django.contrib.auth import get_user_model
+        from django.test import Client
+        from .models import PatientCreditTransfer
+        cliente = Client(enforce_csrf_checks=True)
+        cliente.force_login(self.user)
+        self.assertEqual(cliente.post(self.url, self.datos).status_code, 403)
+        normal = get_user_model().objects.create_user(username="recepcion")
+        self.client.force_login(normal)
+        self.assertEqual(self.transferir().status_code, 403)
+        self.client.logout()
+        self.assertEqual(self.transferir().status_code, 302)
+        self.assertEqual(PatientCreditTransfer.objects.count(), 0)
+
+    def test_formulario_e_historial_en_ambos(self):
+        self.assertContains(self.client.get(self.url), "Confirmar transferencia")
+        self.transferir()
+        for paciente in [self.origen, self.destino]:
+            response = self.client.get(reverse("patient_finances", args=[paciente.pk]))
+            self.assertContains(response, "Tratamiento de prueba")
+            self.assertContains(response, "Transferir saldo")
+        with patch("core.views.render", side_effect=lambda request, template, context: context):
+            contexto = patient_finances(RequestFactory().get("/"), self.origen.pk)
+        self.assertEqual(contexto["saldo_a_favor"], 5500)
+        self.assertEqual(contexto["total_pagado_cobros"], 10000)
+
+    def test_resumen_bulk_incluye_ajuste_una_sola_vez(self):
+        from .views import obtener_resumen_cobros_pacientes_bulk
+        self.transferir()
+        with patch("core.views._resumen_cobros_pacientes_bulk_sin_transferencias", return_value={self.origen.pk: {"ok": True, "total_pagado": Decimal("10000")}, self.destino.pk: {"ok": True, "total_pagado": Decimal("0")}}):
+            resumen = obtener_resumen_cobros_pacientes_bulk([self.origen.pk, self.destino.pk])
+        self.assertEqual(resumen[self.origen.pk]["total_pagado"], 8000)
+        self.assertEqual(resumen[self.destino.pk]["total_pagado"], 2000)
+
+    @override_settings(DEBUG=False)
+    def test_agenda_cubre_tratamiento_sin_pago_nuevo(self):
+        self.transferir()
+        cita = Appointment.objects.create(paciente=self.destino, fecha=self.hoy, hora=time(11), monto_total=2000)
+        with patch("core.views._obtener_pagos_cobros_citas_bulk", return_value={}):
+            contexto = _obtener_contexto_financiero_citas([cita], self.hoy)[cita.pk]
+        self.assertEqual(contexto["deuda_cita"], 0)
+        self.assertEqual(contexto["saldo_usado"], 2000)
+        self.assertEqual(contexto["saldo_a_favor_restante"], 0)
+        self.assertFalse(contexto["tiene_pago_cita"])
+
+    @override_settings(DEBUG=False)
+    def test_agenda_origen_reduce_saldo_sin_pago_negativo(self):
+        self.transferir()
+        with patch("core.views._obtener_pagos_cobros_citas_bulk", return_value={self.cita_a.pk: {"total_pagado": "10000"}}):
+            contexto = _obtener_contexto_financiero_citas([self.cita_a], self.hoy)[self.cita_a.pk]
+        self.assertEqual(contexto["deuda_cita"], 0)
+        self.assertEqual(contexto["saldo_a_favor_restante"], 5500)
+
+    @override_settings(DEBUG=False)
+    def test_agenda_no_aplica_a_fechas_anteriores(self):
+        from datetime import timedelta
+        self.transferir()
+        ayer = self.hoy - timedelta(days=1)
+        cita = Appointment.objects.create(paciente=self.destino, fecha=ayer, hora=time(11), monto_total=2000)
+        with patch("core.views._obtener_pagos_cobros_citas_bulk", return_value={}):
+            contexto = _obtener_contexto_financiero_citas([cita], ayer)[cita.pk]
+        self.assertEqual(contexto["deuda_cita"], 2000)
+
+    def test_deudores_descuenta_saldo_recibido(self):
+        from .views import deudores_general
+        self.transferir()
+        Appointment.objects.create(paciente=self.destino, fecha=self.hoy, hora=time(11), monto_total=3500)
+        with patch("core.views._resumen_cobros_pacientes_bulk_sin_transferencias", return_value={self.origen.pk: {"ok": True, "total_pagado": Decimal("10000")}, self.destino.pk: {"ok": True, "total_pagado": Decimal("0")}}), patch("core.views.render", side_effect=lambda request, template, context: context):
+            contexto = deudores_general(RequestFactory().get("/"))
+        self.assertEqual(len(contexto["deudores"]), 1)
+        self.assertEqual(contexto["deudores"][0]["patient_id"], self.destino.pk)
+        self.assertEqual(contexto["deudores"][0]["deuda_total"], 1500)
+
+    def test_limite_puede_transferir_total_disponible(self):
+        from .views import obtener_detalle_cobros_paciente
+        self.assertEqual(self.client.post(self.url, dict(self.datos, monto="7500")).status_code, 302)
+        self.assertEqual(obtener_detalle_cobros_paciente(self.origen)["total_pagado"], 2500)
+        self.assertEqual(obtener_detalle_cobros_paciente(self.destino)["total_pagado"], 7500)

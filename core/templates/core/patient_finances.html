@@ -254,6 +254,9 @@
             class="btn-sonrisar-outline">
                 ← Volver a ficha
             </a>
+
+
+            {% if sonrisar_manager %}<a href="{% url 'patient_credit_transfer' paciente.id %}" class="btn-sonrisar-outline">Transferir saldo</a>{% endif %}
             <a href="{% url 'cobros_nuevo_desde_paciente' paciente.id %}?next={{ request.path }}" class="btn btn-sonrisar">+ Registrar pago</a>
         </div>
     </div>
@@ -296,6 +299,25 @@
                 <strong>$0</strong>
             </div>
         {% endif %}
+    </div>
+
+    <div class="panel-finanzas">
+
+
+        <h4>Transferencias de saldo entre pacientes</h4>
+        <p>Los traspasos se suman o descuentan para calcular el saldo. No son nuevos pagos ni devoluciones.</p>
+        {% if transferencias_saldo %}
+        <p><strong>Ajuste neto por transferencias: ${{ ajuste_transferencias|floatformat:2 }}</strong></p>
+        <div style="overflow-x:auto"><table class="tabla-finanzas">
+            <thead><tr><th>Fecha</th><th>Movimiento</th><th>Importe</th><th>Motivo</th><th>Responsable</th></tr></thead>
+            <tbody>{% for movimiento in transferencias_saldo %}<tr>
+                <td>{{ movimiento.creado|date:"d/m/Y H:i" }}</td>
+                <td>{% if movimiento.origen_id == paciente.id %}Enviado a <a href="{% url 'patient_finances' movimiento.destino_id %}">{{ movimiento.destino }}</a>{% else %}Recibido de <a href="{% url 'patient_finances' movimiento.origen_id %}">{{ movimiento.origen }}</a>{% endif %}</td>
+                <td>{% if movimiento.origen_id == paciente.id %}−{% else %}+{% endif %}${{ movimiento.monto|floatformat:2 }}</td>
+                <td>{{ movimiento.motivo }}</td><td>{{ movimiento.usuario }}</td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<p>No hay transferencias de saldo registradas.</p>{% endif %}
     </div>
 
     <div class="panel-finanzas">

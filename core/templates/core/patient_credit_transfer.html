@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+{% block title %}Transferir saldo - Sonrisar{% endblock %}
+{% block content %}
+<div style="max-width:760px;margin:32px auto;padding:24px;border:1px solid #cde8e5;border-radius:16px;background:white">
+<h2 style="color:#107361">Transferir saldo</h2>
+<p>Desde: <strong>{{ paciente }}</strong></p>
+{% if disponible is not None %}<p>Saldo disponible: <strong>${{ disponible|floatformat:2 }}</strong></p>{% else %}<p role="alert">No se pudo confirmar el saldo. Intentá nuevamente antes de transferir.</p>{% endif %}
+<p>Elegí al paciente y el importe que querés usar para su tratamiento. El resto permanece a favor del paciente de origen.</p>
+<label for="buscar-destino">Buscar paciente por nombre o cédula</label>
+<input type="search" id="buscar-destino" placeholder="Ej.: Brisa" style="display:block;width:100%;box-sizing:border-box;padding:10px;margin:8px 0 18px;border:1px solid #abcfc9;border-radius:8px">
+<form method="post">{% csrf_token %}{{ form.as_p }}
+<button type="submit" class="btn btn-sonrisar" {% if disponible is None %}disabled{% endif %}>Confirmar transferencia</button>
+<a href="{% url 'patient_finances' paciente.id %}" class="btn">Cancelar</a>
+</form>
+<p style="margin-top:22px;color:#55706d">El movimiento quedará en ambos historiales. No modifica los ingresos de caja.</p>
+</div>
+<style>form p{margin:18px 0}form select,form input:not([type=checkbox]){display:block;box-sizing:border-box;width:100%;padding:10px;border:1px solid #abcfc9;border-radius:8px}.errorlist{color:#b42318}</style>
+<script>
+(function () {
+ const buscar = document.getElementById('buscar-destino');
+ const lista = document.getElementById('id_destino');
+ const opciones = Array.from(lista.options).map(opcion => opcion.cloneNode(true));
+ function normalizar(texto) { return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+ buscar.addEventListener('input', function () {
+  const seleccionado = lista.value;
+  const filtro = normalizar(buscar.value);
+  lista.replaceChildren();
+  opciones.forEach(function (opcion) {
+   if (!opcion.value || opcion.value === seleccionado || normalizar(opcion.textContent).includes(filtro)) lista.add(opcion.cloneNode(true));
+  });
+  lista.value = seleccionado;
+ });
+})();
+</script>
+{% endblock %}

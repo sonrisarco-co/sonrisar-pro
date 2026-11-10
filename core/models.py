@@ -1111,3 +1111,24 @@ class BirthdayGreeting(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["paciente", "year"], name="unique_patient_birthday_year")]
+
+
+class PatientCreditTransfer(models.Model):
+    """Movimiento clínico interno: no representa un cobro ni una devolución."""
+    origen = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name="saldo_transferido")
+    destino = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name="saldo_recibido")
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    motivo = models.CharField(max_length=250)
+    creado = models.DateTimeField(auto_now_add=True)
+    usuario = models.CharField(max_length=150)
+    solicitud = models.UUIDField(unique=True)
+
+    class Meta:
+        ordering = ["-creado", "-id"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(monto__gt=0), name="patient_transfer_positive"),
+            models.CheckConstraint(condition=~models.Q(origen=models.F("destino")), name="patient_transfer_distinct"),
+        ]
+
+    def __str__(self):
+        return f"{self.origen} → {self.destino}: ${self.monto}"

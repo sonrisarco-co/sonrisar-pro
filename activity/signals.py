@@ -12,7 +12,7 @@ SECTIONS = {'BirthdayGreeting': 'Cumpleaños', 'Patient': 'Pacientes', 'Procedur
     'ClinicalRecord': 'Historia clínica', 'ClinicalAlert': 'Avisos clínicos', 'OdontogramTooth': 'Odontograma',
     'OdontogramaCara': 'Odontograma', 'Budget': 'Presupuestos', 'BudgetItem': 'Ítems de presupuesto',
     'BudgetPayment': 'Pagos de presupuesto', 'BudgetAdjustment': 'Ajustes de presupuesto',
-    'BudgetCreditTransfer': 'Transferencias de saldo', 'Payment': 'Pagos en Pro', 'Prosthesis': 'Prótesis',
+    'BudgetCreditTransfer': 'Transferencias de saldo', 'PatientCreditTransfer': 'Transferencias entre pacientes', 'Payment': 'Pagos en Pro', 'Prosthesis': 'Prótesis',
     'OrdenLaboratorio': 'Laboratorio', 'Inventory': 'Inventario', 'InventoryMovement': 'Movimientos de inventario',
     'RayosX': 'Rayos X / Fotografías', 'TratamientoGeisha': 'Tratamientos de Geisha', 'CobroTratamientoGeisha': 'Comisiones de Geisha', 'LiquidacionGeisha': 'Comisiones de Geisha', 'DetalleLiquidacionGeisha': 'Comisiones de Geisha'}
 def snapshot(instance):

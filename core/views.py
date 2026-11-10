@@ -2917,7 +2917,7 @@ def obtener_total_cobrable_paciente_desde_pro(paciente, fecha_hasta=None):
     return total
 
 
-def obtener_resumen_cobros_pacientes_bulk(patient_ids):
+def _resumen_cobros_pacientes_bulk_sin_transferencias(patient_ids):
     """Consulta pagos en lotes acotados para no exceder el límite de la URL."""
     ids = []
     for value in patient_ids:
@@ -3367,12 +3367,31 @@ def _obtener_contexto_financiero_citas(citas_dia, fecha):
         )
         pagos_bulk = _combinar_pagos_citas(pagos_bulk, pagos_web)
 
+    from .models import PatientCreditTransfer
+    eventos = {}
+    for movimiento in PatientCreditTransfer.objects.filter(
+        Q(origen_id__in=pacientes_ids) | Q(destino_id__in=pacientes_ids),
+        creado__date__lte=fecha,
+    ).order_by("creado", "id"):
+        dia = timezone.localtime(movimiento.creado).date()
+        eventos.setdefault(movimiento.origen_id, []).append((dia, -movimiento.monto))
+        eventos.setdefault(movimiento.destino_id, []).append((dia, movimiento.monto))
+
     for patient_id, citas_paciente in citas_por_paciente.items():
 
         deuda_acumulada = Decimal("0")
         saldo_a_favor_disponible = Decimal("0")
+        movimientos = iter(eventos.get(patient_id, []))
+        siguiente = next(movimientos, None)
 
         for cita in citas_paciente:
+            # Una salida reduce crédito disponible, aunque el pago original
+            # aparezca más adelante en la secuencia de citas.
+            while siguiente is not None and siguiente[0] <= cita.fecha:
+                neto = saldo_a_favor_disponible - deuda_acumulada + siguiente[1]
+                saldo_a_favor_disponible = max(neto, Decimal("0"))
+                deuda_acumulada = max(-neto, Decimal("0"))
+                siguiente = next(movimientos, None)
             monto_cita = _decimal_seguro(cita.monto_total)
 
             if pagos_bulk is not None:
@@ -3752,7 +3771,7 @@ def agenda_day(request, day, month, year):
 
         # Si un pago está también asentado localmente en el presupuesto, usar el
         # mayor de ambos totales evita descontarlo dos veces.
-        total_pagado_reconocido = max(total_pagado_cobros, total_pagado_local)
+        total_pagado_reconocido = max(total_pagado_cobros, total_pagado_local + resumenes_cobros_dia.get(patient_id, {}).get("ajuste_transferencias", Decimal("0")))
 
         deuda_presupuesto = total_presupuestos - total_pagado_reconocido
         if deuda_presupuesto < 0:
@@ -5989,7 +6008,7 @@ def deudores_general(request):
             patient_id,
             Decimal("0"),
         )
-        total_pagado_reconocido = max(total_pagado, total_pagado_local)
+        total_pagado_reconocido = max(total_pagado, total_pagado_local + resumenes_cobros.get(patient_id, {}).get("ajuste_transferencias", Decimal("0")))
 
         deuda_presupuestos = total_presupuestos - total_pagado_reconocido
         if deuda_presupuestos < 0:
@@ -6083,7 +6102,7 @@ def deudor_restaurar(request, patient_id):
         )
     return _redirigir_deudores(request, "deudores_general")
 
-def obtener_detalle_cobros_paciente(paciente):
+def _detalle_cobros_paciente_sin_transferencias(paciente):
     """
     Obtiene el resumen financiero del paciente usando como fuente principal
     el endpoint rápido por patient_id, el mismo que utiliza Agenda/Deudores.
@@ -6107,7 +6126,7 @@ def obtener_detalle_cobros_paciente(paciente):
 
     # Fuente principal y rápida: exactamente el mismo resumen por patient_id
     # que ya usan Agenda del día y Pacientes deudores.
-    resumen_rapido = obtener_resumen_cobros_paciente(paciente)
+    resumen_rapido = _resumen_cobros_pacientes_bulk_sin_transferencias([paciente.id]).get(paciente.id, {})
     resumen_ok = bool(resumen_rapido.get("ok"))
     total_pagado_resumen = _decimal_seguro(
         resumen_rapido.get("total_pagado", 0)
@@ -6410,7 +6429,9 @@ def patient_finances(request, id):
         {
             "paciente": paciente,
             "total_citas": total_citas,
-            "total_pagado_cobros": total_pagado_cobros,
+            "total_pagado_cobros": resumen_cobros.get("total_pagado_sin_transferencias", total_pagado_cobros),
+            "transferencias_saldo": _transferencias_paciente(paciente.id),
+            "ajuste_transferencias": resumen_cobros.get("ajuste_transferencias", Decimal("0")),
             "total_pagado_bruto_cobros": total_pagado_bruto_cobros,
             "total_devuelto_cobros": total_devuelto_cobros,
             "devoluciones_cobros": devoluciones_cobros,
@@ -6592,3 +6613,94 @@ def csrf_failure(request, reason=""):
     )
     from django.views.csrf import csrf_failure as default_csrf_failure
     return default_csrf_failure(request, reason=reason)
+
+
+# Transferencias de saldo entre pacientes. El registro vive en Pro, que conoce
+# los cargos clínicos; Cobros conserva exclusivamente los ingresos originales.
+def _transferencias_paciente(patient_id):
+    from .models import PatientCreditTransfer
+    return PatientCreditTransfer.objects.filter(
+        Q(origen_id=patient_id) | Q(destino_id=patient_id)
+    ).select_related("origen", "destino")
+
+
+def _aplicar_transferencias(resumenes):
+    from .models import PatientCreditTransfer
+    ids = list(resumenes)
+    ajustes = {}
+    for movimiento in PatientCreditTransfer.objects.filter(
+        Q(origen_id__in=ids) | Q(destino_id__in=ids)
+    ):
+        ajustes[movimiento.origen_id] = ajustes.get(movimiento.origen_id, Decimal("0")) - movimiento.monto
+        ajustes[movimiento.destino_id] = ajustes.get(movimiento.destino_id, Decimal("0")) + movimiento.monto
+    for patient_id, resumen in resumenes.items():
+        original = _decimal_seguro(resumen.get("total_pagado", 0))
+        resumen["total_pagado_sin_transferencias"] = original
+        resumen["ajuste_transferencias"] = ajustes.get(patient_id, Decimal("0"))
+        if resumen.get("ok"):
+            resumen["total_pagado"] = original + resumen["ajuste_transferencias"]
+    return resumenes
+
+
+def obtener_resumen_cobros_pacientes_bulk(patient_ids):
+    return _aplicar_transferencias(_resumen_cobros_pacientes_bulk_sin_transferencias(patient_ids))
+
+
+def obtener_detalle_cobros_paciente(paciente):
+    return _aplicar_transferencias({paciente.id: _detalle_cobros_paciente_sin_transferencias(paciente)})[paciente.id]
+
+
+@login_required
+def patient_credit_transfer(request, id):
+    import uuid
+    from django import forms
+    from django.core.exceptions import PermissionDenied
+    from activity.middleware import manager
+    from .models import PatientCreditTransfer
+
+    if not manager(request.user):
+        raise PermissionDenied("Solo los responsables pueden transferir saldos.")
+    origen = get_object_or_404(Patient, pk=id)
+
+    class PatientChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, paciente):
+            return f"{paciente} · C.I. {paciente.ci or 'sin documento'} · Ficha {paciente.pk}"
+
+    class TransferForm(forms.Form):
+        destino = PatientChoiceField(queryset=Patient.objects.exclude(pk=id).order_by("apellido", "nombre"), label="Paciente que recibe el saldo")
+        monto = forms.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"), label="Importe a transferir ($)")
+        motivo = forms.CharField(max_length=250, label="Tratamiento o motivo")
+        autorizado = forms.BooleanField(label="Confirmo que el titular del saldo autorizó este traspaso")
+        solicitud = forms.UUIDField(widget=forms.HiddenInput)
+
+    form = TransferForm(request.POST if request.method == "POST" else None, initial={"solicitud": uuid.uuid4()})
+    if request.method == "POST" and form.is_valid():
+        datos = form.cleaned_data
+        with transaction.atomic():
+            # Mismo orden en todas las transferencias: evita bloqueos cruzados.
+            list(Patient.objects.select_for_update().filter(pk__in=[id, datos["destino"].pk]).order_by("pk"))
+            anterior = PatientCreditTransfer.objects.filter(solicitud=datos["solicitud"]).first()
+            if anterior:
+                if (anterior.origen_id, anterior.destino_id, anterior.monto, anterior.motivo) != (id, datos["destino"].pk, datos["monto"], datos["motivo"]):
+                    form.add_error(None, "La solicitud ya fue utilizada. Volvé a abrir el formulario.")
+                else:
+                    messages.info(request, "Esta transferencia ya estaba registrada; no se duplicó.")
+                    return redirect("patient_finances", id=id)
+            else:
+                resumen = obtener_detalle_cobros_paciente(origen)
+                if not resumen.get("ok"):
+                    form.add_error(None, "No se pudo confirmar el saldo en Cobros. Intentá nuevamente.")
+                else:
+                    cargos = obtener_total_cobrable_paciente_desde_pro(origen)
+                    disponible = max(_decimal_seguro(resumen.get("total_pagado", 0)) - cargos, Decimal("0"))
+                    if datos["monto"] > disponible:
+                        form.add_error("monto", f"El saldo disponible es ${disponible:.2f}.")
+                    else:
+                        PatientCreditTransfer.objects.create(origen=origen, destino=datos["destino"], monto=datos["monto"], motivo=datos["motivo"], usuario=request.user.get_username(), solicitud=datos["solicitud"])
+                        messages.success(request, f"Se transfirieron ${datos['monto']:.2f} a {datos['destino']}. No se generaron movimientos de caja.")
+                        return redirect("patient_finances", id=id)
+    resumen = obtener_detalle_cobros_paciente(origen)
+    disponible = None
+    if resumen.get("ok"):
+        disponible = max(_decimal_seguro(resumen.get("total_pagado", 0)) - obtener_total_cobrable_paciente_desde_pro(origen), Decimal("0"))
+    return render(request, "core/patient_credit_transfer.html", {"paciente": origen, "form": form, "disponible": disponible})
