@@ -1,7 +1,11 @@
 <div class="d-flex align-items-center flex-wrap" style="gap:6px;">
     {% for procedimiento in cita.procedimientos %}
         {% with motivo=procedimiento|lower|slugify %}
-            {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+            {% if motivo == "carilla" %}
+                <span class="badge" style="background:#9b365d;">{{ procedimiento }}</span>
+            {% elif motivo == "tpi" %}
+                <span class="badge" style="background:#435b18;">{{ procedimiento }}</span>
+            {% elif "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
                 <span class="badge" style="background:#198754;">{{ procedimiento }}</span>
             {% elif "provisorio" in motivo %}
                 <span class="badge" style="background:#e67e22;">{{ procedimiento }}</span>
@@ -45,7 +49,11 @@
         {% endwith %}
     {% empty %}
         {% with motivo=cita.motivo|lower|slugify %}
-            {% if "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
+            {% if motivo == "carilla" %}
+                <span class="badge" style="background:#9b365d;">{{ cita.motivo }}</span>
+            {% elif motivo == "tpi" %}
+                <span class="badge" style="background:#435b18;">{{ cita.motivo }}</span>
+            {% elif "segunda" in motivo or "2da" in motivo or "recol" in motivo %}
                 <span class="badge" style="background:#198754;">{{ cita.motivo }}</span>
             {% elif "provisorio" in motivo %}
                 <span class="badge" style="background:#e67e22;">{{ cita.motivo }}</span>
