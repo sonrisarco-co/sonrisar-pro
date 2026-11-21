@@ -5306,6 +5306,12 @@ def color_cita_por_motivo(motivo):
 
     m = motivo.lower()
 
+    if m == "carilla":
+        return "#9b365d"
+
+    if m == "t.p.i":
+        return "#435b18"
+
     if "consulta" in m or "diagnóstico" in m or "diagnostico" in m or "valoración" in m or "valoracion" in m:
         return "#6b7280"  # gris
 
