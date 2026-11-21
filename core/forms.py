@@ -80,6 +80,8 @@ class AppointmentForm(forms.ModelForm):
         "Valoración",
         "Limpieza",
         "Resina",
+        "Carilla",
+        "T.P.I",
         "Ajuste (ortodoncia)",
         "Segunda colocación + ajuste",
         "Segunda colocación",
